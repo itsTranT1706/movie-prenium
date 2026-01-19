@@ -48,9 +48,10 @@ export default function MovieCard({ movie, enablePreview = true }: MovieCardProp
     };
 
     const cardContent = (
+        <div className="group relative flex-shrink-0 w-[120px] sm:w-[140px] lg:w-[160px] xl:w-[170px]">
         <Link
             href={`/movies/${movie.id}`}
-            className="group relative flex-shrink-0 w-[120px] sm:w-[140px] lg:w-[160px] xl:w-[170px] block"
+            className="block"
         >
             {/* Poster Container */}
             <div className="relative aspect-[2/3] overflow-hidden rounded-md bg-gray-800 ring-1 ring-white/5">
@@ -108,6 +109,7 @@ export default function MovieCard({ movie, enablePreview = true }: MovieCardProp
                 <p className="text-[10px] text-gray-500">{movie.year}</p>
             )}
         </Link>
+        </div>
     );
 
     // Wrap with HoverPreviewCard if enabled

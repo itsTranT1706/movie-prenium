@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Header, Footer } from "@/components/layout";
+import { AuthProviderWrapper } from "@/components/providers";
+import { ScrollToTop } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "PhePhim - Premium Movie Streaming",
@@ -15,16 +17,21 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="min-h-screen bg-black text-white font-sans antialiased">
-        {/* Fixed Header */}
-        <Header />
+        <AuthProviderWrapper>
+          {/* Fixed Header */}
+          <Header />
 
-        {/* Main Content */}
-        <main className="min-h-screen">
-          {children}
-        </main>
+          {/* Main Content */}
+          <main className="min-h-screen">
+            {children}
+          </main>
 
-        {/* Footer */}
-        <Footer />
+          {/* Footer */}
+          <Footer />
+
+          {/* Scroll to Top Button */}
+          <ScrollToTop />
+        </AuthProviderWrapper>
       </body>
     </html>
   );

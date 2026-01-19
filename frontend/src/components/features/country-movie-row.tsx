@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
 
 interface CountryMovie {
     id: string;
@@ -266,11 +267,21 @@ export default function CountryMovieRow({
                                 className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"
                             >
                                 {displayMovies.map((movie) => (
-                                    <Link
+                                    <HoverPreviewCard
                                         key={movie.id}
-                                        href={`/movie/${movie.id}`}
-                                        className="country-movie-card group/card flex-shrink-0"
+                                        movie={{
+                                            id: movie.id,
+                                            title: movie.title,
+                                            subtitle: movie.subtitle,
+                                            backdropUrl: movie.backdropUrl,
+                                            posterUrl: movie.backdropUrl,
+                                        }}
+                                        delay={600}
                                     >
+                                        <Link
+                                            href={`/movie/${movie.id}`}
+                                            className="country-movie-card group/card flex-shrink-0 block"
+                                        >
                                         {/* Card Container */}
                                         <div className="relative w-36 lg:w-44 aspect-[16/10] rounded-lg overflow-hidden">
                                             {/* Background Image */}
@@ -318,7 +329,8 @@ export default function CountryMovieRow({
                                             )}
                                         </div>
                                     </Link>
-                                ))}
+                                </HoverPreviewCard>
+                            ))}
                             </div>
                         </div>
                     </div>
@@ -405,11 +417,21 @@ function CountryMovieRowInner({
                     className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pr-16"
                 >
                     {displayMovies.map((movie) => (
-                        <Link
+                        <HoverPreviewCard
                             key={movie.id}
-                            href={`/movie/${movie.id}`}
-                            className="country-movie-card group/card flex-shrink-0"
+                            movie={{
+                                id: movie.id,
+                                title: movie.title,
+                                subtitle: movie.subtitle,
+                                backdropUrl: movie.backdropUrl,
+                                posterUrl: movie.backdropUrl,
+                            }}
+                            delay={600}
                         >
+                            <Link
+                                href={`/movie/${movie.id}`}
+                                className="country-movie-card group/card flex-shrink-0 block"
+                            >
                             <div className="relative w-44 lg:w-56 aspect-[16/10] rounded-lg overflow-hidden">
                                 <img
                                     src={movie.backdropUrl}
@@ -447,6 +469,7 @@ function CountryMovieRowInner({
                                 )}
                             </div>
                         </Link>
+                    </HoverPreviewCard>
                     ))}
                 </div>
             </div>

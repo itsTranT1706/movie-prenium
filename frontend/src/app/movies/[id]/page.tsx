@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
-import { Play, Plus, Star, Clock, Calendar, Film, ArrowLeft } from 'lucide-react';
-import { MovieRow } from '@/components/features';
+import { Play, Plus, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
+import { MovieRow, EpisodeSelector } from '@/components/features';
+import { useAuth } from '@/hooks';
 
 export default function MovieDetailPage({ params }: { params: { id: string } }) {
+    const { user } = useAuth();
     // Sample movie data - would come from API
     const movie = {
         id: params.id,
@@ -17,7 +21,52 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         genres: ['Sci-Fi', 'Adventure', 'Drama'],
         director: 'Denis Villeneuve',
         cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Josh Brolin'],
+        type: 'movie', // 'movie' or 'series'
     };
+
+    // Sample episodes data - always show at least episode 1
+    const seasons = [
+        {
+            id: 's1',
+            number: 1,
+            name: 'Phần 1',
+            episodes: movie.type !== 'series' 
+                ? [
+                    { id: 'e1', number: 1, title: 'The Beginning' },
+                    { id: 'e2', number: 2, title: 'The Journey' },
+                    { id: 'e3', number: 3, title: 'The Revelation' },
+                    { id: 'e4', number: 4, title: 'The Challenge' },
+                    { id: 'e5', number: 5, title: 'The Discovery' },
+                    { id: 'e6', number: 6, title: 'The Truth' },
+                    { id: 'e7', number: 7, title: 'The Battle' },
+                    { id: 'e8', number: 8, title: 'The Victory' },
+                    { id: 'e9', number: 9, title: 'The Aftermath' },
+                    { id: 'e10', number: 10, title: 'The Future' },
+                    { id: 'e11', number: 11, title: 'The Return' },
+                    { id: 'e12', number: 12, title: 'The End' },
+                ]
+                : [
+                    { id: 'e1', number: 1, title: movie.title },
+                ],
+        },
+    ];
+
+    // Sample comments data
+    const comments = [
+        { id: '1', user: 'Alex Chen', avatar: 'AC', text: 'Absolutely stunning visuals. Denis Villeneuve outdid himself.', time: '2 hours ago' },
+        { id: '2', user: 'Sarah Miller', avatar: 'SM', text: 'The soundtrack is incredible. Hans Zimmer never disappoints.', time: '5 hours ago' },
+        { id: '3', user: 'Mike Johnson', avatar: 'MJ', text: 'Best sci-fi film in years. Can\'t wait for Part Three.', time: '1 day ago' },
+    ];
+
+    // Sample top weekly movies data
+    const topWeeklyMovies = [
+        { id: '101', title: 'Tiếng Yêu Này, Anh Dịch Được Không?', subtitle: 'Can This Love Be Translated?', posterUrl: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg', season: 'T13', episode: 'Phần 1 • Tập 12' },
+        { id: '102', title: 'Yêu Hỉ', subtitle: 'Love Between Lines', posterUrl: 'https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg', season: 'T13', episode: 'Phần 1 • Tập 20' },
+        { id: '103', title: 'Ẩn Danh', subtitle: 'Taxi Driver', posterUrl: 'https://image.tmdb.org/t/p/w500/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg', season: 'T16', episode: 'Phần 3 • Tập 16' },
+        { id: '104', title: 'Ngọc Minh Trà Cốt', subtitle: 'Glory', posterUrl: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', season: 'T13', episode: 'Phần 1 • Tập 36' },
+        { id: '105', title: 'Avatar: Lửa và Tro Tàn', subtitle: 'Avatar: Fire and Ash', posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', season: 'T13', episode: '2025 • 3h 12m • CAM' },
+        { id: '106', title: 'Cậu Bé Mất Tích', subtitle: 'Stranger Things', posterUrl: 'https://image.tmdb.org/t/p/w500/5BHuvQ6p9kfc091Z8RiFNhCwL4b.jpg', season: 'T16', episode: 'Phần 5 • Tập 8' },
+    ];
 
     const similarMovies = [
         { id: '2', title: 'Dune', posterUrl: 'https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg', rating: 8.0, year: 2021, quality: '4K' },
@@ -138,8 +187,131 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                     </div>
                 </div>
 
+                {/* Main Content Section with 2 Columns */}
+                <div className="container mt-12">
+                    <div className="border-t border-white/10 pt-8">
+                        <div className="flex flex-col lg:flex-row gap-8 lg:gap-0">
+                            {/* Left Column: Episodes + Comments */}
+                            <div className="flex-1 lg:pr-8">
+                                {/* Episodes Section */}
+                                <EpisodeSelector
+                                    movieId={movie.id}
+                                    seasons={seasons}
+                                    currentSeasonId="s1"
+                                    currentEpisodeId="e1"
+                                    showSubtitleToggle={true}
+                                    showAutoPlay={false}
+                                    basePath="movies"
+                                />
+
+                                {/* Comments Section */}
+                                <div className="mt-12 pt-8 border-t border-white/10">
+                                    <h2 className="text-xl font-bold text-white mb-6">Bình luận</h2>
+                                    
+                                    {/* Comment Input */}
+                                    <div className="mb-6">
+                                        {user ? (
+                                            <>
+                                                <textarea
+                                                    placeholder="Thêm bình luận..."
+                                                    className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-white/20 resize-none"
+                                                    rows={3}
+                                                />
+                                                <div className="flex justify-end mt-2">
+                                                    <button className="px-4 py-2 bg-white text-black text-sm font-semibold rounded hover:bg-gray-200 transition-colors">
+                                                        Đăng
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="bg-white/5 border border-white/10 rounded px-4 py-3">
+                                                <p className="text-gray-400 text-sm text-center">
+                                                    <Link href="/login" className="text-white hover:underline">
+                                                        Đăng nhập
+                                                    </Link>
+                                                    {' '}để bình luận
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Comments List */}
+                                    <div className="space-y-0">
+                                        {comments.map((comment, index) => (
+                                            <div key={comment.id}>
+                                                <div className="py-3">
+                                                    <div className="flex gap-3">
+                                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-semibold">
+                                                            {comment.avatar}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-white text-sm font-semibold">
+                                                                    {comment.user}
+                                                                </span>
+                                                                <span className="text-gray-500 text-xs">
+                                                                    {comment.time}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-gray-300 text-sm leading-relaxed">
+                                                                {comment.text}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {index < comments.length - 1 && (
+                                                    <div className="border-t border-white/5" />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Top Movies This Week */}
+                            <div className="w-full lg:w-80 flex-shrink-0 lg:pl-8 lg:border-l lg:border-white/10">
+                                <h2 className="text-xl font-bold text-white mb-6">Top phim tuần này</h2>
+                                <div className="space-y-0">
+                                    {topWeeklyMovies.map((item, index) => (
+                                        <div key={item.id}>
+                                            <Link
+                                                href={`/movies/${item.id}`}
+                                                className="flex gap-3 py-3 hover:bg-white/5 transition-colors group"
+                                            >
+                                                <div className="flex-shrink-0 w-16 h-24 rounded overflow-hidden bg-white/5">
+                                                    <img
+                                                        src={item.posterUrl}
+                                                        alt={item.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-white text-sm font-semibold mb-1 line-clamp-2 group-hover:text-gray-200 transition-colors">
+                                                        {item.title}
+                                                    </h3>
+                                                    <p className="text-gray-400 text-xs mb-1">
+                                                        {item.subtitle}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                        <span>{item.season}</span>
+                                                        <span>•</span>
+                                                        <span>{item.episode}</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                            {index < topWeeklyMovies.length - 1 && (
+                                                <div className="border-t border-white/5" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Similar Movies */}
-                <div className="mt-8">
+                <div className="mt-12 pb-12">
                     <MovieRow
                         title="You May Also Like"
                         movies={similarMovies}

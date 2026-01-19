@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X } from 'lucide-react';
+import { useAuth } from '@/hooks';
 
 /**
  * Premium Header Component
@@ -11,10 +12,13 @@ import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X } from 'lucide-
  * - Smooth scroll transition
  */
 export default function Header() {
+    const { user } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isGenresOpen, setIsGenresOpen] = useState(false);
+    const [isCountriesOpen, setIsCountriesOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -28,8 +32,16 @@ export default function Header() {
         { href: '/', label: 'Home' },
         { href: '/movies', label: 'Movies' },
         { href: '/series', label: 'Series' },
-        { href: '/genres', label: 'Genres' },
-        { href: '/countries', label: 'Countries' },
+    ];
+
+    const genres = [
+        'Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Romance', 
+        'Thriller', 'Animation', 'Documentary', 'Fantasy'
+    ];
+
+    const countries = [
+        'USA', 'Korea', 'Japan', 'China', 'Thailand', 'India',
+        'UK', 'France', 'Spain', 'Hong Kong'
     ];
 
     return (
@@ -60,6 +72,75 @@ export default function Header() {
                                     {link.label}
                                 </Link>
                             ))}
+
+                            {/* Genres Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsGenresOpen(!isGenresOpen)}
+                                    onBlur={() => setTimeout(() => setIsGenresOpen(false), 150)}
+                                    className="flex items-center gap-1 text-sm text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <span>Genres</span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isGenresOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isGenresOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
+                                        <div className="grid grid-cols-2 gap-1 px-2">
+                                            {genres.map((genre) => (
+                                                <Link
+                                                    key={genre}
+                                                    href={`/genres/${genre.toLowerCase()}`}
+                                                    className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                                >
+                                                    {genre}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Countries Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsCountriesOpen(!isCountriesOpen)}
+                                    onBlur={() => setTimeout(() => setIsCountriesOpen(false), 150)}
+                                    className="flex items-center gap-1 text-sm text-gray-300 hover:text-white transition-colors"
+                                >
+                                    <span>Countries</span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isCountriesOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isCountriesOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
+                                        <div className="grid grid-cols-2 gap-1 px-2">
+                                            {countries.map((country) => (
+                                                <Link
+                                                    key={country}
+                                                    href={`/countries/${country.toLowerCase()}`}
+                                                    className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                                >
+                                                    {country}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <Link
+                                href="/coming-soon"
+                                className="text-sm text-gray-300 hover:text-white transition-colors"
+                            >
+                                Coming Soon
+                            </Link>
+                            <Link
+                                href="/watch-together"
+                                className="text-sm text-gray-300 hover:text-white transition-colors"
+                            >
+                                Watch Together
+                            </Link>
                         </nav>
 
                         {/* Right Actions */}
@@ -73,41 +154,52 @@ export default function Header() {
                                 <Search className="w-5 h-5" />
                             </button>
 
-                            {/* User Menu */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 150)}
-                                    className="flex items-center gap-1 p-1.5"
-                                >
-                                    <div className="w-7 h-7 rounded bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                                        <span className="text-white text-xs font-bold">U</span>
-                                    </div>
-                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-                                </button>
+                            {/* User Menu or Login Button */}
+                            {user ? (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                        onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 150)}
+                                        className="flex items-center gap-1 p-1.5"
+                                    >
+                                        <div className="w-7 h-7 rounded bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold">
+                                                {user.name?.charAt(0).toUpperCase() || 'U'}
+                                            </span>
+                                        </div>
+                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
 
-                                {isUserMenuOpen && (
-                                    <div className="absolute top-full right-0 mt-1 w-44 bg-gray-900 border border-gray-800 rounded-lg shadow-xl py-1 z-50">
-                                        <Link href="/account" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5">
-                                            <User className="w-4 h-4" />
-                                            <span>Account</span>
-                                        </Link>
-                                        <Link href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5">
-                                            <Heart className="w-4 h-4" />
-                                            <span>My List</span>
-                                        </Link>
-                                        <Link href="/continue-watching" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5">
-                                            <Play className="w-4 h-4" />
-                                            <span>Continue Watching</span>
-                                        </Link>
-                                        <hr className="my-1 border-gray-800" />
-                                        <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/5">
-                                            <LogOut className="w-4 h-4" />
-                                            <span>Sign Out</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                    {isUserMenuOpen && (
+                                        <div className="absolute top-full right-0 mt-1 w-44 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-1 z-50">
+                                            <Link href="/account" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                                <User className="w-4 h-4" />
+                                                <span>Account</span>
+                                            </Link>
+                                            <Link href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                                <Heart className="w-4 h-4" />
+                                                <span>My List</span>
+                                            </Link>
+                                            <Link href="/continue-watching" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                                <Play className="w-4 h-4" />
+                                                <span>Continue Watching</span>
+                                            </Link>
+                                            <hr className="my-1 border-white/10" />
+                                            <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/10">
+                                                <LogOut className="w-4 h-4" />
+                                                <span>Sign Out</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded transition-colors"
+                                >
+                                    Login
+                                </Link>
+                            )}
 
                             {/* Mobile Menu */}
                             <button
@@ -134,6 +226,20 @@ export default function Header() {
                                     {link.label}
                                 </Link>
                             ))}
+                            <Link
+                                href="/coming-soon"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="px-2 py-2 text-sm text-gray-300 hover:text-white"
+                            >
+                                Coming Soon
+                            </Link>
+                            <Link
+                                href="/watch-together"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="px-2 py-2 text-sm text-gray-300 hover:text-white"
+                            >
+                                Watch Together
+                            </Link>
                         </nav>
                     </div>
                 )}

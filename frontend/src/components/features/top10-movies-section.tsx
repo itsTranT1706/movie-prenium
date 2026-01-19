@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
 
 interface Top10Movie {
     id: string;
@@ -235,10 +236,23 @@ export default function Top10MoviesSection({
                                 </span>
 
                                 {/* Movie Card */}
-                                <Link
-                                    href={`/movie/${movie.id}`}
-                                    className="top10-card group/card flex-shrink-0 relative"
+                                <HoverPreviewCard
+                                    movie={{
+                                        id: movie.id,
+                                        title: movie.title,
+                                        subtitle: movie.subtitle,
+                                        posterUrl: movie.posterUrl,
+                                        year: movie.year,
+                                        duration: movie.duration,
+                                        ageRating: movie.ageRating,
+                                        quality: movie.quality,
+                                    }}
+                                    delay={600}
                                 >
+                                    <Link
+                                        href={`/movie/${movie.id}`}
+                                        className="top10-card group/card flex-shrink-0 relative block"
+                                    >
                                     {/* Glow Effect Container */}
                                     <div className="relative">
                                         {/* Glow Layer - Hidden by default, shows on hover */}
@@ -313,6 +327,7 @@ export default function Top10MoviesSection({
                                         </div>
                                     </div>
                                 </Link>
+                            </HoverPreviewCard>
                             </div>
                         ))}
                     </div>

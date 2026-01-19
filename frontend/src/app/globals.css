@@ -1,5 +1,41 @@
 @import "tailwindcss";
 
+/* Custom checkbox styling for filter sidebar */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border: 1.5px solid #4b5563;
+    border-radius: 0.25rem;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:hover {
+    border-color: #6b7280;
+}
+
+input[type="checkbox"]:checked {
+    background-color: white;
+    border-color: white;
+}
+
+input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.375rem;
+    height: 0.625rem;
+    border: solid #0a0a0a;
+    border-width: 0 2px 2px 0;
+    transform: translate(-50%, -60%) rotate(45deg);
+}
+
 /* Hide scrollbar for horizontal scroll */
 .scrollbar-hide {
     -ms-overflow-style: none;
@@ -140,6 +176,11 @@ body {
 
 .animate-scale-in {
     animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Ensure hover preview is always on top */
+.hover-preview-trigger {
+    isolation: isolate;
 }
 
 /* Tight section spacing - premium streaming feel */

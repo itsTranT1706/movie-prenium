@@ -8,3 +8,7 @@ export { default as CountryMovieRow, KoreanMoviesRow, ChineseMoviesRow, CountryM
 export { default as TheaterMoviesSection } from './theater-movies-section';
 export { default as Top10MoviesSection } from './top10-movies-section';
 export { default as UpcomingMoviesSection } from './upcoming-movies-section';
+export { MoviesGrid } from './movies-grid';
+export { FilterSidebar } from './filter-sidebar';
+export { MobileFilterDrawer } from './mobile-filter-drawer';
+export { EpisodeSelector } from './episode-selector';

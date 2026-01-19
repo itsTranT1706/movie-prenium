@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
 
 interface UpcomingMovie {
     id: string;
@@ -158,11 +159,21 @@ export default function UpcomingMoviesSection({
                         className="flex-1 flex gap-3 lg:gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
                     >
                         {movies.map((movie) => (
-                            <Link
+                            <HoverPreviewCard
                                 key={movie.id}
-                                href={`/movie/${movie.id}`}
-                                className="upcoming-movie-card group/card flex-shrink-0"
+                                movie={{
+                                    id: movie.id,
+                                    title: movie.title,
+                                    subtitle: movie.subtitle,
+                                    backdropUrl: movie.backdropUrl,
+                                    posterUrl: movie.backdropUrl,
+                                }}
+                                delay={600}
                             >
+                                <Link
+                                    href={`/movie/${movie.id}`}
+                                    className="upcoming-movie-card group/card flex-shrink-0 block"
+                                >
                                 {/* Card Container - Landscape aspect ratio */}
                                 <div className="relative w-48 lg:w-56 aspect-[16/10] rounded-xl overflow-hidden">
                                     {/* Background Image */}
@@ -205,6 +216,7 @@ export default function UpcomingMoviesSection({
                                     )}
                                 </div>
                             </Link>
+                        </HoverPreviewCard>
                         ))}
                     </div>
 
