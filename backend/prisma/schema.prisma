@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  avatar    String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  favorites   Favorite[]
+  watchHistory WatchHistory[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ============================================
+// MOVIE
+// ============================================
+
+model Movie {
+  id          String   @id @default(uuid())
+  externalId  String?  @unique // ID from external provider (TMDB, etc.)
+  title       String
+  description String?
+  posterUrl   String?
+  backdropUrl String?
+  releaseDate DateTime?
+  duration    Int?     // in minutes
+  rating      Float?
+  genres      String[] // Array of genre names
+  provider    String   @default("local") // 'tmdb', 'local', 'self-hosted'
+  streamUrl   String?  // URL for streaming (when self-hosted)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  favorites    Favorite[]
+  watchHistory WatchHistory[]
+  
+  @@map("movies")
+}
+
+// ============================================
+// FAVORITE
+// ============================================
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@map("favorites")
+}
+
+// ============================================
+// WATCH HISTORY (for recommendations)
+// ============================================
+
+model WatchHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  movieId    String
+  watchedAt  DateTime @default(now())
+  progress   Int      @default(0) // Progress in seconds
+  completed  Boolean  @default(false)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@map("watch_history")
+}
