@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Custom scrollbar for main content */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}
+
+/* CSS Variables for consistent theming */
+:root {
+    --background: #0a0a0a;
+    --foreground: #ffffff;
+    --card: #111111;
+    --card-foreground: #ffffff;
+    --primary: #e50914;
+    --primary-foreground: #ffffff;
+    --secondary: #141414;
+    --secondary-foreground: #ffffff;
+    --muted: #1a1a1a;
+    --muted-foreground: #808080;
+    --accent: #e50914;
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: #222222;
+    --input: #222222;
+    --ring: #e50914;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Cinema-style container - wider for immersive feel */
+.container {
+    width: 100%;
+    max-width: 1920px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+}
+
+@media (min-width: 1536px) {
+    .container {
+        padding-left: 4rem;
+        padding-right: 4rem;
+    }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Fade-in animation for lazy loaded content */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Scale-in animation for hover preview popup */
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Tight section spacing - premium streaming feel */
+.section-tight {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .section-tight {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+}
+
+/* Movie row gap adjustments */
+.movie-row-gap {
+    gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .movie-row-gap {
+        gap: 0.75rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .movie-row-gap {
+        gap: 1rem;
+    }
+}
+
+/* ============================================
+   Film Grain / Noise Texture Overlay
+   Cinematic effect for hero banners
+   ============================================ */
+
+/* Film grain overlay container */
+.film-grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+}
+
+/* Animated grain layer using SVG noise */
+.film-grain::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+    opacity: 0.06;
+    mix-blend-mode: soft-light;
+    animation: grain-shift 0.5s steps(4) infinite;
+}
+
+/* Secondary grain layer for depth */
+.film-grain::after {
+    content: '';
+    position: absolute;
+    inset: -25%;
+    width: 150%;
+    height: 150%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grainFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grainFilter)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    animation: grain-shift 0.8s steps(6) infinite reverse;
+}
+
+/* Subtle grain animation for organic feel */
+@keyframes grain-shift {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    25% {
+        transform: translate(-2%, -3%);
+    }
+
+    50% {
+        transform: translate(1%, 2%);
+    }
+
+    75% {
+        transform: translate(-1%, 1%);
+    }
+}
+
+/* ============================================
+   Hero Thumbnail Preview Strip
+   Netflix-style cinematic carousel
+   ============================================ */
+
+/* Thumbnail strip container */
+.hero-thumb-strip {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.75rem 2.5rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+    .hero-thumb-strip {
+        gap: 0.75rem;
+        padding: 1rem 3rem;
+    }
+}
+
+/* Individual thumbnail item */
+.hero-thumb-item {
+    flex-shrink: 0;
+    width: 70px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    opacity: 0.5;
+    transform: scale(1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+    background: rgba(20, 20, 20, 0.8);
+}
+
+@media (min-width: 640px) {
+    .hero-thumb-item {
+        width: 80px;
+        height: 115px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hero-thumb-item {
+        width: 90px;
+        height: 130px;
+        border-radius: 8px;
+    }
+}
+
+/* Thumbnail hover state */
+.hero-thumb-item:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Thumbnail active state */
+.hero-thumb-active {
+    opacity: 1;
+    transform: scale(1.08);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow:
+        0 0 20px rgba(255, 255, 255, 0.15),
+        0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.hero-thumb-active:hover {
+    opacity: 1;
+    transform: scale(1.08);
+    border-color: rgba(255, 255, 255, 1);
+}
+
+/* Thumbnail image */
+.hero-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* Navigation arrows */
+.hero-thumb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.hero-thumb-nav:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.hero-thumb-nav-left {
+    left: 0.5rem;
+}
+
+.hero-thumb-nav-right {
+    right: 0.5rem;
+}
+
+/* Show nav on container hover */
+.container:hover .hero-thumb-nav {
+    opacity: 1;
+}
+
+@media (min-width: 1024px) {
+    .hero-thumb-nav {
+        width: 40px;
+        height: 40px;
+    }
+
+    .hero-thumb-nav-left {
+        left: 1rem;
+    }
+
+    .hero-thumb-nav-right {
+        right: 1rem;
+    }
+}
