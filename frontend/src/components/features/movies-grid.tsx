@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
 import { MovieCard } from '@/components/features';
 import { Loader2 } from 'lucide-react';
 
@@ -56,6 +57,7 @@ export function MoviesGrid({ initialMovies = [], onLoadMore }: MoviesGridProps) 
             }
         } catch (error) {
             console.error('Failed to load more movies:', error);
+            toast.error('Không thể tải thêm phim. Vui lòng thử lại!');
         } finally {
             setIsLoading(false);
         }

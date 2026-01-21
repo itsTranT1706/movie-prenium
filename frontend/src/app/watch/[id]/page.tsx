@@ -8,11 +8,13 @@ import {
     Calendar,
     Clock
 } from 'lucide-react';
-import { EpisodeSelector } from '@/components/features';
-import { useAuth } from '@/hooks';
+import { toast } from 'sonner';
+import { EpisodeSelector, CommentSection } from '@/components/features';
+import { useAuth, useRequireAuth } from '@/hooks';
 
 export default function WatchPage({ params }: { params: { id: string } }) {
     const { user } = useAuth();
+    const requireAuth = useRequireAuth();
 
     // Sample movie data
     const movie = {
@@ -64,6 +66,31 @@ export default function WatchPage({ params }: { params: { id: string } }) {
         { id: '104', title: 'Ngọc Minh Trà Cốt', subtitle: 'Glory', posterUrl: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg', season: 'T13', episode: 'Phần 1 • Tập 36' },
         { id: '105', title: 'Avatar: Lửa và Tro Tàn', subtitle: 'Avatar: Fire and Ash', posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', season: 'T13', episode: '2025 • 3h 12m' },
     ];
+
+    const handleAddToFavorites = () => {
+        requireAuth(
+            () => {
+                console.log('Adding to favorites...');
+                toast.success('Đã thêm vào yêu thích!');
+            },
+            'Vui lòng đăng nhập để thêm vào yêu thích'
+        );
+    };
+
+    const handleAddToList = () => {
+        requireAuth(
+            () => {
+                console.log('Adding to list...');
+                toast.success('Đã thêm vào danh sách của bạn!');
+            },
+            'Vui lòng đăng nhập để lưu phim vào danh sách'
+        );
+    };
+
+    const handleSubmitComment = (text: string) => {
+        console.log('Submitting comment:', text);
+        toast.success('Bình luận đã được đăng!');
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] pt-16">
@@ -178,96 +205,51 @@ export default function WatchPage({ params }: { params: { id: string } }) {
 
                         {/* Action Buttons */}
                         <div className="flex-shrink-0 flex gap-2">
-                            <button className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors">
+                            <button 
+                                onClick={handleAddToFavorites}
+                                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                            >
                                 <Heart className="w-5 h-5" />
                             </button>
-                            <button className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors">
+                            <button 
+                                onClick={handleAddToList}
+                                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                            >
                                 <Plus className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Episodes Section */}
-                <div className="border-t border-white/10 pt-6 mb-8">
-                    <EpisodeSelector
-                        movieId={movie.id}
-                        seasons={seasons}
-                        currentSeasonId="s1"
-                        currentEpisodeId="e1"
-                        showSubtitleToggle={false}
-                        showAutoPlay={false}
-                        basePath="watch"
-                    />
-                </div>
-
-                {/* Comments & Top Movies Section */}
-                <div className="border-t border-white/10 pt-8">
-                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-0">
-                        {/* Comments - Left Column */}
-                        <div className="flex-1 lg:pr-8">
-                            <h2 className="text-xl font-bold text-white mb-6">Bình luận</h2>
-                            
-                            {/* Comment Input */}
-                            <div className="mb-6">
-                                {user ? (
-                                    <>
-                                        <textarea
-                                            placeholder="Thêm bình luận..."
-                                            className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-white/20 resize-none"
-                                            rows={3}
-                                        />
-                                        <div className="flex justify-end mt-2">
-                                            <button className="px-4 py-2 bg-white text-black text-sm font-semibold rounded hover:bg-gray-200 transition-colors">
-                                                Đăng
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="bg-white/5 border border-white/10 rounded px-4 py-3">
-                                        <p className="text-gray-400 text-sm text-center">
-                                            <Link href="/login" className="text-white hover:underline">
-                                                Đăng nhập
-                                            </Link>
-                                            {' '}để bình luận
-                                        </p>
-                                    </div>
-                                )}
+                {/* Episodes & Comments + Top Movies Section */}
+                <div className="border-t border-white/10 pt-6">
+                    <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Left Column: Episodes & Comments */}
+                        <div className="flex-1 min-w-0">
+                            {/* Episodes Section */}
+                            <div className="mb-8">
+                                <EpisodeSelector
+                                    movieId={movie.id}
+                                    seasons={seasons}
+                                    currentSeasonId="s1"
+                                    currentEpisodeId="e1"
+                                    showSubtitleToggle={false}
+                                    showAutoPlay={false}
+                                    basePath="watch"
+                                />
                             </div>
 
-                            {/* Comments List */}
-                            <div className="space-y-0">
-                                {comments.map((comment, index) => (
-                                    <div key={comment.id}>
-                                        <div className="py-3">
-                                            <div className="flex gap-3">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-semibold">
-                                                    {comment.avatar}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-white text-sm font-semibold">
-                                                            {comment.user}
-                                                        </span>
-                                                        <span className="text-gray-500 text-xs">
-                                                            {comment.time}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-gray-300 text-sm leading-relaxed">
-                                                        {comment.text}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {index < comments.length - 1 && (
-                                            <div className="border-t border-white/5" />
-                                        )}
-                                    </div>
-                                ))}
+                            {/* Comments Section */}
+                            <div className="border-t border-white/10 pt-8">
+                                <CommentSection
+                                    movieId={movie.id}
+                                    comments={comments}
+                                    onSubmitComment={handleSubmitComment}
+                                />
                             </div>
                         </div>
 
-                        {/* Top Movies This Week - Right Column */}
+                        {/* Right Column: Top Movies This Week */}
                         <div className="w-full lg:w-80 flex-shrink-0 lg:pl-8 lg:border-l lg:border-white/10">
                             <h2 className="text-xl font-bold text-white mb-6">Top phim tuần này</h2>
                             <div className="space-y-0">

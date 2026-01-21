@@ -6,10 +6,16 @@ export interface User {
     role: 'USER' | 'ADMIN';
 }
 
+export interface AuthResponse {
+    user: User;
+    accessToken: string;
+}
+
 export interface Movie {
     id: string;
     externalId?: string;
     title: string;
+    mediaType: 'movie' | 'tv';
     description?: string;
     posterUrl?: string;
     backdropUrl?: string;
@@ -19,18 +25,24 @@ export interface Movie {
     genres: string[];
 }
 
+export interface StreamSource {
+    provider: string;
+    serverName: string;
+    quality: string;
+    language: string;
+    episodes: Episode[];
+}
+
+export interface Episode {
+    episodeNumber: number;
+    title?: string;
+    slug: string;
+    streamUrl?: string;
+    embedUrl?: string;
+}
+
 export interface Favorite {
     id: string;
     movieId: string;
     createdAt: string;
-}
-
-export interface StreamManifest {
-    url: string;
-    type: 'hls' | 'dash' | 'progressive';
-    qualities: {
-        resolution: string;
-        bitrate: number;
-        url: string;
-    }[];
 }

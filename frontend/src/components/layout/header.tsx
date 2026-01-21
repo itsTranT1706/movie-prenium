@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 
 /**
@@ -12,7 +13,7 @@ import { useAuth } from '@/hooks';
  * - Smooth scroll transition
  */
 export default function Header() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -27,6 +28,12 @@ export default function Header() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const handleLogout = () => {
+        logout();
+        toast.info('Bạn đã đăng xuất');
+        setIsUserMenuOpen(false);
+    };
 
     const navLinks = [
         { href: '/', label: 'Home' },
@@ -185,7 +192,10 @@ export default function Header() {
                                                 <span>Continue Watching</span>
                                             </Link>
                                             <hr className="my-1 border-white/10" />
-                                            <button className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/10">
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/10"
+                                            >
                                                 <LogOut className="w-4 h-4" />
                                                 <span>Sign Out</span>
                                             </button>

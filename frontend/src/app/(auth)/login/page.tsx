@@ -1,11 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks';
 
 export default function LoginPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const { login, isAuthenticated } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const redirectTo = searchParams.get('redirect') || '/';
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.push(redirectTo);
+        }
+    }, [isAuthenticated, router, redirectTo]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        const result = await login(email, password);
+        
+        setIsLoading(false);
+
+        if (result.success) {
+            toast.success('Đăng nhập thành công!');
+            router.push(redirectTo);
+        } else {
+            toast.error(result.error || 'Đăng nhập thất bại');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-20">
@@ -24,7 +59,7 @@ export default function LoginPage() {
                 <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
                     <h1 className="text-xl font-bold text-white mb-6">Sign In</h1>
 
-                    <form className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Email */}
                         <div>
                             <label className="block text-xs text-gray-400 mb-1.5">Email</label>
@@ -33,7 +68,11 @@ export default function LoginPage() {
                                 <input
                                     type="email"
                                     placeholder="you@example.com"
-                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                    className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -46,7 +85,11 @@ export default function LoginPage() {
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="••••••••"
-                                    className="w-full pl-10 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                    className="w-full pl-10 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50"
                                 />
                                 <button
                                     type="button"
@@ -61,7 +104,12 @@ export default function LoginPage() {
                         {/* Remember & Forgot */}
                         <div className="flex items-center justify-between text-xs">
                             <label className="flex items-center gap-2 text-gray-400">
-                                <input type="checkbox" className="rounded bg-gray-800 border-gray-700" />
+                                <input 
+                                    type="checkbox" 
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="rounded bg-gray-800 border-gray-700" 
+                                />
                                 Remember me
                             </label>
                             <Link href="/forgot-password" className="text-red-500 hover:text-red-400">
@@ -72,10 +120,11 @@ export default function LoginPage() {
                         {/* Submit */}
                         <button
                             type="submit"
-                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-colors"
+                            disabled={isLoading}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span>Sign In</span>
-                            <ArrowRight className="w-4 h-4" />
+                            <span>{isLoading ? 'Signing in...' : 'Sign In'}</span>
+                            {!isLoading && <ArrowRight className="w-4 h-4" />}
                         </button>
                     </form>
 
@@ -87,7 +136,14 @@ export default function LoginPage() {
                     </div>
 
                     {/* Social Login */}
-                    <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors">
+                    <button 
+                        type="button"
+                        onClick={() => toast.info('Đăng nhập với Google', {
+                            description: 'Tính năng đang được phát triển. Vui lòng sử dụng email để đăng nhập!',
+                            duration: 4000,
+                        })}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+                    >
                         <svg className="w-4 h-4" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                             <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

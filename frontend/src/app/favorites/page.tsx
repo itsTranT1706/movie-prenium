@@ -1,8 +1,40 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { MovieCard } from '@/components/features';
+import { useAuth } from '@/hooks';
 
 export default function FavoritesPage() {
+    const router = useRouter();
+    const { isAuthenticated, isLoading } = useAuth();
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push('/login?redirect=/favorites');
+        }
+    }, [isAuthenticated, isLoading, router]);
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] pt-20 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Don't render if not authenticated
+    if (!isAuthenticated) {
+        return null;
+    }
+
     // Sample favorites - would come from user's saved list
     const favorites = [
         { id: '1', title: 'Dune: Part Two', posterUrl: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg', rating: 8.8, year: 2024, quality: '4K' },

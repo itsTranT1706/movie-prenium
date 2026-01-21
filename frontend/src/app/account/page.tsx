@@ -1,13 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, List, Eye, Bell, Shield, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 
 export default function AccountPage() {
-    const { user } = useAuth();
+    const router = useRouter();
+    const { user, isAuthenticated, isLoading, logout } = useAuth();
     const [activeTab, setActiveTab] = useState('watched');
+
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            router.push('/login?redirect=/account');
+        }
+    }, [isAuthenticated, isLoading, router]);
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0a] pt-20 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Don't render if not authenticated
+    if (!isAuthenticated || !user) {
+        return null;
+    }
 
     // Sample watched movies data
     const watchedMovies = [
@@ -45,11 +72,11 @@ export default function AccountPage() {
                                     </span>
                                 </div>
                                 <h2 className="text-white font-bold text-lg mb-1">
-                                    {user?.name || 'Trần Việt Tiến'}
+                                    {user.name || 'User'}
                                 </h2>
                                 <p className="text-gray-400 text-sm flex items-center gap-1">
                                     <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                                    {user?.email || 'Học viện Kỹ thuật Mật Mã'}
+                                    {user.email}
                                 </p>
                             </div>
 
@@ -82,7 +109,13 @@ export default function AccountPage() {
 
                             {/* Logout */}
                             <div className="mt-6 pt-6 border-t border-white/10">
-                                <button className="w-full px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors">
+                                <button 
+                                    onClick={() => {
+                                        logout();
+                                        toast.info('Bạn đã đăng xuất');
+                                    }}
+                                    className="w-full px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                                >
                                     Thoát
                                 </button>
                             </div>
@@ -102,7 +135,12 @@ export default function AccountPage() {
                                     {watchedMovies.map((movie) => (
                                         <div key={movie.id} className="group relative">
                                             {/* Remove Button */}
-                                            <button className="absolute top-2 right-2 z-10 w-6 h-6 bg-black/80 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button 
+                                                onClick={() => {
+                                                    toast.success('Đã xóa khỏi danh sách xem tiếp');
+                                                }}
+                                                className="absolute top-2 right-2 z-10 w-6 h-6 bg-black/80 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
                                                 <X className="w-4 h-4 text-white" />
                                             </button>
 

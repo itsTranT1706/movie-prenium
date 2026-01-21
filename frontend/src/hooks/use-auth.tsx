@@ -7,8 +7,9 @@ import { User } from '@/types';
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<boolean>;
-    register: (email: string, password: string, name?: string) => Promise<boolean>;
+    isAuthenticated: boolean;
+    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    register: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
 }
 
@@ -22,31 +23,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Check for existing token on mount
         const token = apiClient.getToken();
         if (token) {
-            // TODO: Validate token and fetch user
-            setIsLoading(false);
+            // Try to decode JWT to get user ID
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.userId) {
+                    // Fetch user details
+                    apiClient.getUser(payload.userId).then(response => {
+                        if (response.success && response.data) {
+                            setUser(response.data);
+                        } else {
+                            // Token invalid, clear it
+                            apiClient.setToken(null);
+                        }
+                        setIsLoading(false);
+                    }).catch(() => {
+                        apiClient.setToken(null);
+                        setIsLoading(false);
+                    });
+                } else {
+                    setIsLoading(false);
+                }
+            } catch {
+                // Invalid token format
+                apiClient.setToken(null);
+                setIsLoading(false);
+            }
         } else {
             setIsLoading(false);
         }
     }, []);
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-        const response = await apiClient.login(email, password);
-        if (response.success && response.data) {
-            apiClient.setToken(response.data.accessToken);
-            setUser(response.data.user);
-            return true;
+    const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const response = await apiClient.login(email, password);
+            if (response.success && response.data) {
+                apiClient.setToken(response.data.accessToken);
+                setUser(response.data.user);
+                return { success: true };
+            }
+            return { success: false, error: response.error || 'Login failed' };
+        } catch (error) {
+            return { success: false, error: 'Network error' };
         }
-        return false;
     };
 
-    const register = async (email: string, password: string, name?: string): Promise<boolean> => {
-        const response = await apiClient.register(email, password, name);
-        if (response.success && response.data) {
-            apiClient.setToken(response.data.accessToken);
-            setUser(response.data.user);
-            return true;
+    const register = async (email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const response = await apiClient.register(email, password, name);
+            if (response.success && response.data) {
+                apiClient.setToken(response.data.accessToken);
+                setUser(response.data.user);
+                return { success: true };
+            }
+            return { success: false, error: response.error || 'Registration failed' };
+        } catch (error) {
+            return { success: false, error: 'Network error' };
         }
-        return false;
     };
 
     const logout = () => {
@@ -55,7 +87,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            isLoading, 
+            isAuthenticated: !!user,
+            login, 
+            register, 
+            logout 
+        }}>
             {children}
         </AuthContext.Provider>
     );

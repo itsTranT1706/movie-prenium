@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Play, Plus, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
-import { MovieRow, EpisodeSelector } from '@/components/features';
-import { useAuth } from '@/hooks';
+import { toast } from 'sonner';
+import { MovieRow, EpisodeSelector, CommentSection } from '@/components/features';
+import { useAuth, useRequireAuth } from '@/hooks';
 
 export default function MovieDetailPage({ params }: { params: { id: string } }) {
     const { user } = useAuth();
+    const requireAuth = useRequireAuth();
     // Sample movie data - would come from API
     const movie = {
         id: params.id,
@@ -76,6 +79,23 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
         { id: '6', title: 'The Martian', posterUrl: 'https://image.tmdb.org/t/p/w500/5BHuvQ6p9kfc091Z8RiFNhCwL4b.jpg', rating: 8.0, year: 2015, quality: 'HD' },
         { id: '7', title: 'Sicario', posterUrl: 'https://image.tmdb.org/t/p/w500/8dp7M8MOkyK7DhnVVnjpIFvPKZ0.jpg', rating: 7.6, year: 2015, quality: 'HD' },
     ];
+
+    const handleAddToList = () => {
+        requireAuth(
+            () => {
+                // Add to list logic
+                console.log('Adding to list...');
+                toast.success('Đã thêm vào danh sách của bạn!');
+            },
+            'Vui lòng đăng nhập để lưu phim vào danh sách'
+        );
+    };
+
+    const handleSubmitComment = (text: string) => {
+        // Submit comment logic
+        console.log('Submitting comment:', text);
+        toast.success('Bình luận đã được đăng!');
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a]">
@@ -166,7 +186,10 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
                                     <Play className="w-5 h-5 fill-black" />
                                     <span>Play</span>
                                 </Link>
-                                <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-700/50 text-white font-semibold text-sm rounded hover:bg-gray-700 transition-colors">
+                                <button 
+                                    onClick={handleAddToList}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-700/50 text-white font-semibold text-sm rounded hover:bg-gray-700 transition-colors"
+                                >
                                     <Plus className="w-5 h-5" />
                                     <span>My List</span>
                                 </button>
@@ -206,65 +229,11 @@ export default function MovieDetailPage({ params }: { params: { id: string } }) 
 
                                 {/* Comments Section */}
                                 <div className="mt-12 pt-8 border-t border-white/10">
-                                    <h2 className="text-xl font-bold text-white mb-6">Bình luận</h2>
-                                    
-                                    {/* Comment Input */}
-                                    <div className="mb-6">
-                                        {user ? (
-                                            <>
-                                                <textarea
-                                                    placeholder="Thêm bình luận..."
-                                                    className="w-full bg-white/5 border border-white/10 rounded px-4 py-3 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-white/20 resize-none"
-                                                    rows={3}
-                                                />
-                                                <div className="flex justify-end mt-2">
-                                                    <button className="px-4 py-2 bg-white text-black text-sm font-semibold rounded hover:bg-gray-200 transition-colors">
-                                                        Đăng
-                                                    </button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="bg-white/5 border border-white/10 rounded px-4 py-3">
-                                                <p className="text-gray-400 text-sm text-center">
-                                                    <Link href="/login" className="text-white hover:underline">
-                                                        Đăng nhập
-                                                    </Link>
-                                                    {' '}để bình luận
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Comments List */}
-                                    <div className="space-y-0">
-                                        {comments.map((comment, index) => (
-                                            <div key={comment.id}>
-                                                <div className="py-3">
-                                                    <div className="flex gap-3">
-                                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-semibold">
-                                                            {comment.avatar}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="text-white text-sm font-semibold">
-                                                                    {comment.user}
-                                                                </span>
-                                                                <span className="text-gray-500 text-xs">
-                                                                    {comment.time}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-gray-300 text-sm leading-relaxed">
-                                                                {comment.text}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {index < comments.length - 1 && (
-                                                    <div className="border-t border-white/5" />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <CommentSection
+                                        movieId={movie.id}
+                                        comments={comments}
+                                        onSubmitComment={handleSubmitComment}
+                                    />
                                 </div>
                             </div>
 

@@ -12,3 +12,4 @@ export { MoviesGrid } from './movies-grid';
 export { FilterSidebar } from './filter-sidebar';
 export { MobileFilterDrawer } from './mobile-filter-drawer';
 export { EpisodeSelector } from './episode-selector';
+export { CommentSection } from './comment-section';
