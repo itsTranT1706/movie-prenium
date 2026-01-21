@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ============================================
@@ -40,25 +39,31 @@ enum UserRole {
 // ============================================
 
 model Movie {
-  id          String   @id @default(uuid())
-  externalId  String?  @unique // ID from external provider (TMDB, etc.)
+  id          String    @id @default(uuid())
+  externalId  String?   @unique // ID from external provider (TMDB, etc.)
   title       String
+  mediaType   MediaType @default(MOVIE) // 'movie' or 'tv'
   description String?
   posterUrl   String?
   backdropUrl String?
   releaseDate DateTime?
-  duration    Int?     // in minutes
+  duration    Int?      // in minutes
   rating      Float?
-  genres      String[] // Array of genre names
-  provider    String   @default("local") // 'tmdb', 'local', 'self-hosted'
-  streamUrl   String?  // URL for streaming (when self-hosted)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  genres      String[]  // Array of genre names
+  provider    String    @default("local") // 'tmdb', 'local', 'self-hosted'
+  streamUrl   String?   // URL for streaming (when self-hosted)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   favorites    Favorite[]
   watchHistory WatchHistory[]
   
   @@map("movies")
+}
+
+enum MediaType {
+  MOVIE
+  TV
 }
 
 // ============================================
