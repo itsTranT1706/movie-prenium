@@ -1,0 +1,352 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { TMDBConfigService } from './tmdb.config';
+
+/**
+ * TMDB API Response interfaces
+ */
+export interface TMDBMovie {
+    id: number;
+    title: string;
+    original_title: string;
+    overview: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    release_date: string;
+    runtime?: number;
+    vote_average: number;
+    vote_count: number;
+    genre_ids?: number[];
+    genres?: { id: number; name: string }[];
+    popularity: number;
+    adult: boolean;
+    video: boolean;
+}
+
+export interface TMDBSearchResponse {
+    page: number;
+    results: TMDBMovie[];
+    total_pages: number;
+    total_results: number;
+}
+
+export interface TMDBGenre {
+    id: number;
+    name: string;
+}
+
+export interface TMDBGenresResponse {
+    genres: TMDBGenre[];
+}
+
+/**
+ * TMDB TV Show interface
+ */
+export interface TMDBTVShow {
+    id: number;
+    name: string;
+    original_name: string;
+    overview: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    first_air_date: string;
+    last_air_date?: string;
+    number_of_seasons?: number;
+    number_of_episodes?: number;
+    episode_run_time?: number[];
+    vote_average: number;
+    vote_count: number;
+    genre_ids?: number[];
+    genres?: { id: number; name: string }[];
+    popularity: number;
+    origin_country: string[];
+    status?: string;
+}
+
+export interface TMDBTVSearchResponse {
+    page: number;
+    results: TMDBTVShow[];
+    total_pages: number;
+    total_results: number;
+}
+
+export interface TMDBVideo {
+    id: string;
+    key: string;
+    name: string;
+    site: string;
+    size: number;
+    type: string;
+    official: boolean;
+}
+
+export interface TMDBVideosResponse {
+    id: number;
+    results: TMDBVideo[];
+}
+
+/**
+ * TMDB API Client - HTTP wrapper for TMDB API calls
+ */
+@Injectable()
+export class TMDBApiClient {
+    private readonly logger = new Logger(TMDBApiClient.name);
+    private genreMap: Map<number, string> = new Map();
+
+    constructor(private readonly config: TMDBConfigService) {
+        // Initialize genre map on startup
+        this.initGenreMap();
+    }
+
+    /**
+     * Generic GET request to TMDB API
+     */
+    async get<T>(endpoint: string, params: Record<string, string | number> = {}): Promise<T> {
+        const url = new URL(`${this.config.baseUrl}${endpoint}`);
+        url.searchParams.set('api_key', this.config.apiKey);
+        url.searchParams.set('language', 'vi-VN'); // Vietnamese locale
+
+        for (const [key, value] of Object.entries(params)) {
+            url.searchParams.set(key, String(value));
+        }
+
+        this.logger.debug(`Fetching: ${endpoint}`);
+
+        const response = await fetch(url.toString());
+
+        if (!response.ok) {
+            const error = await response.text();
+            this.logger.error(`TMDB API Error: ${response.status} - ${error}`);
+            throw new Error(`TMDB API Error: ${response.status}`);
+        }
+
+        return response.json() as Promise<T>;
+    }
+
+    /**
+     * Search for movies by query
+     */
+    async searchMovies(query: string, page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/search/movie', { query, page });
+    }
+
+    /**
+     * Get movie details by ID
+     */
+    async getMovieDetails(movieId: number | string): Promise<TMDBMovie> {
+        return this.get<TMDBMovie>(`/movie/${movieId}`);
+    }
+
+    /**
+     * Get popular movies
+     */
+    async getPopularMovies(page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/movie/popular', { page });
+    }
+
+    /**
+     * Discover movies by genre
+     */
+    async discoverByGenre(genreId: number, page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/discover/movie', {
+            with_genres: genreId,
+            page,
+        });
+    }
+
+    /**
+     * Get trending movies
+     */
+    async getTrendingMovies(timeWindow: 'day' | 'week' = 'week'): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>(`/trending/movie/${timeWindow}`);
+    }
+
+    /**
+     * Get upcoming movies
+     */
+    async getUpcomingMovies(page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/movie/upcoming', { page });
+    }
+
+    /**
+     * Get top rated movies
+     */
+    async getTopRatedMovies(page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/movie/top_rated', { page });
+    }
+
+    /**
+     * Get now playing movies
+     */
+    async getNowPlayingMovies(page = 1): Promise<TMDBSearchResponse> {
+        return this.get<TMDBSearchResponse>('/movie/now_playing', { page });
+    }
+
+    // ============ TV SHOW METHODS ============
+
+    /**
+     * Search for TV shows by query
+     */
+    async searchTVShows(query: string, page = 1): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>('/search/tv', { query, page });
+    }
+
+    /**
+     * Get TV show details by ID
+     */
+    async getTVShowDetails(tvId: number | string): Promise<TMDBTVShow> {
+        return this.get<TMDBTVShow>(`/tv/${tvId}`);
+    }
+
+    /**
+     * Get popular TV shows
+     */
+    async getPopularTVShows(page = 1): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>('/tv/popular', { page });
+    }
+
+    /**
+     * Get trending TV shows
+     */
+    async getTrendingTVShows(timeWindow: 'day' | 'week' = 'week'): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>(`/trending/tv/${timeWindow}`);
+    }
+
+    /**
+     * Get top rated TV shows
+     */
+    async getTopRatedTVShows(page = 1): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>('/tv/top_rated', { page });
+    }
+
+    /**
+     * Get TV shows airing today
+     */
+    async getTVShowsAiringToday(page = 1): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>('/tv/airing_today', { page });
+    }
+
+    /**
+     * Get TV shows on the air (currently airing)
+     */
+    async getTVShowsOnTheAir(page = 1): Promise<TMDBTVSearchResponse> {
+        return this.get<TMDBTVSearchResponse>('/tv/on_the_air', { page });
+    }
+
+    /**
+     * Get TV show videos (trailers, teasers, etc.)
+     */
+    async getTVShowVideos(tvId: number | string): Promise<TMDBVideosResponse> {
+        return this.get<TMDBVideosResponse>(`/tv/${tvId}/videos`);
+    }
+
+    /**
+     * Get YouTube trailer URL for a TV show
+     */
+    async getTVTrailerUrl(tvId: number | string): Promise<string | undefined> {
+        try {
+            const response = await this.getTVShowVideos(tvId);
+            const trailer = response.results.find(
+                (video) => video.site === 'YouTube' &&
+                    (video.type === 'Trailer' || video.type === 'Teaser') &&
+                    video.official
+            ) || response.results.find(
+                (video) => video.site === 'YouTube' &&
+                    (video.type === 'Trailer' || video.type === 'Teaser')
+            );
+
+            if (trailer) {
+                return `https://www.youtube.com/watch?v=${trailer.key}`;
+            }
+            return undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Get all TV genres
+     */
+    async getTVGenres(): Promise<TMDBGenresResponse> {
+        return this.get<TMDBGenresResponse>('/genre/tv/list');
+    }
+
+    // ============ END TV SHOW METHODS ============
+
+    /**
+     * Get all movie genres
+     */
+    async getGenres(): Promise<TMDBGenresResponse> {
+        return this.get<TMDBGenresResponse>('/genre/movie/list');
+    }
+
+    /**
+     * Get movie videos (trailers, teasers, etc.)
+     */
+    async getMovieVideos(movieId: number | string): Promise<TMDBVideosResponse> {
+        return this.get<TMDBVideosResponse>(`/movie/${movieId}/videos`);
+    }
+
+    /**
+     * Get YouTube trailer URL for a movie
+     */
+    async getTrailerUrl(movieId: number | string): Promise<string | undefined> {
+        try {
+            const response = await this.getMovieVideos(movieId);
+            // Find official YouTube trailer
+            const trailer = response.results.find(
+                (video) => video.site === 'YouTube' &&
+                    (video.type === 'Trailer' || video.type === 'Teaser') &&
+                    video.official
+            ) || response.results.find(
+                (video) => video.site === 'YouTube' &&
+                    (video.type === 'Trailer' || video.type === 'Teaser')
+            );
+
+            if (trailer) {
+                return `https://www.youtube.com/watch?v=${trailer.key}`;
+            }
+            return undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    /**
+     * Initialize genre map for ID to name conversion
+     */
+    private async initGenreMap(): Promise<void> {
+        try {
+            const response = await this.getGenres();
+            for (const genre of response.genres) {
+                this.genreMap.set(genre.id, genre.name);
+            }
+            this.logger.log(`Loaded ${this.genreMap.size} genres from TMDB`);
+        } catch (error) {
+            this.logger.warn('Failed to load genres from TMDB, will retry on demand');
+        }
+    }
+
+    /**
+     * Convert genre IDs to names
+     */
+    getGenreNames(genreIds: number[]): string[] {
+        return genreIds
+            .map((id) => this.genreMap.get(id))
+            .filter((name): name is string => !!name);
+    }
+
+    /**
+     * Get genre ID by name
+     */
+    async getGenreIdByName(genreName: string): Promise<number | undefined> {
+        if (this.genreMap.size === 0) {
+            await this.initGenreMap();
+        }
+        for (const [id, name] of this.genreMap.entries()) {
+            if (name.toLowerCase() === genreName.toLowerCase()) {
+                return id;
+            }
+        }
+        return undefined;
+    }
+}

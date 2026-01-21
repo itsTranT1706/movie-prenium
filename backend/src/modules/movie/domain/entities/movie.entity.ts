@@ -3,9 +3,11 @@ import { BaseEntity } from '@/shared/domain';
 export interface MovieProps {
     externalId?: string;
     title: string;
+    mediaType: 'movie' | 'tv';
     description?: string;
     posterUrl?: string;
     backdropUrl?: string;
+    trailerUrl?: string;
     releaseDate?: Date;
     duration?: number;
     rating?: number;
@@ -33,6 +35,10 @@ export class Movie extends BaseEntity<string> {
 
     get title(): string {
         return this.props.title;
+    }
+
+    get mediaType(): 'movie' | 'tv' {
+        return this.props.mediaType;
     }
 
     get description(): string | undefined {
@@ -69,6 +75,10 @@ export class Movie extends BaseEntity<string> {
 
     get streamUrl(): string | undefined {
         return this.props.streamUrl;
+    }
+
+    get trailerUrl(): string | undefined {
+        return this.props.trailerUrl;
     }
 
     get createdAt(): Date {

@@ -13,6 +13,9 @@ export interface MovieProviderPort {
     getMovieDetails(externalId: string): Promise<Movie | null>;
     getPopularMovies(page?: number): Promise<Movie[]>;
     getMoviesByGenre(genre: string, page?: number): Promise<Movie[]>;
+    getTrendingMovies(timeWindow?: 'day' | 'week'): Promise<Movie[]>;
+    getUpcomingMovies(page?: number): Promise<Movie[]>;
+    getCinemaMovies?(page?: number, limit?: number): Promise<Movie[]>;
 }
 
 export const MOVIE_PROVIDER = Symbol('MOVIE_PROVIDER');

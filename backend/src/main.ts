@@ -24,8 +24,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // API prefix
-  app.setGlobalPrefix('api');
+  // API prefix (RESTful versioning)
+  app.setGlobalPrefix('api/v1');
 
   await app.listen(port);
   console.log(`🚀 Backend running on http://localhost:${port}`);

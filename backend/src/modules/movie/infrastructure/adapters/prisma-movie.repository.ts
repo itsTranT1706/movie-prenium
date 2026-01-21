@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { MediaType } from '@prisma/client';
 import { PrismaService } from '@/shared/infrastructure/prisma';
 import { Movie, MovieRepositoryPort } from '../../domain';
 
@@ -46,6 +47,7 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
         const data = {
             externalId: entity.externalId,
             title: entity.title,
+            mediaType: entity.mediaType === 'movie' ? MediaType.MOVIE : MediaType.TV,
             description: entity.description,
             posterUrl: entity.posterUrl,
             backdropUrl: entity.backdropUrl,
@@ -79,6 +81,7 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
         return Movie.create(raw.id, {
             externalId: raw.externalId,
             title: raw.title,
+            mediaType: raw.mediaType === MediaType.TV ? 'tv' : 'movie',
             description: raw.description,
             posterUrl: raw.posterUrl,
             backdropUrl: raw.backdropUrl,

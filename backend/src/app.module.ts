@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './shared/infrastructure/prisma';
+import { TMDBModule } from './shared/infrastructure/tmdb';
 
 // Domain Modules
 import { AuthModule } from './modules/auth/infrastructure/auth.module';
@@ -19,8 +20,9 @@ import { AIModule } from './modules/ai/infrastructure/ai.module';
       envFilePath: '.env',
     }),
 
-    // Database
+    // Database & External Services
     PrismaModule,
+    TMDBModule,
 
     // Business Modules
     AuthModule,
