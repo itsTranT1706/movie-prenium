@@ -6,6 +6,7 @@ import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
 
 export interface Movie {
     id: string;
+    externalId?: string;
     title: string;
     posterUrl?: string;
     backdropUrl?: string;
@@ -33,9 +34,13 @@ interface MovieCardProps {
  * - Netflix-style hover preview
  */
 export default function MovieCard({ movie, enablePreview = true }: MovieCardProps) {
+    // Use externalId (TMDB ID) for links, fallback to internal ID
+    const movieLink = movie.externalId || movie.id;
+    
     // Convert Movie to MoviePreviewData
     const previewData: MoviePreviewData = {
         id: movie.id,
+        externalId: movie.externalId,
         title: movie.title,
         posterUrl: movie.posterUrl,
         backdropUrl: movie.backdropUrl,
@@ -50,7 +55,7 @@ export default function MovieCard({ movie, enablePreview = true }: MovieCardProp
     const cardContent = (
         <div className="group relative flex-shrink-0 w-[120px] sm:w-[140px] lg:w-[160px] xl:w-[170px]">
         <Link
-            href={`/movies/${movie.id}`}
+            href={`/movies/${movieLink}`}
             className="block"
         >
             {/* Poster Container */}
@@ -102,11 +107,11 @@ export default function MovieCard({ movie, enablePreview = true }: MovieCardProp
             </div>
 
             {/* Title - Compact */}
-            <h3 className="mt-1.5 text-xs font-medium text-gray-300 truncate group-hover:text-white transition-colors">
+            <h3 className="mt-1.5 text-sm lg:text-base font-medium text-gray-300 truncate group-hover:text-white transition-colors">
                 {movie.title}
             </h3>
             {movie.year && (
-                <p className="text-[10px] text-gray-500">{movie.year}</p>
+                <p className="text-xs lg:text-sm text-gray-500">{movie.year}</p>
             )}
         </Link>
         </div>

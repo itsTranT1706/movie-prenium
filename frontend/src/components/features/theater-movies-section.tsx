@@ -4,91 +4,26 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronRight, ChevronLeft, Volume2, VolumeX } from 'lucide-react';
 
-interface TheaterMovie {
+export interface TheaterMovie {
     id: string;
     title: string;
     subtitle?: string;
-    backdropUrl?: string; // Optional - if empty, use trailerUrl
-    trailerUrl?: string;  // Video trailer URL
+    backdropUrl?: string;
+    trailerUrl?: string;
     posterUrl: string;
     ageRating?: string;
     year: number;
     duration?: string;
-    hasPDE?: boolean;
-    hasTMinh?: boolean;
+    rating?: number;
+    genres?: string[];
 }
 
 interface TheaterMoviesSectionProps {
     title?: string;
     href?: string;
-    movies?: TheaterMovie[];
-    autoPlayInterval?: number; // Auto advance interval in ms (default 5000)
+    movies: TheaterMovie[];
+    autoPlayInterval?: number;
 }
-
-// Default theater movies
-const defaultTheaterMovies: TheaterMovie[] = [
-    {
-        id: 't1',
-        title: 'Chọn Chồng Nơi Chín Suối',
-        subtitle: 'Eternity',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/u8DU5fkLoM5tTRukzPC31oGPxaQ.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
-        ageRating: 'T16',
-        year: 2025,
-        duration: '1h 54m',
-        hasPDE: true,
-        hasTMinh: true,
-    },
-    {
-        id: 't2',
-        title: 'Avatar: Lửa và Tro Tàn',
-        subtitle: 'Avatar: Fire and Ash',
-        // No backdrop - will use trailer
-        trailerUrl: 'https://youtu.be/yeR5bcbRPak',
-        posterUrl: 'https://image.tmdb.org/t/p/original/bRBeSHfGHwkEpImlhxPmOcUsaeg.jpg',
-        ageRating: 'T13',
-        year: 2025,
-        duration: '3h 12m',
-        hasPDE: true,
-        hasTMinh: true,
-    },
-    {
-        id: 't3',
-        title: 'Chợ Đen Thời Tận Thế',
-        subtitle: 'Concrete Market',
-        backdropUrl: 'https://image.tmdb.org/t/p/w780/rktDFPbfHfUbArZ6OOOKsXcv0Bm.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w342/rktDFPbfHfUbArZ6OOOKsXcv0Bm.jpg',
-        ageRating: 'T18',
-        year: 2025,
-        duration: '2h 03m',
-        hasPDE: true,
-    },
-    {
-        id: 't4',
-        title: 'Năm Đêm Kinh Hoàng 2',
-        subtitle: "Five Nights at Freddy's 2",
-        trailerUrl: 'https://youtu.be/b9EkMc79ZSU',
-        // backdropUrl: 'https://image.tmdb.org/t/p/w780/jGIPYLDfOcA3M3I0tJ0Zfhuz7hY.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/original/olAK0DWZmTpqRTRyNpqFUxKGbw6.jpg',
-        ageRating: 'T16',
-        year: 2025,
-        duration: '1h 44m',
-        hasPDE: true,
-        hasTMinh: true,
-    },
-    {
-        id: 't5',
-        title: 'Thunderbolts*',
-        subtitle: 'Thunderbolts*',
-        trailerUrl: 'https://youtu.be/59WTgd35QyQ',
-        // backdropUrl: 'https://image.tmdb.org/t/p/w780/oSxPbO5CbCuJXvLcLR8eqUCaj9M.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/original/olAK0DWZmTpqRTRyNpqFUxKGbw6.jpg',
-        ageRating: 'T13',
-        year: 2025,
-        duration: '2h 07m',
-        hasTMinh: true,
-    },
-];
 
 /**
  * Extract YouTube video ID from various URL formats
@@ -113,14 +48,14 @@ function isYouTubeUrl(url: string): boolean {
 }
 
 /**
- * Theater Movies Section Component
+ * Theater Movies Section Component (Client)
  * Backdrop/Trailer with poster overlay design
  * Auto-advances every 5s or when trailer ends
  */
 export default function TheaterMoviesSection({
     title = 'Theater Movies is coming soon',
     href = '/movies/theater',
-    movies = defaultTheaterMovies,
+    movies,
     autoPlayInterval = 4000,
 }: TheaterMoviesSectionProps) {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -130,49 +65,56 @@ export default function TheaterMoviesSection({
     const videoRef = useRef<HTMLVideoElement>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const activeMovie = movies[activeIndex];
-    const hasTrailer = !activeMovie.backdropUrl && activeMovie.trailerUrl;
-    const isYouTube = hasTrailer && activeMovie.trailerUrl && isYouTubeUrl(activeMovie.trailerUrl);
-    const youtubeVideoId = isYouTube && activeMovie.trailerUrl ? getYouTubeVideoId(activeMovie.trailerUrl) : null;
+    const activeMovie = movies.length > 0 ? movies[activeIndex] : null;
+    // Prioritize trailer over backdrop if available
+    const hasTrailer = activeMovie && !!activeMovie.trailerUrl;
+    const isYouTube = hasTrailer && activeMovie?.trailerUrl && isYouTubeUrl(activeMovie.trailerUrl);
+    const youtubeVideoId = isYouTube && activeMovie?.trailerUrl ? getYouTubeVideoId(activeMovie.trailerUrl) : null;
 
     // Smooth transition helper
-    const transitionTo = (newIndex: number) => {
+    const transitionTo = useCallback((newIndex: number) => {
         if (isTransitioning) return;
         setIsTransitioning(true);
         setTimeout(() => {
             setActiveIndex(newIndex);
             setTimeout(() => setIsTransitioning(false), 50);
         }, 300);
-    };
+    }, [isTransitioning]);
 
     // Go to next movie
     const goToNext = useCallback(() => {
+        if (movies.length === 0) return;
         const newIndex = activeIndex === movies.length - 1 ? 0 : activeIndex + 1;
         transitionTo(newIndex);
-    }, [activeIndex, movies.length, isTransitioning]);
+    }, [activeIndex, movies.length, transitionTo]);
 
     // Go to previous movie
-    const goToPrev = () => {
+    const goToPrev = useCallback(() => {
+        if (movies.length === 0) return;
         const newIndex = activeIndex === 0 ? movies.length - 1 : activeIndex - 1;
         transitionTo(newIndex);
-    };
+    }, [activeIndex, movies.length, transitionTo]);
 
     // Handle trailer end
-    const handleTrailerEnd = () => {
+    const handleTrailerEnd = useCallback(() => {
         goToNext();
-    };
+    }, [goToNext]);
 
     // Toggle mute
-    const toggleMute = () => {
+    const toggleMute = useCallback(() => {
         setIsMuted((prev) => !prev);
         if (videoRef.current) {
             videoRef.current.muted = !isMuted;
         }
-    };
+    }, [isMuted]);
+
+    // Pause on hover
+    const handleMouseEnter = useCallback(() => setIsPaused(true), []);
+    const handleMouseLeave = useCallback(() => setIsPaused(false), []);
 
     // Auto-advance timer
     useEffect(() => {
-        if (isPaused) return;
+        if (isPaused || movies.length === 0) return;
 
         // Clear existing timer
         if (timerRef.current) {
@@ -192,11 +134,16 @@ export default function TheaterMoviesSection({
                 clearTimeout(timerRef.current);
             }
         };
-    }, [activeIndex, isPaused, hasTrailer, autoPlayInterval, goToNext]);
+    }, [activeIndex, isPaused, hasTrailer, autoPlayInterval, goToNext, movies.length]);
 
-    // Pause on hover
-    const handleMouseEnter = () => setIsPaused(true);
-    const handleMouseLeave = () => setIsPaused(false);
+    // Show empty state if no movies
+    if (movies.length === 0) {
+        return null;
+    }
+
+    if (!activeMovie) {
+        return null;
+    }
 
     return (
         <section className="py-4 lg:py-6">
@@ -272,11 +219,21 @@ export default function TheaterMoviesSection({
                                     </button>
                                 </>
                             ) : (
-                                <img
-                                    src={activeMovie.backdropUrl}
-                                    alt={activeMovie.title}
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                />
+                                // Fallback to backdrop if no trailer
+                                activeMovie.backdropUrl ? (
+                                    <img
+                                        src={activeMovie.backdropUrl}
+                                        alt={activeMovie.title}
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    // Fallback to poster if no backdrop
+                                    <img
+                                        src={activeMovie.posterUrl}
+                                        alt={activeMovie.title}
+                                        className="absolute inset-0 w-full h-full object-cover blur-xl scale-110"
+                                    />
+                                )
                             )}
                             {/* Gradient overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-transparent to-transparent" />
@@ -300,7 +257,7 @@ export default function TheaterMoviesSection({
                             <div className="flex gap-4 lg:gap-6 items-end">
                                 {/* Poster */}
                                 <Link
-                                    href={`/movie/${activeMovie.id}`}
+                                    href={`/movies/${activeMovie.id}`}
                                     className="flex-shrink-0 w-24 lg:w-32 aspect-[2/3] rounded-lg overflow-hidden shadow-2xl hover:scale-105 transition-transform"
                                 >
                                     <img
@@ -312,22 +269,19 @@ export default function TheaterMoviesSection({
 
                                 {/* Movie Info */}
                                 <div className="flex-1 min-w-0 pb-1">
-                                    {/* Badges */}
-                                    <div className="flex items-center gap-2 mb-2">
-                                        {activeMovie.hasPDE && (
-                                            <span className="px-2 py-0.5 bg-gray-700/80 rounded text-[10px] font-medium text-gray-300">
-                                                P.ĐỀ
-                                            </span>
-                                        )}
-                                        {activeMovie.hasTMinh && (
-                                            <span className="px-2 py-0.5 bg-emerald-600/80 rounded text-[10px] font-medium text-white">
-                                                T.Minh
-                                            </span>
-                                        )}
-                                    </div>
+                                    {/* Genres */}
+                                    {activeMovie.genres && activeMovie.genres.length > 0 && (
+                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                            {activeMovie.genres.slice(0, 3).map((genre, idx) => (
+                                                <span key={idx} className="px-2 py-0.5 bg-gray-700/80 rounded text-[10px] font-medium text-gray-300">
+                                                    {genre}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Title */}
-                                    <Link href={`/movie/${activeMovie.id}`}>
+                                    <Link href={`/movies/${activeMovie.id}`}>
                                         <h3 className="text-lg lg:text-xl font-bold text-white hover:text-gray-200 transition-colors line-clamp-1">
                                             {activeMovie.title}
                                         </h3>
@@ -342,12 +296,12 @@ export default function TheaterMoviesSection({
 
                                     {/* Metadata */}
                                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
-                                        {activeMovie.ageRating && (
-                                            <span className="px-1.5 py-0.5 border border-gray-600 rounded text-gray-400 font-medium">
-                                                {activeMovie.ageRating}
-                                            </span>
+                                        {activeMovie.rating && (
+                                            <>
+                                                <span className="text-yellow-500">★ {activeMovie.rating.toFixed(1)}</span>
+                                                <span>•</span>
+                                            </>
                                         )}
-                                        <span>•</span>
                                         <span>{activeMovie.year}</span>
                                         {activeMovie.duration && (
                                             <>

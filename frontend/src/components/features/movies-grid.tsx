@@ -38,16 +38,12 @@ export function MoviesGrid({ initialMovies = [], onLoadMore }: MoviesGridProps) 
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
     const loadMoreMovies = async () => {
-        if (isLoading || !hasMore) return;
+        if (isLoading || !hasMore || !onLoadMore) return;
 
         setIsLoading(true);
         try {
             const nextPage = page + 1;
-            
-            // If onLoadMore is provided, use it; otherwise simulate loading
-            const newMovies = onLoadMore 
-                ? await onLoadMore(nextPage)
-                : await simulateLoadMore(nextPage);
+            const newMovies = await onLoadMore(nextPage);
 
             if (newMovies.length === 0) {
                 setHasMore(false);
@@ -116,31 +112,6 @@ export function MoviesGrid({ initialMovies = [], onLoadMore }: MoviesGridProps) 
             </div>
         </div>
     );
-}
-
-/**
- * Simulate loading more movies (for demo purposes)
- * Replace this with actual API call
- */
-async function simulateLoadMore(page: number): Promise<Movie[]> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Stop after page 5 for demo
-    if (page > 5) return [];
-
-    // Generate mock movies
-    const mockMovies: Movie[] = Array.from({ length: 16 }, (_, i) => ({
-        id: `${page}-${i + 1}`,
-        title: `Movie ${page}-${i + 1}`,
-        posterUrl: `https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg`,
-        rating: Math.random() * 3 + 7,
-        year: 2020 + Math.floor(Math.random() * 5),
-        quality: Math.random() > 0.5 ? '4K' : 'HD',
-        isNew: Math.random() > 0.7,
-    }));
-
-    return mockMovies;
 }
 
 export default MoviesGrid;

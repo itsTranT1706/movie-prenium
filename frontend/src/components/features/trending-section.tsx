@@ -26,49 +26,22 @@ interface Comment {
 }
 
 interface TrendingSectionProps {
-    trendingItems?: RankedItem[];
-    favoriteItems?: RankedItem[];
-    hotCategories?: HotCategory[];
-    recentComments?: Comment[];
+    trendingItems: RankedItem[];
+    favoriteItems: RankedItem[];
+    hotCategories: HotCategory[];
+    recentComments: Comment[];
 }
 
-const defaultTrending: RankedItem[] = [
-    { id: '1', rank: 1, title: 'Tiếng Yêu Này, Anh Dịch Được Không?', posterUrl: 'https://image.tmdb.org/t/p/w92/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg' },
-    { id: '2', rank: 2, title: 'Vết Hí', posterUrl: 'https://image.tmdb.org/t/p/w92/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg' },
-    { id: '3', rank: 3, title: 'Thâm Phẩm Trùng Sinh', posterUrl: 'https://image.tmdb.org/t/p/w92/74xTEgt7R36Fvez8tKL8rLj5Bjs.jpg' },
-    { id: '4', rank: 4, title: 'Ngọc Minh Trà Cốt', posterUrl: 'https://image.tmdb.org/t/p/w92/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg' },
-    { id: '5', rank: 5, title: 'Cậu Bé Mất Tích', posterUrl: 'https://image.tmdb.org/t/p/w92/62HCnUTziyWcpDaBO2i1DX17ljH.jpg' },
-];
-
-const defaultFavorites: RankedItem[] = [
-    { id: '1', rank: 1, title: 'Tiếng Yêu Này, Anh Dịch Được Không?', posterUrl: 'https://image.tmdb.org/t/p/w92/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg' },
-    { id: '2', rank: 2, title: 'Từ Hôm Nay, Tôi Là Con Người', posterUrl: 'https://image.tmdb.org/t/p/w92/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg' },
-    { id: '3', rank: 3, title: 'Vết Hí', posterUrl: 'https://image.tmdb.org/t/p/w92/74xTEgt7R36Fvez8tKL8rLj5Bjs.jpg' },
-    { id: '4', rank: 4, title: 'Điều Tra Viên Hồng', posterUrl: 'https://image.tmdb.org/t/p/w92/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg' },
-    { id: '5', rank: 5, title: 'Baby Đến Rồi!', posterUrl: 'https://image.tmdb.org/t/p/w92/62HCnUTziyWcpDaBO2i1DX17ljH.jpg' },
-];
-
-const defaultCategories: HotCategory[] = [
-    { id: '1', name: 'Chinh Kịch', color: 'bg-emerald-500' },
-    { id: '2', name: 'Lãng Mạn', color: 'bg-pink-500' },
-    { id: '3', name: 'Tình Cảm', color: 'bg-rose-500' },
-    { id: '4', name: 'Tâm Lý', color: 'bg-amber-500' },
-    { id: '5', name: 'Hài', color: 'bg-purple-500' },
-];
-
-const defaultComments: Comment[] = [
-    { id: '1', username: 'Samuel', avatar: 'https://i.pravatar.cc/40?img=1', content: 'Phim hay với nội xinh quá', movieTitle: 'Tiếng Yêu Này, Anh Dịch Được Không?', isVip: true },
-    { id: '2', username: 'NamPhuTanNhan™', avatar: 'https://i.pravatar.cc/40?img=2', content: '6.52 Còn bé nó cười còn tình đi hơn thằng anh...=))', movieTitle: 'Ngã Làng Ma' },
-    { id: '3', username: 'ThienTuan', avatar: 'https://i.pravatar.cc/40?img=3', content: '2 ci 2, mình lỡ dịch phim nì thì mọi có thể dịch có lầm xíu dc hong', movieTitle: 'Tiền Trường Siêu Nhiên 2' },
-    { id: '4', username: 'YuXun', avatar: 'https://i.pravatar.cc/40?img=4', content: 'j mà tập 11 mới yêu nhau 2 😌', movieTitle: 'Tiếng Yêu Này, Anh Dịch Được Không?', isVip: true },
-];
-
 export default function TrendingSection({
-    trendingItems = defaultTrending,
-    favoriteItems = defaultFavorites,
-    hotCategories = defaultCategories,
-    recentComments = defaultComments,
+    trendingItems,
+    favoriteItems,
+    hotCategories,
+    recentComments,
 }: TrendingSectionProps) {
+    // Don't render if no data
+    if (!trendingItems?.length && !favoriteItems?.length && !hotCategories?.length && !recentComments?.length) {
+        return null;
+    }
     return (
         <section className="py-4 lg:py-6 bg-[#0a0a0a]">
             <div className="container">

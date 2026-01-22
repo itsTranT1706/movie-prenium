@@ -6,6 +6,7 @@ import { Play, Plus, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface FeaturedMovie {
     id: string;
+    externalId?: string;
     title: string;
     description: string;
     backdropUrl: string;
@@ -17,101 +18,9 @@ interface FeaturedMovie {
 }
 
 interface HeroBannerProps {
-    movies?: FeaturedMovie[];
+    movies: FeaturedMovie[];
     isLoading?: boolean;
 }
-
-// Default featured movies for the thumbnail strip
-const defaultFeaturedMovies: FeaturedMovie[] = [
-    {
-        id: '1',
-        title: 'Dune: Part Two',
-        description: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
-        rating: 8.8,
-        year: 2024,
-        quality: '4K',
-        genre: 'Sci-Fi',
-    },
-    {
-        id: '2',
-        title: 'Oppenheimer',
-        description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
-        rating: 8.9,
-        year: 2023,
-        quality: '4K',
-        genre: 'Drama',
-    },
-    {
-        id: '3',
-        title: 'The Batman',
-        description: 'When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/5P8SmMzSNYikXpxil6BYzJ16611.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/74xTEgt7R36Fvez8tKL8rLj5Bjs.jpg',
-        rating: 8.0,
-        year: 2022,
-        quality: 'HD',
-        genre: 'Action',
-    },
-    {
-        id: '4',
-        title: 'Avatar: The Way of Water',
-        description: 'Jake Sully lives with his newfound family formed on the extrasolar moon Pandora. Once a familiar threat returns.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/s16H6tpK2utvwDtzZ8Qy4qm5Emw.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
-        rating: 7.8,
-        year: 2022,
-        quality: '4K',
-        genre: 'Fantasy',
-    },
-    {
-        id: '5',
-        title: 'Top Gun: Maverick',
-        description: 'After thirty years, Maverick is still pushing the envelope as a top naval aviator, but must confront ghosts of his past.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/x93QzAgtHeRGgfK51Jh6URClBG8.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/original/uOOtwVbSr4QDjAGIifLDwpb2Pdl.jpg',
-        rating: 8.4,
-        year: 2022,
-        quality: 'HD',
-        genre: 'Action',
-    },
-    {
-        id: '6',
-        title: 'Spider-Man: Across the Spider-Verse',
-        description: 'Miles Morales catapults across the multiverse, where he encounters a team of Spider-People charged with protecting its existence.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
-        rating: 8.7,
-        year: 2023,
-        quality: '4K',
-        genre: 'Animation',
-    },
-    {
-        id: '7',
-        title: 'John Wick: Chapter 4',
-        description: 'John Wick uncovers a path to defeating The High Table. But before he can earn his freedom, he must face off against a new enemy.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/7I6VUdPj6tQECNHdviJkUHD2u89.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7LsyBnq43j2k.jpg',
-        rating: 8.1,
-        year: 2023,
-        quality: '4K',
-        genre: 'Action',
-    },
-    {
-        id: '8',
-        title: 'Guardians of the Galaxy Vol. 3',
-        description: 'Still reeling from the loss of Gamora, Peter Quill must rally his team to defend the universe and protect one of their own.',
-        backdropUrl: 'https://image.tmdb.org/t/p/original/bQXAqRx3RkK5sRuHn24wNUl3s8G.jpg',
-        posterUrl: 'https://image.tmdb.org/t/p/w500/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg',
-        rating: 8.0,
-        year: 2023,
-        quality: '4K',
-        genre: 'Sci-Fi',
-    },
-];
 
 /**
  * Hero Banner Component
@@ -120,7 +29,7 @@ const defaultFeaturedMovies: FeaturedMovie[] = [
  * - Premium streaming platform feel
  */
 export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
-    const featuredMovies = movies || defaultFeaturedMovies;
+    const featuredMovies = movies || [];
     const [activeIndex, setActiveIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -214,7 +123,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
         });
     };
 
-    if (isLoading) {
+    if (isLoading || !featuredMovies.length) {
         return (
             <section className="relative h-[60vh] lg:h-[75vh] bg-gray-900 animate-pulse">
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
@@ -318,16 +227,19 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                                 }`}
                         >
                             <Link
-                                href={`/watch/${activeMovie.id}`}
+                                href={`/watch/${activeMovie.externalId || activeMovie.id}`}
                                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
                             >
                                 <Play className="w-5 h-5 fill-black" />
                                 <span>Play</span>
                             </Link>
-                            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-sm rounded backdrop-blur-sm transition-all active:scale-95">
+                            <Link
+                                href={`/movies/${activeMovie.externalId || activeMovie.id}`}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-sm rounded backdrop-blur-sm transition-all active:scale-95"
+                            >
                                 <Plus className="w-5 h-5" />
-                                <span>My List</span>
-                            </button>
+                                <span>Chi tiết</span>
+                            </Link>
                         </div>
                     </div>
 

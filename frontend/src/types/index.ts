@@ -14,15 +14,28 @@ export interface AuthResponse {
 export interface Movie {
     id: string;
     externalId?: string;
+    slug?: string;
     title: string;
+    originalTitle?: string;
     mediaType: 'movie' | 'tv';
     description?: string;
     posterUrl?: string;
     backdropUrl?: string;
+    trailerUrl?: string;
     releaseDate?: string;
     duration?: number;
     rating?: number;
     genres: string[];
+    cast?: string[];
+    director?: string[];
+    country?: string[];
+    quality?: string;
+    lang?: string;
+    episodeCurrent?: string;
+}
+
+export interface MovieWithSources extends Movie {
+    sources: StreamSource[];
 }
 
 export interface StreamSource {

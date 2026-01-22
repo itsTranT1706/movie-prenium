@@ -1,138 +1,69 @@
-import { User, AuthResponse, Movie, StreamSource, Favorite } from '@/types';
+import {
+  AuthService,
+  MovieService,
+  FavoriteService,
+  RecommendationService,
+  StreamingService,
+  UserService,
+} from './services';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const API_PREFIX = '/api/v1';
+const BASE_URL = API_BASE_URL + API_PREFIX;
 
-interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
+// Initialize service instances
+const authService = new AuthService(BASE_URL);
+const movieService = new MovieService(BASE_URL);
+const favoriteService = new FavoriteService(BASE_URL);
+const recommendationService = new RecommendationService(BASE_URL);
+const streamingService = new StreamingService(BASE_URL);
+const userService = new UserService(BASE_URL);
 
-class ApiClient {
-    private baseUrl: string;
-    private token: string | null = null;
+// Shared token management across all services
+const setToken = (token: string | null) => {
+  authService.setToken(token);
+  movieService.setToken(token);
+  favoriteService.setToken(token);
+  recommendationService.setToken(token);
+  streamingService.setToken(token);
+  userService.setToken(token);
+};
 
-    constructor(baseUrl: string) {
-        this.baseUrl = baseUrl + API_PREFIX;
-    }
+const getToken = () => authService.getToken();
 
-    setToken(token: string | null) {
-        this.token = token;
-        if (typeof window !== 'undefined') {
-            if (token) {
-                localStorage.setItem('auth_token', token);
-            } else {
-                localStorage.removeItem('auth_token');
-            }
-        }
-    }
+// Export unified API client
+export const apiClient = {
+  // Token management
+  setToken,
+  getToken,
 
-    getToken(): string | null {
-        if (!this.token && typeof window !== 'undefined') {
-            this.token = localStorage.getItem('auth_token');
-        }
-        return this.token;
-    }
+  // Auth
+  login: authService.login.bind(authService),
+  register: authService.register.bind(authService),
 
-    private async request<T>(
-        endpoint: string,
-        options: RequestInit = {}
-    ): Promise<ApiResponse<T>> {
-        const url = `${this.baseUrl}${endpoint}`;
-        const token = this.getToken();
+  // Movies
+  searchMovies: movieService.searchMovies.bind(movieService),
+  getPopularMovies: movieService.getPopularMovies.bind(movieService),
+  getCinemaMovies: movieService.getCinemaMovies.bind(movieService),
+  getMovieStreams: movieService.getMovieStreams.bind(movieService),
+  getMoviesByGenre: movieService.getMoviesByGenre.bind(movieService),
+  getMoviesByCountry: movieService.getMoviesByCountry.bind(movieService),
+  getTrendingMovies: movieService.getTrendingMovies.bind(movieService),
+  getUpcomingMovies: movieService.getUpcomingMovies.bind(movieService),
+  getMovieDetails: movieService.getMovieDetails.bind(movieService),
 
-        const headers: HeadersInit = {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        };
+  // Favorites
+  getFavorites: favoriteService.getFavorites.bind(favoriteService),
+  addFavorite: favoriteService.addFavorite.bind(favoriteService),
 
-        if (token) {
-            (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
-        }
+  // Recommendations
+  getRecommendations: recommendationService.getRecommendations.bind(recommendationService),
 
-        try {
-            const response = await fetch(url, {
-                ...options,
-                headers,
-            });
+  // Streaming
+  getStream: streamingService.getStream.bind(streamingService),
 
-            const data = await response.json();
+  // Users
+  getUser: userService.getUser.bind(userService),
+};
 
-            if (!response.ok) {
-                return {
-                    success: false,
-                    error: data.error || data.message || 'Request failed',
-                };
-            }
-
-            return data;
-        } catch (error) {
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Network error',
-            };
-        }
-    }
-
-    // Auth endpoints
-    async login(email: string, password: string) {
-        return this.request<AuthResponse>('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-        });
-    }
-
-    async register(email: string, password: string, name?: string) {
-        return this.request<AuthResponse>('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify({ email, password, name }),
-        });
-    }
-
-    // Movie endpoints
-    async searchMovies(query: string) {
-        return this.request<Movie[]>(`/movies/search?q=${encodeURIComponent(query)}`);
-    }
-
-    async getPopularMovies(page = 1) {
-        return this.request<Movie[]>(`/movies/popular?page=${page}`);
-    }
-
-    async getCinemaMovies(page = 1, limit = 24) {
-        return this.request<Movie[]>(`/movies/cinema?page=${page}&limit=${limit}`);
-    }
-
-    async getMovieStreams(tmdbId: string, mediaType: 'movie' | 'tv' = 'movie', originalName?: string) {
-        const params = new URLSearchParams({ mediaType });
-        if (originalName) params.append('originalName', originalName);
-        return this.request<StreamSource[]>(`/movies/${tmdbId}/streams?${params.toString()}`);
-    }
-
-    // Favorites endpoints
-    async getFavorites() {
-        return this.request<Favorite[]>('/favorites');
-    }
-
-    async addFavorite(movieId: string) {
-        return this.request<Favorite>(`/favorites/${movieId}`, { method: 'POST' });
-    }
-
-    // Recommendations endpoints
-    async getRecommendations(limit = 10) {
-        return this.request<Movie[]>(`/recommendations?limit=${limit}`);
-    }
-
-    // Streaming endpoints
-    async getStream(movieId: string) {
-        return this.request<any>(`/streaming/${movieId}`);
-    }
-
-    // User endpoints
-    async getUser(userId: string) {
-        return this.request<User>(`/users/${userId}`);
-    }
-}
-
-export const apiClient = new ApiClient(API_BASE_URL);
 export default apiClient;

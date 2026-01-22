@@ -4,9 +4,11 @@ import { useState, useRef, useEffect, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { Play, Heart, Info, Volume2, VolumeX } from 'lucide-react';
+import { apiClient } from '@/lib/api/client';
 
 export interface MoviePreviewData {
     id: string;
+    externalId?: string;
     title: string;
     subtitle?: string;
     posterUrl?: string;
@@ -62,6 +64,8 @@ export function HoverPreviewCard({
     const [isMuted, setIsMuted] = useState(true);
     const [actualPosition, setActualPosition] = useState<'left' | 'right' | 'center'>('center');
     const [isMounted, setIsMounted] = useState(false);
+    const [trailerUrl, setTrailerUrl] = useState<string | undefined>(movie.trailerUrl);
+    const [isLoadingTrailer, setIsLoadingTrailer] = useState(false);
     const triggerRef = useRef<HTMLDivElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -71,6 +75,28 @@ export function HoverPreviewCard({
         setIsMounted(true);
         return () => setIsMounted(false);
     }, []);
+
+    // Fetch trailer when preview becomes visible
+    useEffect(() => {
+        if (isVisible && !trailerUrl && !isLoadingTrailer) {
+            const fetchTrailer = async () => {
+                try {
+                    setIsLoadingTrailer(true);
+                    const tmdbId = movie.externalId || movie.id;
+                    const response = await apiClient.getMovieDetails(tmdbId);
+                    if (response.success && response.data?.trailerUrl) {
+                        console.log(`✅ Loaded trailer for ${movie.title}:`, response.data.trailerUrl);
+                        setTrailerUrl(response.data.trailerUrl);
+                    }
+                } catch (error) {
+                    console.error(`Failed to fetch trailer for ${movie.title}:`, error);
+                } finally {
+                    setIsLoadingTrailer(false);
+                }
+            };
+            fetchTrailer();
+        }
+    }, [isVisible, trailerUrl, isLoadingTrailer, movie.externalId, movie.id, movie.title]);
 
     // Calculate position based on viewport
     useEffect(() => {
@@ -106,9 +132,9 @@ export function HoverPreviewCard({
         setIsVisible(false);
     };
 
-    // Get media source
-    const hasTrailer = movie.trailerUrl;
-    const youtubeVideoId = hasTrailer ? getYouTubeVideoId(movie.trailerUrl!) : null;
+    // Get media source - prioritize trailer
+    const hasTrailer = trailerUrl;
+    const youtubeVideoId = hasTrailer ? getYouTubeVideoId(trailerUrl!) : null;
     const mediaSrc = movie.backdropUrl || movie.posterUrl || '';
 
     // Preview content to be rendered via portal
@@ -175,7 +201,7 @@ export function HoverPreviewCard({
                     {/* Action Buttons */}
                     <div className="flex items-center gap-2 mb-3">
                         <Link
-                            href={`/watch/${movie.id}`}
+                            href={`/watch/${movie.externalId || movie.id}`}
                             className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm rounded transition-colors"
                         >
                             <Play className="w-4 h-4 fill-black" />
@@ -185,7 +211,7 @@ export function HoverPreviewCard({
                             <Heart className="w-4 h-4" />
                         </button>
                         <Link
-                            href={`/movie/${movie.id}`}
+                            href={`/movies/${movie.externalId || movie.id}`}
                             className="w-9 h-9 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors"
                         >
                             <Info className="w-4 h-4" />
