@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { MOVIE_REPOSITORY, MOVIE_PROVIDER } from '../domain';
-import { SearchMoviesUseCase, GetPopularMoviesUseCase, GetMovieStreamsUseCase, GetCinemaMoviesUseCase } from '../application';
+import {
+    SearchMoviesUseCase,
+    GetPopularMoviesUseCase,
+    GetMovieStreamsUseCase,
+    GetCinemaMoviesUseCase,
+    GetMoviesByGenreUseCase,
+    GetMoviesByCountryUseCase,
+    GetTrendingMoviesUseCase,
+    GetUpcomingMoviesUseCase,
+    GetMovieDetailsUseCase,
+} from '../application';
 import {
     PrismaMovieRepository,
     KKPhimMovieProvider,
+    TMDBMovieProvider,
     KKPhimStreamingAdapter,
     NguonCStreamingAdapter,
     StreamingProviderRegistry,
@@ -20,6 +31,11 @@ import { MovieController } from './controllers';
         GetPopularMoviesUseCase,
         GetMovieStreamsUseCase,
         GetCinemaMoviesUseCase,
+        GetMoviesByGenreUseCase,
+        GetMoviesByCountryUseCase,
+        GetTrendingMoviesUseCase,
+        GetUpcomingMoviesUseCase,
+        GetMovieDetailsUseCase,
 
         // Repository binding (Port -> Adapter)
         {
@@ -27,11 +43,15 @@ import { MovieController } from './controllers';
             useClass: PrismaMovieRepository,
         },
 
-        // Movie List Provider (KKPhim - 100% có stream)
+        // Movie Provider - TMDB as primary metadata source
+        TMDBMovieProvider, // Direct class provider for DI
         {
             provide: MOVIE_PROVIDER,
-            useClass: KKPhimMovieProvider,
+            useExisting: TMDBMovieProvider, // Use same instance
         },
+
+        // KKPhim Provider (kept for fallback)
+        KKPhimMovieProvider,
 
         // Streaming Providers (add new adapters here)
         KKPhimStreamingAdapter,

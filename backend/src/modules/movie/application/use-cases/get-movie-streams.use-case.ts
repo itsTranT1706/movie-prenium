@@ -1,66 +1,60 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { StreamSource } from '../../domain';
+import { Injectable, Inject, Logger } from '@nestjs/common';
+import { StreamSource, MOVIE_REPOSITORY, MovieRepositoryPort } from '../../domain';
 import { StreamingProviderRegistry } from '../../infrastructure/adapters';
+import { Result } from '@/shared/domain';
 
 /**
  * Get Movie Streams Use Case
  * 
- * Fetches stream sources from all registered streaming providers.
- * Uses TMDB ID for lookup, with fallback to title search for providers
- * that don't support TMDB ID (like NguonC).
+ * Fetches streaming sources from KKPhim for a specific movie.
+ * Requires movie to exist in repository to determine mediaType.
+ * Implements graceful error handling for streaming unavailability.
+ * 
+ * Requirements: 3.1, 3.3, 3.4, 8.2
  */
 @Injectable()
 export class GetMovieStreamsUseCase {
     private readonly logger = new Logger(GetMovieStreamsUseCase.name);
 
     constructor(
-        private readonly providerRegistry: StreamingProviderRegistry,
-    ) { }
+        private readonly streamingRegistry: StreamingProviderRegistry,
+        @Inject(MOVIE_REPOSITORY)
+        private readonly movieRepository: MovieRepositoryPort,
+    ) {}
 
     /**
      * Execute the use case
      * @param tmdbId - TMDB movie/series ID
-     * @param mediaType - 'movie' for phim lẻ, 'tv' for phim bộ
-     * @param originalName - Optional original title for fallback search
-     * @returns Array of stream sources from all providers
+     * @returns Result with stream sources or error if unavailable
      */
-    async execute(
-        tmdbId: string,
-        mediaType: 'movie' | 'tv',
-        originalName?: string
-    ): Promise<StreamSource[]> {
-        const allSources: StreamSource[] = [];
-        const providers = this.providerRegistry.getProviders();
-
-        this.logger.log(`Fetching streams for TMDB ${tmdbId} (${mediaType})`);
-
-        // Try each provider in parallel
-        const results = await Promise.allSettled(
-            providers.map(async (provider) => {
-                this.logger.debug(`Trying provider: ${provider.providerName}`);
-
-                // First try TMDB ID lookup
-                let sources = await provider.getStreamSources(tmdbId, mediaType);
-
-                // If no results and originalName provided, try title search (fallback)
-                if (!sources && originalName && provider.searchByTitle) {
-                    this.logger.debug(`Fallback to title search for ${provider.providerName}`);
-                    sources = await provider.searchByTitle(originalName);
-                }
-
-                return { provider: provider.providerName, sources };
-            })
-        );
-
-        // Collect successful results
-        for (const result of results) {
-            if (result.status === 'fulfilled' && result.value.sources) {
-                this.logger.log(`Found ${result.value.sources.length} sources from ${result.value.provider}`);
-                allSources.push(...result.value.sources);
+    async execute(tmdbId: string): Promise<Result<StreamSource[]>> {
+        try {
+            // Get movie to determine mediaType
+            const movie = await this.movieRepository.findByExternalId(tmdbId);
+            if (!movie) {
+                this.logger.warn(`Movie not found in repository: ${tmdbId}`);
+                return Result.fail(new Error('Movie not found'));
             }
-        }
 
-        this.logger.log(`Total stream sources found: ${allSources.length}`);
-        return allSources;
+            // Fetch streaming sources from KKPhim
+            const kkphimAdapter = this.streamingRegistry.getProviderByName('kkphim');
+            if (!kkphimAdapter) {
+                this.logger.warn('KKPhim streaming adapter not available');
+                return Result.fail(new Error('Streaming provider not available'));
+            }
+
+            const sources = await kkphimAdapter.getStreamSources(tmdbId, movie.mediaType);
+
+            if (!sources || sources.length === 0) {
+                this.logger.debug(`No streaming sources found for ${tmdbId}`);
+                return Result.fail(new Error('Streaming not available'));
+            }
+
+            return Result.ok(sources);
+        } catch (error) {
+            // Log error but return graceful failure message
+            this.logger.warn(`Failed to fetch streaming sources for ${tmdbId}: ${error.message}`);
+            return Result.fail(new Error('Streaming not available'));
+        }
     }
 }

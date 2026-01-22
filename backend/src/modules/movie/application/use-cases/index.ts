@@ -2,3 +2,8 @@ export * from './search-movies.use-case';
 export * from './get-popular-movies.use-case';
 export * from './get-movie-streams.use-case';
 export * from './get-cinema-movies.use-case';
+export * from './get-movies-by-genre.use-case';
+export * from './get-movies-by-country.use-case';
+export * from './get-trending-movies.use-case';
+export * from './get-upcoming-movies.use-case';
+export * from './get-movie-details.use-case';

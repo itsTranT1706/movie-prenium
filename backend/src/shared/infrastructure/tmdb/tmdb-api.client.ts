@@ -2,6 +2,36 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TMDBConfigService } from './tmdb.config';
 
 /**
+ * Custom TMDB API Error Classes
+ */
+export class TMDBApiError extends Error {
+    constructor(
+        message: string,
+        public readonly statusCode: number,
+    ) {
+        super(message);
+        this.name = 'TMDBApiError';
+    }
+}
+
+export class TMDBNotFoundError extends TMDBApiError {
+    constructor(message: string) {
+        super(message, 404);
+        this.name = 'TMDBNotFoundError';
+    }
+}
+
+export class TMDBRateLimitError extends TMDBApiError {
+    constructor(
+        message: string,
+        public readonly retryAfter?: number,
+    ) {
+        super(message, 429);
+        this.name = 'TMDBRateLimitError';
+    }
+}
+
+/**
  * TMDB API Response interfaces
  */
 export interface TMDBMovie {
@@ -115,8 +145,24 @@ export class TMDBApiClient {
 
         if (!response.ok) {
             const error = await response.text();
+            
+            // Handle specific error codes
+            if (response.status === 404) {
+                this.logger.warn(`TMDB resource not found: ${endpoint}`);
+                throw new TMDBNotFoundError(`Resource not found: ${endpoint}`);
+            }
+            
+            if (response.status === 429) {
+                const retryAfter = response.headers.get('Retry-After');
+                this.logger.warn(`TMDB rate limit exceeded. Retry after: ${retryAfter || 'unknown'}`);
+                throw new TMDBRateLimitError(
+                    'Rate limit exceeded',
+                    retryAfter ? parseInt(retryAfter, 10) : undefined
+                );
+            }
+            
             this.logger.error(`TMDB API Error: ${response.status} - ${error}`);
-            throw new Error(`TMDB API Error: ${response.status}`);
+            throw new TMDBApiError(`TMDB API Error: ${response.status}`, response.status);
         }
 
         return response.json() as Promise<T>;
@@ -281,9 +327,24 @@ export class TMDBApiClient {
 
     /**
      * Get movie videos (trailers, teasers, etc.)
+     * Note: Don't use language parameter for videos to get all available videos
      */
     async getMovieVideos(movieId: number | string): Promise<TMDBVideosResponse> {
-        return this.get<TMDBVideosResponse>(`/movie/${movieId}/videos`);
+        const url = new URL(`${this.config.baseUrl}/movie/${movieId}/videos`);
+        url.searchParams.set('api_key', this.config.apiKey);
+        // Don't set language parameter to get all videos regardless of language
+
+        this.logger.debug(`Fetching videos for movie: ${movieId}`);
+
+        const response = await fetch(url.toString());
+
+        if (!response.ok) {
+            const error = await response.text();
+            this.logger.error(`TMDB API Error fetching videos: ${response.status} - ${error}`);
+            throw new TMDBApiError(`TMDB API Error: ${response.status}`, response.status);
+        }
+
+        return response.json() as Promise<TMDBVideosResponse>;
     }
 
     /**
@@ -291,7 +352,10 @@ export class TMDBApiClient {
      */
     async getTrailerUrl(movieId: number | string): Promise<string | undefined> {
         try {
+            this.logger.debug(`Fetching trailer for movie ${movieId}`);
             const response = await this.getMovieVideos(movieId);
+            this.logger.debug(`Found ${response.results.length} videos for movie ${movieId}`);
+            
             // Find official YouTube trailer
             const trailer = response.results.find(
                 (video) => video.site === 'YouTube' &&
@@ -303,10 +367,14 @@ export class TMDBApiClient {
             );
 
             if (trailer) {
-                return `https://www.youtube.com/watch?v=${trailer.key}`;
+                const url = `https://www.youtube.com/watch?v=${trailer.key}`;
+                this.logger.debug(`Found trailer for movie ${movieId}: ${url}`);
+                return url;
             }
+            this.logger.debug(`No trailer found for movie ${movieId}`);
             return undefined;
-        } catch {
+        } catch (error) {
+            this.logger.warn(`Failed to fetch trailer for movie ${movieId}: ${error.message}`);
             return undefined;
         }
     }

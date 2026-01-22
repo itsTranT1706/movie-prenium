@@ -1,5 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Movie, MOVIE_PROVIDER, MovieProviderPort } from '../../domain';
+import { Movie, MOVIE_PROVIDER, MovieProviderPort, MOVIE_REPOSITORY, MovieRepositoryPort } from '../../domain';
 
 /**
  * Get Cinema Movies Use Case
@@ -12,6 +12,8 @@ export class GetCinemaMoviesUseCase {
     constructor(
         @Inject(MOVIE_PROVIDER)
         private readonly movieProvider: MovieProviderPort,
+        @Inject(MOVIE_REPOSITORY)
+        private readonly movieRepository: MovieRepositoryPort,
     ) { }
 
     async execute(page = 1, limit = 24): Promise<Movie[]> {
@@ -22,6 +24,12 @@ export class GetCinemaMoviesUseCase {
             if ('getCinemaMovies' in this.movieProvider && typeof this.movieProvider.getCinemaMovies === 'function') {
                 const movies = await this.movieProvider.getCinemaMovies(page, limit);
                 this.logger.log(`Found ${movies.length} cinema movies`);
+                
+                // Cache movies with smart merge strategy
+                await Promise.all(
+                    movies.map(movie => this.movieRepository.save(movie))
+                );
+                
                 return movies;
             }
 

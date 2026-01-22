@@ -2,12 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Result } from '@/shared/domain';
 import { Movie, MOVIE_PROVIDER, MovieProviderPort, MOVIE_REPOSITORY, MovieRepositoryPort } from '../../domain';
 
-export interface SearchMoviesInput {
-    query: string;
-}
-
 @Injectable()
-export class SearchMoviesUseCase {
+export class GetTrendingMoviesUseCase {
     constructor(
         @Inject(MOVIE_PROVIDER)
         private readonly movieProvider: MovieProviderPort,
@@ -15,17 +11,16 @@ export class SearchMoviesUseCase {
         private readonly movieRepository: MovieRepositoryPort,
     ) { }
 
-    async execute(input: SearchMoviesInput): Promise<Result<Movie[]>> {
+    async execute(timeWindow: 'day' | 'week' = 'week'): Promise<Result<Movie[]>> {
         try {
-            // Fetch movies from injected MOVIE_PROVIDER (will be TMDB)
-            const movies = await this.movieProvider.searchMovies(input.query);
+            // Fetch trending movies from TMDB
+            const movies = await this.movieProvider.getTrendingMovies(timeWindow);
             
-            // Save each movie to repository for caching
+            // Cache results in repository
             await Promise.all(
                 movies.map(movie => this.movieRepository.save(movie))
             );
 
-            // Return movies to controller
             return Result.ok(movies);
         } catch (error) {
             return Result.fail(error as Error);

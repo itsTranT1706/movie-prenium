@@ -19,6 +19,23 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
         return this.toDomain(movie);
     }
 
+    async findByExternalIdWithCache(externalId: string): Promise<Movie | null> {
+        const movie = await this.prisma.movie.findUnique({ where: { externalId } });
+        
+        if (!movie) return null;
+
+        // Check if cache is stale (older than 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        if (movie.updatedAt < sevenDaysAgo) {
+            // Cache is stale - return null so caller can refresh
+            return null;
+        }
+
+        return this.toDomain(movie);
+    }
+
     async findAll(): Promise<Movie[]> {
         const movies = await this.prisma.movie.findMany();
         return movies.map(this.toDomain);
@@ -44,13 +61,22 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
     }
 
     async save(entity: Movie): Promise<Movie> {
+        // Check if movie already exists in cache
+        const existing = await this.prisma.movie.findUnique({
+            where: { externalId: entity.externalId || entity.id }
+        });
+
         const data = {
             externalId: entity.externalId,
             title: entity.title,
+            originalTitle: entity.originalTitle,
             mediaType: entity.mediaType === 'movie' ? MediaType.MOVIE : MediaType.TV,
             description: entity.description,
             posterUrl: entity.posterUrl,
             backdropUrl: entity.backdropUrl,
+            // Smart merge: Only update trailerUrl if new value is not null
+            // This prevents list API (without trailer) from overwriting detail API (with trailer)
+            trailerUrl: entity.trailerUrl !== null ? entity.trailerUrl : (existing?.trailerUrl || null),
             releaseDate: entity.releaseDate,
             duration: entity.duration,
             rating: entity.rating,
@@ -59,8 +85,9 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
             streamUrl: entity.streamUrl,
         };
 
+        // Use externalId as the unique key for upsert to avoid duplicates
         const movie = await this.prisma.movie.upsert({
-            where: { id: entity.id },
+            where: { externalId: entity.externalId || entity.id },
             update: data,
             create: { id: entity.id, ...data },
         });
@@ -81,10 +108,12 @@ export class PrismaMovieRepository implements MovieRepositoryPort {
         return Movie.create(raw.id, {
             externalId: raw.externalId,
             title: raw.title,
+            originalTitle: raw.originalTitle,
             mediaType: raw.mediaType === MediaType.TV ? 'tv' : 'movie',
             description: raw.description,
             posterUrl: raw.posterUrl,
             backdropUrl: raw.backdropUrl,
+            trailerUrl: raw.trailerUrl,
             releaseDate: raw.releaseDate,
             duration: raw.duration,
             rating: raw.rating,

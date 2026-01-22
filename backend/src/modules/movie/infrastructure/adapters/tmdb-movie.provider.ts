@@ -144,6 +144,7 @@ export class TMDBMovieProvider implements MovieProviderPort {
         return Movie.create(uuidv4(), {
             externalId: String(tmdbMovie.id),
             title: tmdbMovie.title,
+            originalTitle: tmdbMovie.original_title || undefined,
             mediaType,
             description: tmdbMovie.overview || undefined,
             posterUrl: this.tmdbConfig.getImageUrl(tmdbMovie.poster_path),

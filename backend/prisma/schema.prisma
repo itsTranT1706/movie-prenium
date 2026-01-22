@@ -39,21 +39,25 @@ enum UserRole {
 // ============================================
 
 model Movie {
-  id          String    @id @default(uuid())
-  externalId  String?   @unique // ID from external provider (TMDB, etc.)
-  title       String
-  mediaType   MediaType @default(MOVIE) // 'movie' or 'tv'
-  description String?
-  posterUrl   String?
-  backdropUrl String?
-  releaseDate DateTime?
-  duration    Int?      // in minutes
-  rating      Float?
-  genres      String[]  // Array of genre names
-  provider    String    @default("local") // 'tmdb', 'local', 'self-hosted'
-  streamUrl   String?   // URL for streaming (when self-hosted)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String    @id @default(uuid())
+  externalId       String?   @unique // ID from external provider (TMDB, etc.)
+  title            String
+  originalTitle    String?   // TMDB original_title
+  mediaType        MediaType @default(MOVIE) // 'movie' or 'tv'
+  description      String?
+  posterUrl        String?
+  backdropUrl      String?
+  trailerUrl       String?   // YouTube trailer URL
+  releaseDate      DateTime?
+  duration         Int?      // in minutes
+  rating           Float?
+  genres           String[]  // Array of genre names
+  imdbId           String?   // IMDB identifier
+  originalLanguage String?   // TMDB original_language
+  provider         String    @default("tmdb") // 'tmdb', 'local', 'self-hosted'
+  streamUrl        String?   // URL for streaming (when self-hosted)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   favorites    Favorite[]
   watchHistory WatchHistory[]

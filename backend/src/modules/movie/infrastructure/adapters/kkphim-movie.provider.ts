@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { v4 as uuidv4 } from 'uuid';
-import { Movie, MovieProviderPort } from '../../domain';
+import { Movie, MovieProviderPort, Episode, StreamSource, MovieDetailResult } from '../../domain';
 
 /**
  * KKPhim response interfaces
@@ -131,6 +131,86 @@ export class KKPhimMovieProvider implements MovieProviderPort {
     }
 
     /**
+     * Get movie details with episodes
+     * GET /phim/{slug}
+     * Returns both movie metadata and streaming sources with episodes
+     */
+    async getMovieWithEpisodes(slug: string): Promise<MovieDetailResult | null> {
+        try {
+            const url = `${this.baseUrl}/phim/${slug}`;
+            this.logger.debug(`Getting movie with episodes: ${url}`);
+
+            const response = await this.httpService.axiosRef.get<KKPhimDetailResponse>(url);
+
+            if (!response.data?.status || !response.data?.movie) {
+                return null;
+            }
+
+            const movie = this.mapToMovie(
+                response.data.movie,
+                response.data.movie.trailer_url,
+                this.cdnImageUrl
+            );
+
+            const sources = this.mapEpisodesToSources(
+                response.data.episodes,
+                response.data.movie.quality || 'HD'
+            );
+
+            return { movie, sources };
+        } catch (error) {
+            this.logger.error(`Get movie with episodes failed: ${error.message}`);
+            return null;
+        }
+    }
+
+    /**
+     * Map KKPhim episodes array to StreamSource array
+     */
+    private mapEpisodesToSources(episodes: any[], quality: string): StreamSource[] {
+        if (!episodes || !Array.isArray(episodes)) return [];
+
+        return episodes.map(server => {
+            const serverData = server.server_data || [];
+            const mappedEpisodes = serverData.map((ep: any, index: number) =>
+                Episode.create(uuidv4(), {
+                    episodeNumber: this.parseEpisodeNumber(ep.name, index),
+                    title: ep.name,
+                    slug: ep.slug,
+                    streamUrl: ep.link_m3u8 || '',
+                    embedUrl: ep.link_embed || '',
+                })
+            );
+
+            return StreamSource.create({
+                provider: 'kkphim',
+                serverName: server.server_name || 'Server',
+                quality,
+                language: this.parseLanguage(server.server_name || ''),
+                episodes: mappedEpisodes,
+            });
+        });
+    }
+
+    /**
+     * Parse episode number from title like "Tập 01" or "1"
+     */
+    private parseEpisodeNumber(name: string, fallbackIndex: number): number {
+        const match = name?.match(/\d+/);
+        return match ? parseInt(match[0], 10) : fallbackIndex + 1;
+    }
+
+    /**
+     * Parse language from server name
+     */
+    private parseLanguage(serverName: string): string {
+        if (serverName.includes('Vietsub')) return 'Vietsub';
+        if (serverName.includes('Thuyết Minh')) return 'Thuyết Minh';
+        if (serverName.includes('Lồng Tiếng')) return 'Lồng Tiếng';
+        return 'Vietsub';
+    }
+
+    /**
      * Get popular/latest movies
      * GET /danh-sach/phim-moi-cap-nhat-v3?page={page}
      */
@@ -171,6 +251,29 @@ export class KKPhimMovieProvider implements MovieProviderPort {
             return response.data.data.items.map((movie: KKPhimMovie) => this.mapToMovie(movie, undefined, cdnUrl));
         } catch (error) {
             this.logger.error(`Get by genre failed: ${error.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Get movies by country
+     * GET /v1/api/danh-sach/phim-bo?country={country}&page={page}
+     */
+    async getMoviesByCountry(country: string, page = 1): Promise<Movie[]> {
+        try {
+            const url = `${this.baseUrl}/v1/api/danh-sach/phim-bo?country=${encodeURIComponent(country)}&page=${page}`;
+            this.logger.debug(`Getting by country: ${url}`);
+
+            const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
+
+            if (!response.data?.status || !response.data?.data?.items) {
+                return [];
+            }
+
+            const cdnUrl = response.data.data.APP_DOMAIN_CDN_IMAGE || this.cdnImageUrl;
+            return response.data.data.items.map((movie: KKPhimMovie) => this.mapToMovie(movie, undefined, cdnUrl));
+        } catch (error) {
+            this.logger.error(`Get by country failed: ${error.message}`);
             return [];
         }
     }
@@ -240,7 +343,11 @@ export class KKPhimMovieProvider implements MovieProviderPort {
     /**
      * Map KKPhim movie to domain Movie entity
      */
-    private mapToMovie(kkphimMovie: KKPhimMovie, trailerUrl?: string, cdnUrl?: string): Movie {
+    private mapToMovie(
+        kkphimMovie: KKPhimMovie & { actor?: string[]; director?: string[] },
+        trailerUrl?: string,
+        cdnUrl?: string
+    ): Movie {
         const now = new Date();
         const imageCdn = cdnUrl || this.cdnImageUrl;
 
@@ -255,13 +362,18 @@ export class KKPhimMovieProvider implements MovieProviderPort {
         // Extract genres from category array
         const genres = kkphimMovie.category?.map(cat => cat.name) || [];
 
+        // Extract countries
+        const country = kkphimMovie.country?.map(c => c.name) || [];
+
         // Build full image URLs
         const posterUrl = this.buildImageUrl(kkphimMovie.poster_url, imageCdn);
         const backdropUrl = this.buildImageUrl(kkphimMovie.thumb_url, imageCdn);
 
         return Movie.create(uuidv4(), {
             externalId: kkphimMovie.tmdb?.id || kkphimMovie.slug,
+            slug: kkphimMovie.slug,
             title: kkphimMovie.name,
+            originalTitle: kkphimMovie.origin_name,
             mediaType,
             description: kkphimMovie.content || undefined,
             posterUrl,
@@ -271,6 +383,12 @@ export class KKPhimMovieProvider implements MovieProviderPort {
             duration: this.parseDuration(kkphimMovie.time),
             rating: kkphimMovie.tmdb?.vote_average || undefined,
             genres,
+            cast: kkphimMovie.actor,
+            director: kkphimMovie.director,
+            country,
+            quality: kkphimMovie.quality,
+            lang: kkphimMovie.lang,
+            episodeCurrent: kkphimMovie.episode_current,
             provider: 'kkphim',
             streamUrl: undefined, // Will be fetched separately via streaming adapter
             createdAt: now,

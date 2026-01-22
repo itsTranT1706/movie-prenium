@@ -2,7 +2,9 @@ import { BaseEntity } from '@/shared/domain';
 
 export interface MovieProps {
     externalId?: string;
+    slug?: string;
     title: string;
+    originalTitle?: string;
     mediaType: 'movie' | 'tv';
     description?: string;
     posterUrl?: string;
@@ -12,6 +14,14 @@ export interface MovieProps {
     duration?: number;
     rating?: number;
     genres: string[];
+    cast?: string[];
+    director?: string[];
+    country?: string[];
+    quality?: string;
+    lang?: string;
+    episodeCurrent?: string;
+    imdbId?: string;
+    originalLanguage?: string;
     provider: string;
     streamUrl?: string;
     createdAt: Date;
@@ -87,6 +97,46 @@ export class Movie extends BaseEntity<string> {
 
     get updatedAt(): Date {
         return this.props.updatedAt;
+    }
+
+    get slug(): string | undefined {
+        return this.props.slug;
+    }
+
+    get originalTitle(): string | undefined {
+        return this.props.originalTitle;
+    }
+
+    get cast(): string[] | undefined {
+        return this.props.cast;
+    }
+
+    get director(): string[] | undefined {
+        return this.props.director;
+    }
+
+    get country(): string[] | undefined {
+        return this.props.country;
+    }
+
+    get quality(): string | undefined {
+        return this.props.quality;
+    }
+
+    get lang(): string | undefined {
+        return this.props.lang;
+    }
+
+    get episodeCurrent(): string | undefined {
+        return this.props.episodeCurrent;
+    }
+
+    get imdbId(): string | undefined {
+        return this.props.imdbId;
+    }
+
+    get originalLanguage(): string | undefined {
+        return this.props.originalLanguage;
     }
 
     public static create(id: string, props: MovieProps): Movie {
