@@ -11,6 +11,7 @@ import {
     GetUpcomingMoviesUseCase,
     GetMovieDetailsUseCase,
 } from '../../application';
+import { KKPhimMovieProvider } from '../adapters';
 
 @Controller('movies')
 export class MovieController {
@@ -25,6 +26,7 @@ export class MovieController {
         private readonly getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
         private readonly getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
         private readonly getMovieDetailsUseCase: GetMovieDetailsUseCase,
+        private readonly kkphimProvider: KKPhimMovieProvider,
     ) { }
 
     @Get('search')
@@ -186,6 +188,31 @@ export class MovieController {
     }
 
     /**
+     * Get movies by type (phim-bo, phim-le, hoat-hinh, tv-shows)
+     * @param type - Type slug (e.g., 'phim-bo', 'phim-le', 'hoat-hinh', 'tv-shows')
+     * @param page - Page number (default: 1)
+     */
+    @Get('type/:type')
+    async getMoviesByType(
+        @Param('type') type: string,
+        @Query('page') page = 1,
+    ) {
+        try {
+            const movies = await this.kkphimProvider.getMoviesByType(type, Number(page));
+
+            return {
+                success: true,
+                data: movies.map(this.toResponse),
+            };
+        } catch (error) {
+            throw new HttpException(
+                'Failed to fetch movies by type',
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
      * Get streaming sources for a movie
      * @param id - TMDB ID of the movie
      * @returns Streaming sources from KKPhim
@@ -232,7 +259,7 @@ export class MovieController {
 
         if (result.isFailure) {
             const errorMessage = result.error.message || 'Movie not found';
-            
+
             // Handle rate limit errors with retry-after header
             if (errorMessage.includes('Too many requests')) {
                 throw new HttpException(
@@ -240,7 +267,7 @@ export class MovieController {
                     HttpStatus.TOO_MANY_REQUESTS
                 );
             }
-            
+
             // Handle not found errors
             if (errorMessage.includes('not found')) {
                 throw new HttpException(
@@ -248,7 +275,7 @@ export class MovieController {
                     HttpStatus.NOT_FOUND
                 );
             }
-            
+
             // Generic error
             throw new HttpException(
                 errorMessage,

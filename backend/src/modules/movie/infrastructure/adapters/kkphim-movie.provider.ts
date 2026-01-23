@@ -233,12 +233,21 @@ export class KKPhimMovieProvider implements MovieProviderPort {
     }
 
     /**
+     * Get top rated movies
+     * KKPhim doesn't have a dedicated top-rated endpoint, use popular as fallback
+     */
+    async getTopRatedMovies(page = 1): Promise<Movie[]> {
+        // KKPhim doesn't have a top-rated endpoint, fallback to popular
+        return this.getPopularMovies(page);
+    }
+
+    /**
      * Get movies by genre
-     * GET /v1/api/danh-sach/phim-bo?category={genre}&page={page}
+     * GET /v1/api/the-loai/{genre}?page={page}
      */
     async getMoviesByGenre(genre: string, page = 1): Promise<Movie[]> {
         try {
-            const url = `${this.baseUrl}/v1/api/danh-sach/phim-bo?category=${encodeURIComponent(genre)}&page=${page}`;
+            const url = `${this.baseUrl}/v1/api/the-loai/${encodeURIComponent(genre)}?page=${page}&limit=24`;
             this.logger.debug(`Getting by genre: ${url}`);
 
             const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
@@ -257,11 +266,11 @@ export class KKPhimMovieProvider implements MovieProviderPort {
 
     /**
      * Get movies by country
-     * GET /v1/api/danh-sach/phim-bo?country={country}&page={page}
+     * GET /v1/api/quoc-gia/{country}?page={page}
      */
     async getMoviesByCountry(country: string, page = 1): Promise<Movie[]> {
         try {
-            const url = `${this.baseUrl}/v1/api/danh-sach/phim-bo?country=${encodeURIComponent(country)}&page=${page}`;
+            const url = `${this.baseUrl}/v1/api/quoc-gia/${encodeURIComponent(country)}?page=${page}&limit=24`;
             this.logger.debug(`Getting by country: ${url}`);
 
             const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
@@ -300,7 +309,7 @@ export class KKPhimMovieProvider implements MovieProviderPort {
      */
     async getMoviesByType(type: string, page = 1): Promise<Movie[]> {
         try {
-            const url = `${this.baseUrl}/v1/api/danh-sach/${type}?page=${page}`;
+            const url = `${this.baseUrl}/v1/api/danh-sach/${type}?page=${page}&limit=24`;
             this.logger.debug(`Getting by type: ${url}`);
 
             const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
