@@ -4,7 +4,8 @@ import {
   ContinueWatching,
   GenreCardGrid,
   TheaterMoviesWrapper,
-  Top10MoviesSection,
+  Top10MoviesWrapper,
+  TrendingSectionWrapper,
 } from '@/components/features';
 import { CountryMoviesWrapper } from '@/components/features/country-movies-wrapper';
 import { UpcomingMoviesWrapper } from '@/components/features/upcoming-movies-wrapper';
@@ -114,6 +115,9 @@ export default async function HomePage() {
         {/* Continue Watching - Above fold */}
         <ContinueWatching items={[]} isLoggedIn={isLoggedIn} />
 
+        {/* Trending Section - Mock data for display */}
+        <TrendingSectionWrapper />
+
         {/* Country Movies - Lazy loaded */}
         <LazySection minHeight="280px" sectionKey="country">
           <CountryMoviesWrapper />
@@ -124,7 +128,7 @@ export default async function HomePage() {
           <LazySection minHeight="350px" sectionKey="trending">
             <MovieRow
               title="Trending This Week"
-              href="/trending"
+              href="/movies/trending"
               movies={trendingMovies}
               icon="trending"
             />
@@ -138,7 +142,7 @@ export default async function HomePage() {
 
         {/* Top 10 Movies - Lazy loaded */}
         <LazySection minHeight="400px" sectionKey="top10">
-          <Top10MoviesSection />
+          <Top10MoviesWrapper />
         </LazySection>
 
         {/* Upcoming Movies - Lazy loaded */}
@@ -151,7 +155,7 @@ export default async function HomePage() {
           <LazySection minHeight="350px" sectionKey="new">
             <MovieRow
               title="New Releases"
-              href="/new"
+              href="/movies"
               movies={popularMovies}
               icon="new"
             />

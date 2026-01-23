@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { SlidersHorizontal, PanelLeftClose, PanelLeft } from 'lucide-react';
-import { MoviesGrid } from '@/components/features/movies-grid';
+import { MovieCard } from '@/components/features';
 import { FilterSidebar, FilterState } from '@/components/features/filter-sidebar';
 import { MobileFilterDrawer } from '@/components/features/mobile-filter-drawer';
-import { apiClient } from '@/lib/api';
+import { MoviePagination } from '@/components/features/movie-pagination';
 
 interface Movie {
     id: string;
@@ -19,10 +19,20 @@ interface Movie {
 }
 
 interface MoviesPageClientProps {
-    initialMovies: Movie[];
+    movies: Movie[];
+    currentPage: number;
+    totalPages: number;
+    pageTitle?: string;
+    baseUrl?: string;
 }
 
-export function MoviesPageClient({ initialMovies }: MoviesPageClientProps) {
+export function MoviesPageClient({ 
+    movies, 
+    currentPage, 
+    totalPages, 
+    pageTitle = 'Phim Phổ Biến',
+    baseUrl = '/movies'
+}: MoviesPageClientProps) {
     const [filters, setFilters] = useState<FilterState>({
         search: '',
         genres: [],
@@ -34,40 +44,6 @@ export function MoviesPageClient({ initialMovies }: MoviesPageClientProps) {
     });
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [movies, setMovies] = useState<Movie[]>(initialMovies);
-    const [loading, setLoading] = useState(false);
-
-    // Fetch movies based on filters
-    useEffect(() => {
-        const fetchMovies = async () => {
-            setLoading(true);
-            
-            // If genre filter is active, fetch by genre
-            if (filters.genres.length > 0) {
-                const genreSlug = filters.genres[0].toLowerCase().replace(/\s+/g, '-');
-                const result = await apiClient.getMoviesByGenre(genreSlug, 1);
-                if (result.success && result.data) {
-                    setMovies(result.data);
-                }
-            }
-            // If country filter is active, fetch by country
-            else if (filters.countries.length > 0) {
-                const countrySlug = filters.countries[0].toLowerCase().replace(/\s+/g, '-');
-                const result = await apiClient.getMoviesByCountry(countrySlug, 1);
-                if (result.success && result.data) {
-                    setMovies(result.data);
-                }
-            }
-            // Otherwise use initial movies
-            else {
-                setMovies(initialMovies);
-            }
-            
-            setLoading(false);
-        };
-        
-        fetchMovies();
-    }, [filters.genres, filters.countries, initialMovies]);
 
     // Keyboard shortcut: Ctrl+B to toggle sidebar
     useEffect(() => {
@@ -115,11 +91,11 @@ export function MoviesPageClient({ initialMovies }: MoviesPageClientProps) {
     return (
         <div className="min-h-screen bg-[#0a0a0a] pt-16 lg:pt-20">
             {/* Filter Toggle Buttons */}
-            <div className="fixed top-20 right-4 z-30 flex gap-2">
+            <div className="fixed top-20 right-4 lg:right-8 z-30 flex gap-2">
                 {/* Mobile Filter Button */}
                 <button
                     onClick={() => setIsMobileFilterOpen(true)}
-                    className="lg:hidden flex items-center gap-2 bg-[#141414] text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-[#1a1a1a] transition-colors"
+                    className="lg:hidden flex items-center gap-2 bg-[#141414] text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-[#1a1a1a] transition-colors shadow-lg"
                 >
                     <SlidersHorizontal className="w-4 h-4" />
                     <span className="text-sm">Filters</span>
@@ -133,18 +109,18 @@ export function MoviesPageClient({ initialMovies }: MoviesPageClientProps) {
                 {/* Desktop Sidebar Toggle */}
                 <button
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    className="hidden lg:flex items-center gap-2 bg-[#141414] text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-[#1a1a1a] transition-colors group"
+                    className="hidden lg:flex items-center gap-2 bg-[#141414] text-white px-4 py-2 rounded-xl border border-white/10 hover:bg-[#1a1a1a] transition-colors group shadow-lg"
                     title="Toggle Sidebar (Ctrl+B)"
                 >
                     {isSidebarOpen ? (
                         <>
                             <PanelLeftClose className="w-4 h-4" />
-                            <span className="text-sm">Hide Filters</span>
+                            <span className="text-sm">Ẩn Bộ Lọc</span>
                         </>
                     ) : (
                         <>
                             <PanelLeft className="w-4 h-4" />
-                            <span className="text-sm">Show Filters</span>
+                            <span className="text-sm">Hiện Bộ Lọc</span>
                         </>
                     )}
                     <span className="text-xs text-gray-500 group-hover:text-gray-400 ml-1">Ctrl+B</span>
@@ -160,38 +136,55 @@ export function MoviesPageClient({ initialMovies }: MoviesPageClientProps) {
             />
 
             {/* Main Layout */}
-            <div className="flex gap-4 lg:gap-6 p-4 lg:p-6 max-w-[2000px] mx-auto transition-all duration-300">
+            <div className="flex gap-6 lg:gap-8 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[2000px] mx-auto transition-all duration-300">
                 {/* Left Sidebar - Desktop Only */}
-                <div 
-                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${
-                        isSidebarOpen ? 'w-1/5 opacity-100' : 'w-0 opacity-0 overflow-hidden'
-                    }`}
+                <div
+                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+                        }`}
                 >
-                    <div className="sticky top-20 border-r border-white/10 pr-6">
+                    <div className="sticky top-24 border-r border-white/10 pr-6">
                         <FilterSidebar filters={filters} onFilterChange={setFilters} />
                     </div>
                 </div>
 
                 {/* Main Content Area */}
-                <div className={`flex-1 transition-all duration-300 ${
-                    isSidebarOpen ? 'w-full lg:w-4/5' : 'w-full'
-                }`}>
+                <div className={`flex-1 min-w-0 transition-all duration-300`}>
                     {/* Header */}
-                    <div className="mb-6 pb-6 border-b border-white/10">
-                        <h1 className="text-3xl font-bold text-white mb-2">All Movies</h1>
-                        <p className="text-gray-400">
-                            {filteredMovies.length} {filteredMovies.length === 1 ? 'movie' : 'movies'} found
-                        </p>
+                    <div className="mb-8 pb-6 border-b border-white/10">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3">{pageTitle}</h1>
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                            <span className="font-medium text-white">{filteredMovies.length}</span>
+                            <span>{filteredMovies.length === 1 ? 'phim' : 'phim'}</span>
+                            {totalPages > 1 && (
+                                <>
+                                    <span className="text-gray-600">•</span>
+                                    <span>Trang {currentPage} / {totalPages}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     {/* Movies Grid */}
                     {filteredMovies.length > 0 ? (
-                        <MoviesGrid initialMovies={filteredMovies} />
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-5">
+                                {filteredMovies.map((movie) => (
+                                    <MovieCard key={movie.id} movie={movie} enablePreview={true} />
+                                ))}
+                            </div>
+
+                            {/* Pagination */}
+                            <MoviePagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                baseUrl={baseUrl}
+                            />
+                        </>
                     ) : (
                         <div className="flex flex-col items-center justify-center py-20">
                             <div className="text-center">
-                                <p className="text-xl text-gray-400 mb-2">No movies found</p>
-                                <p className="text-sm text-gray-500">Try adjusting your filters</p>
+                                <p className="text-xl text-gray-400 mb-2">Không tìm thấy phim</p>
+                                <p className="text-sm text-gray-500">Thử điều chỉnh bộ lọc của bạn</p>
                             </div>
                         </div>
                     )}

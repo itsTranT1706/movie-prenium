@@ -20,22 +20,73 @@ interface FilterSidebarProps {
     className?: string;
 }
 
+// KKPhim genres with Vietnamese names and slugs
 const GENRES = [
-    'Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 
-    'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 
-    'History', 'Horror', 'Music', 'Mystery', 'Romance', 
-    'Sci-Fi', 'Sport', 'Thriller', 'War', 'Western'
+    { name: 'Hành Động', slug: 'hanh-dong' },
+    { name: 'Cổ Trang', slug: 'co-trang' },
+    { name: 'Chiến Tranh', slug: 'chien-tranh' },
+    { name: 'Viễn Tưởng', slug: 'vien-tuong' },
+    { name: 'Kinh Dị', slug: 'kinh-di' },
+    { name: 'Tài Liệu', slug: 'tai-lieu' },
+    { name: 'Bí Ẩn', slug: 'bi-an' },
+    { name: 'Tình Cảm', slug: 'tinh-cam' },
+    { name: 'Tâm Lý', slug: 'tam-ly' },
+    { name: 'Thể Thao', slug: 'the-thao' },
+    { name: 'Phiêu Lưu', slug: 'phieu-luu' },
+    { name: 'Âm Nhạc', slug: 'am-nhac' },
+    { name: 'Gia Đình', slug: 'gia-dinh' },
+    { name: 'Học Đường', slug: 'hoc-duong' },
+    { name: 'Hài Hước', slug: 'hai-huoc' },
+    { name: 'Hình Sự', slug: 'hinh-su' },
+    { name: 'Võ Thuật', slug: 'vo-thuat' },
+    { name: 'Khoa Học', slug: 'khoa-hoc' },
+    { name: 'Thần Thoại', slug: 'than-thoai' },
+    { name: 'Chính Kịch', slug: 'chinh-kich' },
+    { name: 'Kinh Điển', slug: 'kinh-dien' },
 ];
 
+// KKPhim countries with Vietnamese names and slugs
 const COUNTRIES = [
-    'United States', 'United Kingdom', 'South Korea', 'Japan', 
-    'France', 'Germany', 'Spain', 'Italy', 'China', 'India',
-    'Thailand', 'Vietnam', 'Hong Kong', 'Taiwan', 'Canada'
+    { name: 'Hàn Quốc', slug: 'han-quoc' },
+    { name: 'Trung Quốc', slug: 'trung-quoc' },
+    { name: 'Nhật Bản', slug: 'nhat-ban' },
+    { name: 'Thái Lan', slug: 'thai-lan' },
+    { name: 'Âu Mỹ', slug: 'au-my' },
+    { name: 'Đài Loan', slug: 'dai-loan' },
+    { name: 'Hồng Kông', slug: 'hong-kong' },
+    { name: 'Ấn Độ', slug: 'an-do' },
+    { name: 'Anh', slug: 'anh' },
+    { name: 'Pháp', slug: 'phap' },
+    { name: 'Canada', slug: 'canada' },
+    { name: 'Quốc Gia Khác', slug: 'quoc-gia-khac' },
+    { name: 'Đức', slug: 'duc' },
+    { name: 'Tây Ban Nha', slug: 'tay-ban-nha' },
+    { name: 'Thổ Nhĩ Kỳ', slug: 'tho-nhi-ky' },
+    { name: 'Hà Lan', slug: 'ha-lan' },
+    { name: 'Indonesia', slug: 'indonesia' },
+    { name: 'Nga', slug: 'nga' },
+    { name: 'Mexico', slug: 'mexico' },
+    { name: 'Ba Lan', slug: 'ba-lan' },
+    { name: 'Úc', slug: 'uc' },
+    { name: 'Thụy Điển', slug: 'thuy-dien' },
+    { name: 'Malaysia', slug: 'malaysia' },
+    { name: 'Brazil', slug: 'brazil' },
+    { name: 'Philippines', slug: 'philippines' },
+    { name: 'Bồ Đào Nha', slug: 'bo-dao-nha' },
+    { name: 'Ý', slug: 'y' },
+    { name: 'Đan Mạch', slug: 'dan-mach' },
+    { name: 'UAE', slug: 'uae' },
+    { name: 'Na Uy', slug: 'na-uy' },
+    { name: 'Thụy Sĩ', slug: 'thuy-si' },
+    { name: 'Châu Phi', slug: 'chau-phi' },
+    { name: 'Nam Phi', slug: 'nam-phi' },
+    { name: 'Ukraina', slug: 'ukraina' },
+    { name: 'Ả Rập Xê Út', slug: 'a-rap-xe-ut' },
 ];
 
-const QUALITIES = ['4K', 'Full HD', 'HD', 'CAM'];
+const QUALITIES = ['4K', 'FHD', 'HD', 'CAM'];
 
-const LANGUAGES = ['English', 'Korean', 'Japanese', 'Chinese', 'French', 'Spanish', 'Vietnamese'];
+const LANGUAGES = ['Vietsub', 'Thuyết Minh', 'Lồng Tiếng', 'Vietsub + Thuyết Minh', 'Vietsub + Lồng Tiếng'];
 
 const STATUS = ['Completed', 'Ongoing', 'Upcoming'];
 
@@ -135,10 +186,10 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
                 <div className="space-y-2">
                     {GENRES.map((genre) => (
                         <CheckboxItem
-                            key={genre}
-                            label={genre}
-                            checked={filters.genres.includes(genre)}
-                            onChange={() => toggleArrayFilter('genres', genre)}
+                            key={genre.slug}
+                            label={genre.name}
+                            checked={filters.genres.includes(genre.slug)}
+                            onChange={() => toggleArrayFilter('genres', genre.slug)}
                         />
                     ))}
                 </div>
@@ -154,10 +205,10 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
                 <div className="space-y-2">
                     {COUNTRIES.map((country) => (
                         <CheckboxItem
-                            key={country}
-                            label={country}
-                            checked={filters.countries.includes(country)}
-                            onChange={() => toggleArrayFilter('countries', country)}
+                            key={country.slug}
+                            label={country.name}
+                            checked={filters.countries.includes(country.slug)}
+                            onChange={() => toggleArrayFilter('countries', country.slug)}
                         />
                     ))}
                 </div>

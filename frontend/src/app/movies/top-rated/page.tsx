@@ -1,24 +1,22 @@
 import { MoviesPageClient } from '@/components/features/movies-page-client';
 import { serverApi } from '@/lib/api/server';
 
-interface MoviesPageProps {
+interface TopRatedMoviesPageProps {
     searchParams: Promise<{ page?: string }>;
 }
 
-// Estimate total pages (TMDB returns ~20 per page, max 500 pages)
 const TOTAL_PAGES = 100;
 
-export default async function MoviesPage({ searchParams }: MoviesPageProps) {
+export default async function TopRatedMoviesPage({ searchParams }: TopRatedMoviesPageProps) {
     const params = await searchParams;
     const currentPage = Math.max(1, parseInt(params.page || '1', 10));
 
     let movies: any[] = [];
 
     try {
-        // Fetch popular movies for current page on server
-        movies = await serverApi.getPopularMovies(currentPage);
+        movies = await serverApi.getTopRatedMovies(currentPage);
     } catch (error) {
-        console.error('Failed to fetch movies:', error);
+        console.error('Failed to fetch top rated movies:', error);
     }
 
     return (
@@ -26,8 +24,13 @@ export default async function MoviesPage({ searchParams }: MoviesPageProps) {
             movies={movies}
             currentPage={currentPage}
             totalPages={TOTAL_PAGES}
-            pageTitle="Phim Phổ Biến"
-            baseUrl="/movies"
+            pageTitle="Phim Đánh Giá Cao"
+            baseUrl="/movies/top-rated"
         />
     );
 }
+
+export const metadata = {
+    title: 'Phim Đánh Giá Cao - Movie Streaming',
+    description: 'Xem phim được đánh giá cao nhất, phim hay nhất mọi thời đại',
+};

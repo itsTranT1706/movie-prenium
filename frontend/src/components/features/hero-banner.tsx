@@ -185,9 +185,9 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                 <div className="w-full flex items-end justify-between gap-8">
                     {/* Left side - Movie info and CTA */}
                     <div className="max-w-xl">
-                        {/* Title with transition */}
+                        {/* Title with transition - Cinematic fake logo style */}
                         <h1
-                            className={`text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 leading-tight transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                            className={`movie-title-logo mb-3 transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                                 }`}
                         >
                             {activeMovie.title}

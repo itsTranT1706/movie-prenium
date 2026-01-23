@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
+import { Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import { Header, Footer } from "@/components/layout";
 import { AuthProviderWrapper } from "@/components/providers";
 import { ScrollToTop } from "@/components/ui";
 import { Toaster } from "sonner";
+
+// Cinematic font for movie titles
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "PhePhim - Premium Movie Streaming",
@@ -16,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${bebasNeue.variable}`}>
       <body className="min-h-screen bg-black text-white font-sans antialiased">
         <AuthProviderWrapper>
           {/* Fixed Header */}
@@ -34,7 +43,7 @@ export default function RootLayout({
           <ScrollToTop />
 
           {/* Toast Notifications */}
-          <Toaster 
+          <Toaster
             position="top-right"
             theme="dark"
             richColors

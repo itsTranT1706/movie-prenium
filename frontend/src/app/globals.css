@@ -277,6 +277,27 @@ body {
 }
 
 /* ============================================
+   Movie Title Fake Logo
+   Cinematic title styling when no logo image
+   ============================================ */
+
+.movie-title-logo {
+    font-family: var(--font-bebas), 'Bebas Neue', 'Impact', 'Arial Black', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    color: white;
+    font-weight: 400;
+    /* Responsive font sizes */
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    /* Deep, soft shadow for readability on any backdrop */
+    text-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
    Hero Thumbnail Preview Strip
    Netflix-style cinematic carousel
    ============================================ */
