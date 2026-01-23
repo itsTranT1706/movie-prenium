@@ -42,13 +42,66 @@ export default function Header() {
     ];
 
     const genres = [
-        'Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Romance', 
-        'Thriller', 'Animation', 'Documentary', 'Fantasy'
+        { name: 'Hành Động', slug: 'hanh-dong' },
+        { name: 'Cổ Trang', slug: 'co-trang' },
+        { name: 'Chiến Tranh', slug: 'chien-tranh' },
+        { name: 'Viễn Tưởng', slug: 'vien-tuong' },
+        { name: 'Kinh Dị', slug: 'kinh-di' },
+        { name: 'Tài Liệu', slug: 'tai-lieu' },
+        { name: 'Bí Ẩn', slug: 'bi-an' },
+        { name: 'Tình Cảm', slug: 'tinh-cam' },
+        { name: 'Tâm Lý', slug: 'tam-ly' },
+        { name: 'Thể Thao', slug: 'the-thao' },
+        { name: 'Phiêu Lưu', slug: 'phieu-luu' },
+        { name: 'Âm Nhạc', slug: 'am-nhac' },
+        { name: 'Gia Đình', slug: 'gia-dinh' },
+        { name: 'Học Đường', slug: 'hoc-duong' },
+        { name: 'Hài Hước', slug: 'hai-huoc' },
+        { name: 'Hình Sự', slug: 'hinh-su' },
+        { name: 'Võ Thuật', slug: 'vo-thuat' },
+        { name: 'Khoa Học', slug: 'khoa-hoc' },
+        { name: 'Thần Thoại', slug: 'than-thoai' },
+        { name: 'Chính Kịch', slug: 'chinh-kich' },
+        { name: 'Kinh Điển', slug: 'kinh-dien' },
     ];
 
     const countries = [
-        'USA', 'Korea', 'Japan', 'China', 'Thailand', 'India',
-        'UK', 'France', 'Spain', 'Hong Kong'
+        { name: 'Hàn Quốc', slug: 'han-quoc' },
+        { name: 'Trung Quốc', slug: 'trung-quoc' },
+        { name: 'Nhật Bản', slug: 'nhat-ban' },
+        { name: 'Thái Lan', slug: 'thai-lan' },
+        { name: 'Âu Mỹ', slug: 'au-my' },
+        { name: 'Đài Loan', slug: 'dai-loan' },
+        { name: 'Hồng Kông', slug: 'hong-kong' },
+        { name: 'Ấn Độ', slug: 'an-do' },
+        { name: 'Anh', slug: 'anh' },
+        { name: 'Pháp', slug: 'phap' },
+        { name: 'Canada', slug: 'canada' },
+        { name: 'Quốc Gia Khác', slug: 'quoc-gia-khac' },
+        { name: 'Đức', slug: 'duc' },
+        { name: 'Tây Ban Nha', slug: 'tay-ban-nha' },
+        { name: 'Thổ Nhĩ Kỳ', slug: 'tho-nhi-ky' },
+        { name: 'Hà Lan', slug: 'ha-lan' },
+        { name: 'Indonesia', slug: 'indonesia' },
+        { name: 'Nga', slug: 'nga' },
+        { name: 'Mexico', slug: 'mexico' },
+        { name: 'Ba Lan', slug: 'ba-lan' },
+        { name: 'Úc', slug: 'uc' },
+        { name: 'Thụy Điển', slug: 'thuy-dien' },
+        { name: 'Malaysia', slug: 'malaysia' },
+        { name: 'Brazil', slug: 'brazil' },
+        { name: 'Philippines', slug: 'philippines' },
+        { name: 'Bồ Đào Nha', slug: 'bo-dao-nha' },
+        { name: 'Ý', slug: 'y' },
+        { name: 'Đan Mạch', slug: 'dan-mach' },
+        { name: 'UAE', slug: 'uae' },
+        { name: 'Na Uy', slug: 'na-uy' },
+        { name: 'Thụy Sĩ', slug: 'thuy-si' },
+        { name: 'Châu Phi', slug: 'chau-phi' },
+        { name: 'Nam Phi', slug: 'nam-phi' },
+        { name: 'Ukraina', slug: 'ukraina' },
+        { name: 'Ả Rập Xê Út', slug: 'a-rap-xe-ut' },
+        { name: 'Việt Nam', slug: 'viet-nam' },
     ];
 
     return (
@@ -96,11 +149,11 @@ export default function Header() {
                                         <div className="grid grid-cols-2 gap-1 px-2">
                                             {genres.map((genre) => (
                                                 <Link
-                                                    key={genre}
-                                                    href={`/genres/${genre.toLowerCase()}`}
+                                                    key={genre.slug}
+                                                    href={`/genre/${genre.slug}`}
                                                     className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors"
                                                 >
-                                                    {genre}
+                                                    {genre.name}
                                                 </Link>
                                             ))}
                                         </div>
@@ -120,15 +173,15 @@ export default function Header() {
                                 </button>
 
                                 {isCountriesOpen && (
-                                    <div className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
-                                        <div className="grid grid-cols-2 gap-1 px-2">
+                                    <div className="absolute top-full left-0 mt-2 w-96 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
+                                        <div className="grid grid-cols-3 gap-1 px-2">
                                             {countries.map((country) => (
                                                 <Link
-                                                    key={country}
-                                                    href={`/countries/${country.toLowerCase()}`}
-                                                    className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                                    key={country.slug}
+                                                    href={`/country/${country.slug}`}
+                                                    className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors text-center break-words"
                                                 >
-                                                    {country}
+                                                    {country.name}
                                                 </Link>
                                             ))}
                                         </div>
