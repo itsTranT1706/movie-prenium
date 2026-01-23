@@ -4,6 +4,7 @@ import { MOVIE_REPOSITORY, MOVIE_PROVIDER } from '../domain';
 import {
     SearchMoviesUseCase,
     GetPopularMoviesUseCase,
+    GetTopRatedMoviesUseCase,
     GetMovieStreamsUseCase,
     GetCinemaMoviesUseCase,
     GetMoviesByGenreUseCase,
@@ -29,6 +30,7 @@ import { MovieController } from './controllers';
         // Use Cases
         SearchMoviesUseCase,
         GetPopularMoviesUseCase,
+        GetTopRatedMoviesUseCase,
         GetMovieStreamsUseCase,
         GetCinemaMoviesUseCase,
         GetMoviesByGenreUseCase,
