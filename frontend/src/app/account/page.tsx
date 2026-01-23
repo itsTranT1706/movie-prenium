@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { User, List, Eye, Bell, Shield, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
+import { StageSpotlight } from '@/components/ui/stage-spotlight';
 
 export default function AccountPage() {
     const router = useRouter();
@@ -58,8 +59,11 @@ export default function AccountPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] pt-20">
-            <div className="container">
+        <div className="min-h-screen bg-[#0a0a0a] pt-20 relative overflow-hidden">
+            {/* Stage Spotlight Effect */}
+            <StageSpotlight color="blue" intensity="low" />
+            
+            <div className="container relative z-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}
                     <aside className="w-full lg:w-64 flex-shrink-0">

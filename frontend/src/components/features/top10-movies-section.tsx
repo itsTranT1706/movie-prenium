@@ -1,9 +1,15 @@
 'use client';
 
-import { useRef } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
+import { ChevronRight } from 'lucide-react';
+import { HoverPreviewCard } from '@/components/ui';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface Top10Movie {
     id: string;
@@ -166,22 +172,12 @@ function getRankGradient(rank: number): string {
 
 /**
  * Top 10 Movies Section Component
- * Ranked horizontal carousel with glowing hover effect
+ * Ranked horizontal carousel with glowing hover effect using shadcn/ui carousel
  */
 export default function Top10MoviesSection({
     title = 'Top 10 phim lẻ hôm nay',
     movies = defaultTop10Movies,
 }: Top10MoviesSectionProps) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (!scrollRef.current) return;
-        const scrollAmount = 400;
-        scrollRef.current.scrollBy({
-            left: direction === 'left' ? -scrollAmount : scrollAmount,
-            behavior: 'smooth'
-        });
-    };
 
     return (
         <section className="py-4 lg:py-6">
@@ -198,145 +194,136 @@ export default function Top10MoviesSection({
                     </Link>
                 </div>
 
-                {/* Scrollable Cards Container */}
-                <div className="relative group/container">
-                    {/* Left Arrow */}
-                    <button
-                        onClick={() => scroll('left')}
-                        className="absolute left-0 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center text-white opacity-0 group-hover/container:opacity-100 transition-opacity backdrop-blur-sm"
-                        aria-label="Scroll left"
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
-
-                    {/* Right Arrow */}
-                    <button
-                        onClick={() => scroll('right')}
-                        className="absolute right-0 top-1/3 -translate-y-1/2 z-10 w-10 h-10 bg-black/70 hover:bg-black/90 rounded-full flex items-center justify-center text-white opacity-0 group-hover/container:opacity-100 transition-opacity backdrop-blur-sm"
-                        aria-label="Scroll right"
-                    >
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-
-                    {/* Cards */}
-                    <div
-                        ref={scrollRef}
-                        className="flex gap-4 lg:gap-5 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-                    >
-                        {movies.map((movie) => (
-                            <div
-                                key={movie.id}
-                                className="flex-shrink-0 flex items-end gap-1"
-                            >
-                                {/* Large Rank Number */}
-                                <span
-                                    className={`text-7xl lg:text-8xl font-black leading-none bg-gradient-to-b ${getRankGradient(movie.rank)} bg-clip-text text-transparent drop-shadow-lg`}
-                                    style={{
-                                        WebkitTextStroke: '2px rgba(255,255,255,0.1)',
-                                        marginRight: '4px',
-                                        zIndex: 1,
-                                    }}
-                                >
-                                    {movie.rank}
-                                </span>
-
-                                {/* Movie Card */}
-                                <HoverPreviewCard
-                                    movie={{
-                                        id: movie.id,
-                                        title: movie.title,
-                                        subtitle: movie.subtitle,
-                                        posterUrl: movie.posterUrl,
-                                        year: movie.year,
-                                        duration: movie.duration,
-                                        ageRating: movie.ageRating,
-                                        quality: movie.quality,
-                                    }}
-                                    delay={600}
-                                >
-                                    <Link
-                                        href={`/movie/${movie.id}`}
-                                        className="top10-card group/card flex-shrink-0 relative block"
-                                    >
-                                    {/* Glow Effect Container */}
-                                    <div className="relative">
-                                        {/* Glow Layer - Hidden by default, shows on hover */}
-                                        <div
-                                            className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-white to-cyan-400 opacity-0 group-hover/card:opacity-70 blur-md transition-opacity duration-300"
-                                            style={{ borderRadius: '36px 36px 20px 20px' }}
-                                        />
-
-                                        {/* Card Container - Asymmetric rounded corners (top larger than bottom) */}
-                                        <div
-                                            className="relative w-44 lg:w-52 aspect-[2/3] overflow-hidden border-2 border-transparent group-hover/card:border-white/80 transition-all duration-300 shadow-lg group-hover/card:shadow-cyan-400/30 group-hover/card:shadow-xl"
-                                            style={{ borderRadius: '32px 32px 16px 16px' }}
+                {/* Carousel with Cards */}
+                <Carousel
+                    opts={{
+                        align: 'start',
+                        loop: false,
+                        slidesToScroll: 1,
+                        containScroll: 'trimSnaps',
+                    }}
+                    className="w-full"
+                >
+                    <div className="relative">
+                        <CarouselContent className="-ml-4 lg:-ml-5">
+                            {movies.map((movie) => (
+                                <CarouselItem key={movie.id} className="pl-4 lg:pl-5 basis-auto">
+                                    <div className="flex items-end gap-1">
+                                        {/* Large Rank Number */}
+                                        <span
+                                            className={`text-7xl lg:text-8xl font-black leading-none bg-gradient-to-b ${getRankGradient(movie.rank)} bg-clip-text text-transparent drop-shadow-lg`}
+                                            style={{
+                                                WebkitTextStroke: '2px rgba(255,255,255,0.1)',
+                                                marginRight: '4px',
+                                                zIndex: 1,
+                                            }}
                                         >
-                                            {/* Poster Image */}
-                                            <img
-                                                src={movie.posterUrl}
-                                                alt={movie.title}
-                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-                                                loading="lazy"
-                                            />
+                                            {movie.rank}
+                                        </span>
 
-                                            {/* Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                                        {/* Movie Card */}
+                                        <HoverPreviewCard
+                                            movie={{
+                                                id: movie.id,
+                                                title: movie.title,
+                                                subtitle: movie.subtitle,
+                                                posterUrl: movie.posterUrl,
+                                                year: movie.year,
+                                                duration: movie.duration,
+                                                ageRating: movie.ageRating,
+                                                quality: movie.quality,
+                                            }}
+                                            delay={600}
+                                        >
+                                            <Link
+                                                href={`/movie/${movie.id}`}
+                                                className="top10-card group/card block"
+                                            >
+                                                {/* Glow Effect Container */}
+                                                <div className="relative">
+                                                    {/* Glow Layer - Hidden by default, shows on hover */}
+                                                    <div
+                                                        className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-white to-cyan-400 opacity-0 group-hover/card:opacity-70 blur-md transition-opacity duration-300"
+                                                        style={{ borderRadius: '36px 36px 20px 20px' }}
+                                                    />
 
-                                            {/* Badges - Bottom */}
-                                            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2">
-                                                {movie.hasPDE && (
-                                                    <span className="px-2 py-0.5 bg-gray-700/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-gray-300">
-                                                        PĐ. {movie.rank * 5 + 15}
-                                                    </span>
-                                                )}
-                                                {movie.hasTMinh && (
-                                                    <span className="px-2 py-0.5 bg-emerald-600/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-white">
-                                                        TM. {movie.rank * 5 + 15}
-                                                    </span>
-                                                )}
-                                            </div>
+                                                    {/* Card Container - Asymmetric rounded corners (top larger than bottom) */}
+                                                    <div
+                                                        className="relative w-48 lg:w-56 xl:w-64 aspect-[2/3] overflow-hidden border-2 border-transparent group-hover/card:border-white/80 transition-all duration-300 shadow-lg group-hover/card:shadow-cyan-400/30 group-hover/card:shadow-xl"
+                                                        style={{ borderRadius: '32px 32px 16px 16px' }}
+                                                    >
+                                                        {/* Poster Image */}
+                                                        <img
+                                                            src={movie.posterUrl}
+                                                            alt={movie.title}
+                                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                                            loading="lazy"
+                                                        />
 
-                                            {/* Quality Badge - Top right */}
-                                            {movie.quality && (
-                                                <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-red-600/90 backdrop-blur-sm rounded text-[9px] font-bold text-white">
-                                                    {movie.quality}
-                                                </span>
-                                            )}
-                                        </div>
+                                                        {/* Gradient Overlay */}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+                                                        {/* Badges - Bottom */}
+                                                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2">
+                                                            {movie.hasPDE && (
+                                                                <span className="px-2 py-0.5 bg-gray-700/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-gray-300">
+                                                                    PĐ. {movie.rank * 5 + 15}
+                                                                </span>
+                                                            )}
+                                                            {movie.hasTMinh && (
+                                                                <span className="px-2 py-0.5 bg-emerald-600/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-white">
+                                                                    TM. {movie.rank * 5 + 15}
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Quality Badge - Top right */}
+                                                        {movie.quality && (
+                                                            <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-red-600/90 backdrop-blur-sm rounded text-[9px] font-bold text-white">
+                                                                {movie.quality}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Title Section */}
+                                                <div className="mt-2">
+                                                    <h3 className="text-xs lg:text-sm font-semibold text-white line-clamp-1 group-hover/card:text-cyan-300 transition-colors">
+                                                        {movie.title}
+                                                    </h3>
+                                                    {movie.subtitle && movie.subtitle !== movie.title && (
+                                                        <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                                                            {movie.subtitle}
+                                                        </p>
+                                                    )}
+                                                    {/* Metadata row */}
+                                                    <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-500 flex-wrap">
+                                                        {movie.ageRating && (
+                                                            <span className="px-1 py-0.5 border border-gray-600 rounded text-gray-400 font-medium">
+                                                                {movie.ageRating}
+                                                            </span>
+                                                        )}
+                                                        <span>{movie.year}</span>
+                                                        {movie.duration && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>{movie.duration}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </HoverPreviewCard>
                                     </div>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
 
-                                    {/* Title Section */}
-                                    <div className="mt-2 w-44 lg:w-52">
-                                        <h3 className="text-xs lg:text-sm font-semibold text-white line-clamp-1 group-hover/card:text-cyan-300 transition-colors">
-                                            {movie.title}
-                                        </h3>
-                                        {movie.subtitle && movie.subtitle !== movie.title && (
-                                            <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
-                                                {movie.subtitle}
-                                            </p>
-                                        )}
-                                        {/* Metadata row */}
-                                        <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-500 flex-wrap">
-                                            {movie.ageRating && (
-                                                <span className="px-1 py-0.5 border border-gray-600 rounded text-gray-400 font-medium">
-                                                    {movie.ageRating}
-                                                </span>
-                                            )}
-                                            <span>{movie.year}</span>
-                                            {movie.duration && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span>{movie.duration}</span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Link>
-                            </HoverPreviewCard>
-                            </div>
-                        ))}
+                        {/* Navigation Arrows */}
+                        <CarouselPrevious className="absolute -left-5 top-[47%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/20 hover:border-white/40 hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-0" />
+                        <CarouselNext className="absolute -right-5 top-[47%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/20 hover:border-white/40 hover:bg-white/10 text-white/70 hover:text-white disabled:opacity-0" />
                     </div>
-                </div>
+                </Carousel>
             </div>
         </section>
     );

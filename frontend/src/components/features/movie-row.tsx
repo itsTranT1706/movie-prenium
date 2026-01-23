@@ -3,7 +3,14 @@
 import Link from 'next/link';
 import MovieCard, { Movie } from './movie-card';
 import { ChevronRight, Flame, Sparkles, Tv } from 'lucide-react';
-import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+} from '@/components/ui/carousel';
+
 interface MovieRowProps {
     title: string;
     href?: string;
@@ -73,16 +80,30 @@ export default function MovieRow({ title, href, movies, isLoading, icon }: Movie
                     )}
                 </div>
 
-                {/* Scrollable Row - Tighter gaps */}
-                <div className="relative -mx-4 sm:-mx-6 lg:-mx-12">
-                    <div className="flex gap-3 lg:gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-6 lg:px-12 pb-2">
-                        {movies.map((movie) => (
-                            <div key={movie.id} className="flex-shrink-0 w-[140px] sm:w-[160px] lg:w-[180px]">
-                                <MovieCard movie={movie} />
-                            </div>
-                        ))}
+                {/* Carousel Row */}
+                <Carousel
+                    opts={{
+                        align: 'start',
+                        loop: false,
+                        slidesToScroll: 1,
+                        containScroll: 'trimSnaps',
+                    }}
+                    className="w-full"
+                >
+                    <div className="relative">
+                        <CarouselContent className="-ml-3 lg:-ml-4">
+                            {movies.map((movie) => (
+                                <CarouselItem key={movie.id} className="pl-3 lg:pl-4 basis-[180px] sm:basis-[200px] lg:basis-[220px]">
+                                    <MovieCard movie={movie} />
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+
+                        {/* Navigation Arrows */}
+                        <CarouselPrevious className="absolute -left-5 top-[40%] -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 text-white border-0 disabled:opacity-0" />
+                        <CarouselNext className="absolute -right-5 top-[40%] -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 text-white border-0 disabled:opacity-0" />
                     </div>
-                </div>
+                </Carousel>
             </div>
         </section>
     );

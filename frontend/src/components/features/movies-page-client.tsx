@@ -6,6 +6,7 @@ import { MovieCard } from '@/components/features';
 import { FilterSidebar, FilterState } from '@/components/features/filter-sidebar';
 import { MobileFilterDrawer } from '@/components/features/mobile-filter-drawer';
 import { MoviePagination } from '@/components/features/movie-pagination';
+import { StageSpotlight } from '@/components/ui/stage-spotlight';
 
 interface Movie {
     id: string;
@@ -89,7 +90,10 @@ export function MoviesPageClient({
     }, [movies, filters]);
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] pt-16 lg:pt-20">
+        <div className="min-h-screen bg-[#0a0a0a] pt-16 lg:pt-20 relative overflow-hidden">
+            {/* Stage Spotlight Effect */}
+            <StageSpotlight color="gold" intensity="medium" />
+
             {/* Filter Toggle Buttons */}
             <div className="fixed top-20 right-4 lg:right-8 z-30 flex gap-2">
                 {/* Mobile Filter Button */}
@@ -136,7 +140,7 @@ export function MoviesPageClient({
             />
 
             {/* Main Layout */}
-            <div className="flex gap-6 lg:gap-8 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[2000px] mx-auto transition-all duration-300">
+            <div className="flex gap-6 lg:gap-8 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[2000px] mx-auto transition-all duration-300 relative z-10">
                 {/* Left Sidebar - Desktop Only */}
                 <div
                     className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'

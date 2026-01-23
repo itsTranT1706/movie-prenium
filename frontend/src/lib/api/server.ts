@@ -38,7 +38,7 @@ async function serverFetch<T>(endpoint: string): Promise<ApiResponse<T>> {
   try {
     const url = `${BASE_URL}${endpoint}`;
     console.log(`[Server API] Fetching: ${url}`);
-    
+
     const response = await fetch(url, {
       cache: 'no-store', // Always get fresh data
       headers: {
@@ -123,6 +123,14 @@ export const serverApi = {
    */
   async getMoviesByCountry(countrySlug: string, page: number = 1): Promise<Movie[]> {
     const result = await serverFetch<Movie[]>(`/movies/country/${countrySlug}?page=${page}`);
+    return result.data || [];
+  },
+
+  /**
+   * Get movies by type (phim-bo, phim-le, hoat-hinh, tv-shows)
+   */
+  async getMoviesByType(type: string, page: number = 1): Promise<Movie[]> {
+    const result = await serverFetch<Movie[]>(`/movies/type/${type}?page=${page}`);
     return result.data || [];
   },
 

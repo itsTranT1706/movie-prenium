@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { MovieCard } from '@/components/features';
 import { useAuth } from '@/hooks';
+import { StageSpotlight } from '@/components/ui/stage-spotlight';
 
 export default function FavoritesPage() {
     const router = useRouter();
@@ -45,8 +46,11 @@ export default function FavoritesPage() {
     const isEmpty = favorites.length === 0;
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] pt-20 pb-8">
-            <div className="container">
+        <div className="min-h-screen bg-[#0a0a0a] pt-20 pb-8 relative overflow-hidden">
+            {/* Stage Spotlight Effect */}
+            <StageSpotlight color="red" intensity="low" />
+            
+            <div className="container relative z-10">
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-6">
                     <Heart className="w-6 h-6 text-red-500 fill-red-500" />

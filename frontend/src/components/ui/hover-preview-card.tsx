@@ -103,7 +103,7 @@ export function HoverPreviewCard({
         if (isVisible && triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
-            const previewWidth = 400;
+            const previewWidth = 500;
 
             if (rect.left < previewWidth / 2) {
                 setActualPosition('left');
@@ -143,7 +143,7 @@ export function HoverPreviewCard({
             ref={previewRef}
             className="fixed pointer-events-auto"
             style={{
-                width: '400px',
+                width: '500px',
                 zIndex: 2147483647, // Max z-index value
                 top: triggerRef.current ? `${triggerRef.current.getBoundingClientRect().top + triggerRef.current.getBoundingClientRect().height / 2}px` : '0',
                 transform: actualPosition === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)',
@@ -151,12 +151,12 @@ export function HoverPreviewCard({
                     ? `${triggerRef.current ? triggerRef.current.getBoundingClientRect().left + triggerRef.current.getBoundingClientRect().width / 2 : 0}px`
                     : actualPosition === 'left'
                         ? `${triggerRef.current ? triggerRef.current.getBoundingClientRect().left : 0}px`
-                        : `${triggerRef.current ? triggerRef.current.getBoundingClientRect().right - 400 : 0}px`
+                        : `${triggerRef.current ? triggerRef.current.getBoundingClientRect().right - 500 : 0}px`
             }}
         >
             <div className="bg-[#181818] rounded-lg overflow-hidden shadow-2xl shadow-black/50 animate-scale-in">
                 {/* Media Section - Video or Image */}
-                <div className="relative w-full h-[200px] overflow-hidden">
+                <div className="relative w-full h-[280px] overflow-hidden">
                     {youtubeVideoId ? (
                         <>
                             <div className="absolute inset-0 overflow-hidden">
@@ -174,9 +174,9 @@ export function HoverPreviewCard({
                                     e.stopPropagation();
                                     setIsMuted(!isMuted);
                                 }}
-                                className="absolute bottom-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white/80 hover:text-white transition-all"
+                                className="absolute bottom-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white/80 hover:text-white transition-all"
                             >
-                                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                             </button>
                         </>
                     ) : (
@@ -187,39 +187,39 @@ export function HoverPreviewCard({
                         />
                     )}
                     {/* Gradient fade */}
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#181818] to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#181818] to-transparent" />
                 </div>
 
                 {/* Content Section */}
-                <div className="p-4 pt-0">
+                <div className="p-5 pt-0">
                     {/* Title */}
-                    <h3 className="text-base font-bold text-white mb-1 line-clamp-1">{movie.title}</h3>
+                    <h3 className="text-lg font-bold text-white mb-1.5 line-clamp-1">{movie.title}</h3>
                     {movie.subtitle && movie.subtitle !== movie.title && (
-                        <p className="text-xs text-amber-400 mb-2 line-clamp-1">{movie.subtitle}</p>
+                        <p className="text-sm text-amber-400 mb-3 line-clamp-1">{movie.subtitle}</p>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-4">
                         <Link
                             href={`/watch/${movie.externalId || movie.id}`}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-200 text-black font-semibold text-sm rounded transition-colors"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-200 text-black font-semibold text-sm rounded transition-colors"
                         >
                             <Play className="w-4 h-4 fill-black" />
                             <span>Xem ngay</span>
                         </Link>
-                        <button className="w-9 h-9 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors">
+                        <button className="w-10 h-10 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors">
                             <Heart className="w-4 h-4" />
                         </button>
                         <Link
                             href={`/movies/${movie.externalId || movie.id}`}
-                            className="w-9 h-9 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors"
+                            className="w-10 h-10 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors"
                         >
                             <Info className="w-4 h-4" />
                         </Link>
                     </div>
 
                     {/* Metadata Row */}
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2.5 flex-wrap">
                         {movie.ageRating && (
                             <span className="px-1.5 py-0.5 border border-gray-600 rounded text-gray-400 font-medium text-[10px]">
                                 {movie.ageRating}
