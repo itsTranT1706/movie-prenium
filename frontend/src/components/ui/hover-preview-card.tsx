@@ -142,16 +142,16 @@ export function HoverPreviewCard({
         <div
             ref={previewRef}
             className="fixed pointer-events-auto"
-            style={{ 
+            style={{
                 width: '400px',
                 zIndex: 2147483647, // Max z-index value
                 top: triggerRef.current ? `${triggerRef.current.getBoundingClientRect().top + triggerRef.current.getBoundingClientRect().height / 2}px` : '0',
                 transform: actualPosition === 'center' ? 'translate(-50%, -50%)' : 'translateY(-50%)',
-                left: actualPosition === 'center' 
+                left: actualPosition === 'center'
                     ? `${triggerRef.current ? triggerRef.current.getBoundingClientRect().left + triggerRef.current.getBoundingClientRect().width / 2 : 0}px`
                     : actualPosition === 'left'
-                    ? `${triggerRef.current ? triggerRef.current.getBoundingClientRect().left : 0}px`
-                    : `${triggerRef.current ? triggerRef.current.getBoundingClientRect().right - 400 : 0}px`
+                        ? `${triggerRef.current ? triggerRef.current.getBoundingClientRect().left : 0}px`
+                        : `${triggerRef.current ? triggerRef.current.getBoundingClientRect().right - 400 : 0}px`
             }}
         >
             <div className="bg-[#181818] rounded-lg overflow-hidden shadow-2xl shadow-black/50 animate-scale-in">
@@ -202,7 +202,7 @@ export function HoverPreviewCard({
                     <div className="flex items-center gap-2 mb-3">
                         <Link
                             href={`/watch/${movie.externalId || movie.id}`}
-                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm rounded transition-colors"
+                            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-gray-200 text-black font-semibold text-sm rounded transition-colors"
                         >
                             <Play className="w-4 h-4 fill-black" />
                             <span>Xem ngay</span>

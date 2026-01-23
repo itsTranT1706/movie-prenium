@@ -2,6 +2,7 @@ import { Controller, Get, Query, Param, HttpException, HttpStatus } from '@nestj
 import {
     SearchMoviesUseCase,
     GetPopularMoviesUseCase,
+    GetTopRatedMoviesUseCase,
     GetMovieStreamsUseCase,
     GetCinemaMoviesUseCase,
     GetMoviesByGenreUseCase,
@@ -16,6 +17,7 @@ export class MovieController {
     constructor(
         private readonly searchMoviesUseCase: SearchMoviesUseCase,
         private readonly getPopularMoviesUseCase: GetPopularMoviesUseCase,
+        private readonly getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
         private readonly getMovieStreamsUseCase: GetMovieStreamsUseCase,
         private readonly getCinemaMoviesUseCase: GetCinemaMoviesUseCase,
         private readonly getMoviesByGenreUseCase: GetMoviesByGenreUseCase,
@@ -45,6 +47,23 @@ export class MovieController {
     @Get('popular')
     async getPopularMovies(@Query('page') page = 1) {
         const result = await this.getPopularMoviesUseCase.execute(Number(page));
+
+        if (result.isFailure) {
+            throw new HttpException(
+                result.error.message,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return {
+            success: true,
+            data: result.value.map(this.toResponse),
+        };
+    }
+
+    @Get('top-rated')
+    async getTopRatedMovies(@Query('page') page = 1) {
+        const result = await this.getTopRatedMoviesUseCase.execute(Number(page));
 
         if (result.isFailure) {
             throw new HttpException(

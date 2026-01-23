@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Movie, MovieProviderPort } from '../../domain';
-import { TMDBApiClient, TMDBMovie, TMDBConfigService } from '@/shared/infrastructure/tmdb';
+import { TMDBApiClient, TMDBMovie, TMDBTVShow, TMDBConfigService } from '@/shared/infrastructure/tmdb';
 
 /**
  * TMDB Movie Provider Adapter
@@ -52,6 +52,25 @@ export class TMDBMovieProvider implements MovieProviderPort {
     }
 
     /**
+     * Get TV show details by external ID (TMDB ID)
+     * Used when mediaType is 'tv' to fetch from TMDB's TV endpoint
+     */
+    async getTVShowDetails(externalId: string): Promise<Movie | null> {
+        this.logger.log(`Getting TV show details: ${externalId}`);
+
+        try {
+            const [tvShow, trailerUrl] = await Promise.all([
+                this.tmdbClient.getTVShowDetails(externalId),
+                this.tmdbClient.getTVTrailerUrl(externalId),
+            ]);
+            return this.mapTVShowToMovie(tvShow, trailerUrl);
+        } catch (error) {
+            this.logger.error(`Failed to get TV show details: ${error}`);
+            return null;
+        }
+    }
+
+    /**
      * Get popular movies
      */
     async getPopularMovies(page = 1): Promise<Movie[]> {
@@ -62,6 +81,21 @@ export class TMDBMovieProvider implements MovieProviderPort {
             return response.results.map((movie) => this.mapToMovie(movie));
         } catch (error) {
             this.logger.error(`Failed to get popular movies: ${error}`);
+            return [];
+        }
+    }
+
+    /**
+     * Get top rated movies
+     */
+    async getTopRatedMovies(page = 1): Promise<Movie[]> {
+        this.logger.log(`Getting top rated movies, page: ${page}`);
+
+        try {
+            const response = await this.tmdbClient.getTopRatedMovies(page);
+            return response.results.map((movie) => this.mapToMovie(movie));
+        } catch (error) {
+            this.logger.error(`Failed to get top rated movies: ${error}`);
             return [];
         }
     }
@@ -156,6 +190,48 @@ export class TMDBMovieProvider implements MovieProviderPort {
             genres,
             provider: 'tmdb',
             streamUrl: undefined, // TMDB doesn't provide streaming URLs
+            createdAt: now,
+            updatedAt: now,
+        });
+    }
+
+    /**
+     * Map TMDB TV show response to our Movie domain entity
+     */
+    private mapTVShowToMovie(
+        tvShow: TMDBTVShow,
+        trailerUrl?: string,
+    ): Movie {
+        const now = new Date();
+
+        // Get genre names from IDs or use genre objects if available
+        let genres: string[] = [];
+        if (tvShow.genres) {
+            genres = tvShow.genres.map((g) => g.name);
+        } else if (tvShow.genre_ids) {
+            genres = this.tmdbClient.getGenreNames(tvShow.genre_ids);
+        }
+
+        // Calculate average episode runtime
+        const duration = tvShow.episode_run_time && tvShow.episode_run_time.length > 0
+            ? Math.round(tvShow.episode_run_time.reduce((a, b) => a + b, 0) / tvShow.episode_run_time.length)
+            : undefined;
+
+        return Movie.create(uuidv4(), {
+            externalId: String(tvShow.id),
+            title: tvShow.name, // TV shows use 'name' instead of 'title'
+            originalTitle: tvShow.original_name || undefined,
+            mediaType: 'tv',
+            description: tvShow.overview || undefined,
+            posterUrl: this.tmdbConfig.getImageUrl(tvShow.poster_path),
+            backdropUrl: this.tmdbConfig.getImageUrl(tvShow.backdrop_path, 'original'),
+            trailerUrl,
+            releaseDate: tvShow.first_air_date ? new Date(tvShow.first_air_date) : undefined,
+            duration,
+            rating: tvShow.vote_average || undefined,
+            genres,
+            provider: 'tmdb',
+            streamUrl: undefined,
             createdAt: now,
             updatedAt: now,
         });

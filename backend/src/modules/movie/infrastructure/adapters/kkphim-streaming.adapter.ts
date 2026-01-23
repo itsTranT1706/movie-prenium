@@ -44,6 +44,43 @@ export class KKPhimStreamingAdapter implements StreamingProviderPort {
     }
 
     /**
+     * Get movie details including trailer by TMDB ID
+     * Returns both movie metadata (with trailer_url) and streaming sources
+     * @param tmdbId - TMDB movie/series ID
+     * @param mediaType - 'movie' for phim lẻ, 'tv' for phim bộ/hoạt hình/TV shows
+     */
+    async getMovieDetailsByTmdbId(tmdbId: string, mediaType: 'movie' | 'tv'): Promise<{
+        movie: any;
+        sources: StreamSource[];
+        trailerUrl?: string;
+    } | null> {
+        try {
+            // GET https://phimapi.com/tmdb/{type}/{id}
+            const url = `${this.baseUrl}/tmdb/${mediaType}/${tmdbId}`;
+            this.logger.debug(`Fetching movie details from KKPhim: ${url}`);
+
+            const response = await this.httpService.axiosRef.get(url);
+
+            if (!response.data?.status || !response.data?.movie) {
+                this.logger.debug(`Movie not found for TMDB ${tmdbId}`);
+                return null;
+            }
+
+            const { movie, episodes } = response.data;
+            const sources = episodes ? this.mapToStreamSources(episodes, movie?.quality || 'HD') : [];
+
+            return {
+                movie,
+                sources,
+                trailerUrl: movie?.trailer_url || undefined,
+            };
+        } catch (error) {
+            this.logger.warn(`KKPhim movie details lookup failed for TMDB ${tmdbId}: ${error.message}`);
+            return null;
+        }
+    }
+
+    /**
      * Map KKPhim API response to StreamSource array
      * 
      * KKPhim response structure:

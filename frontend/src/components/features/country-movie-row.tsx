@@ -189,7 +189,7 @@ export function CountryMoviesSection({
                     {koreanMovies.length > 0 && (
                         <CountryMovieRow
                             title="Phim Hàn Quốc mới"
-                            href="/movies/korean"
+                            href="/country/han-quoc"
                             movies={koreanMovies}
                             titleGradient={TITLE_GRADIENTS[0]}
                         />
@@ -204,7 +204,7 @@ export function CountryMoviesSection({
                     {chineseMovies.length > 0 && (
                         <CountryMovieRow
                             title="Phim Trung Quốc mới"
-                            href="/movies/chinese"
+                            href="/country/trung-quoc"
                             movies={chineseMovies}
                             titleGradient={TITLE_GRADIENTS[4]}
                         />
@@ -219,7 +219,7 @@ export function CountryMoviesSection({
                     {usukMovies.length > 0 && (
                         <CountryMovieRow
                             title="Phim US-UK mới"
-                            href="/movies/us-uk"
+                            href="/country/au-my"
                             movies={usukMovies}
                             titleGradient={TITLE_GRADIENTS[3]}
                         />

@@ -3,6 +3,7 @@ import { CountryMoviesSection } from './country-movie-row';
 
 interface CountryMovie {
     id: string;
+    externalId?: string;
     title: string;
     subtitle?: string;
     backdropUrl: string;

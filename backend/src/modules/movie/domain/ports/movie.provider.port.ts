@@ -12,6 +12,7 @@ export interface MovieProviderPort {
     searchMovies(query: string): Promise<Movie[]>;
     getMovieDetails(externalId: string): Promise<Movie | null>;
     getPopularMovies(page?: number): Promise<Movie[]>;
+    getTopRatedMovies(page?: number): Promise<Movie[]>;
     getMoviesByGenre(genre: string, page?: number): Promise<Movie[]>;
     getTrendingMovies(timeWindow?: 'day' | 'week'): Promise<Movie[]>;
     getUpcomingMovies(page?: number): Promise<Movie[]>;
