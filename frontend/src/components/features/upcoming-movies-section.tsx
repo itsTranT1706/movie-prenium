@@ -7,6 +7,7 @@ import { HoverPreviewCard, MoviePreviewData } from '@/components/ui';
 
 interface UpcomingMovie {
     id: string;
+    externalId?: string;
     title: string;
     subtitle?: string;
     backdropUrl: string;
@@ -16,7 +17,6 @@ interface UpcomingMovie {
 
 interface UpcomingMoviesSectionProps {
     title?: string;
-    href?: string;
     movies?: UpcomingMovie[];
 }
 
@@ -87,7 +87,6 @@ const defaultUpcomingMovies: UpcomingMovie[] = [
  */
 export default function UpcomingMoviesSection({
     title = 'Coming Soon',
-    href = '/movies/upcoming',
     movies = defaultUpcomingMovies,
 }: UpcomingMoviesSectionProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -125,17 +124,18 @@ export default function UpcomingMoviesSection({
         <section className="py-4 lg:py-6">
             <div className="container">
                 {/* Header */}
-                <Link
-                    href={href}
-                    className="inline-flex items-center gap-2 mb-4 group"
-                >
-                    <h2 className="text-base lg:text-lg font-bold text-white group-hover:text-gray-200 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base lg:text-lg font-bold text-white">
                         {title}
                     </h2>
-                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                        <ChevronRight className="w-4 h-4 text-white" />
-                    </div>
-                </Link>
+                    <Link
+                        href="/movies/upcoming"
+                        className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                        Xem toàn bộ
+                        <ChevronRight className="w-3 h-3" />
+                    </Link>
+                </div>
 
                 {/* Carousel Container with styled arrows */}
                 <div className="relative flex items-center gap-3">
@@ -163,6 +163,7 @@ export default function UpcomingMoviesSection({
                                 key={movie.id}
                                 movie={{
                                     id: movie.id,
+                                    externalId: movie.externalId,
                                     title: movie.title,
                                     subtitle: movie.subtitle,
                                     backdropUrl: movie.backdropUrl,
@@ -171,52 +172,52 @@ export default function UpcomingMoviesSection({
                                 delay={600}
                             >
                                 <Link
-                                    href={`/movie/${movie.id}`}
+                                    href={`/movies/${movie.externalId || movie.id}`}
                                     className="upcoming-movie-card group/card flex-shrink-0 block"
                                 >
-                                {/* Card Container - Landscape aspect ratio */}
-                                <div className="relative w-48 lg:w-56 aspect-[16/10] rounded-xl overflow-hidden">
-                                    {/* Background Image */}
-                                    <img
-                                        src={movie.backdropUrl}
-                                        alt={movie.title}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
-                                        loading="lazy"
-                                    />
+                                    {/* Card Container - Landscape aspect ratio */}
+                                    <div className="relative w-48 lg:w-56 aspect-[16/10] rounded-xl overflow-hidden">
+                                        {/* Background Image */}
+                                        <img
+                                            src={movie.backdropUrl}
+                                            alt={movie.title}
+                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                            loading="lazy"
+                                        />
 
-                                    {/* Gradient Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                        {/* Gradient Overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                                    {/* Coming Soon Badge */}
-                                    {movie.hasComingSoonBadge && (
-                                        <div className="absolute bottom-2 left-2">
-                                            <span className="px-2 py-0.5 bg-gray-800/90 backdrop-blur-sm rounded text-[10px] font-medium text-gray-300 border border-gray-600/50">
-                                                Sắp chiếu
-                                            </span>
-                                        </div>
-                                    )}
+                                        {/* Coming Soon Badge */}
+                                        {movie.hasComingSoonBadge && (
+                                            <div className="absolute bottom-2 left-2">
+                                                <span className="px-2 py-0.5 bg-gray-800/90 backdrop-blur-sm rounded text-[10px] font-medium text-gray-300 border border-gray-600/50">
+                                                    Sắp chiếu
+                                                </span>
+                                            </div>
+                                        )}
 
-                                    {/* Hover overlay - subtle play indicator */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/20">
-                                        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                            <div className="w-0 h-0 border-l-[14px] border-l-white border-y-[8px] border-y-transparent ml-1" />
+                                        {/* Hover overlay - subtle play indicator */}
+                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/20">
+                                            <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                <div className="w-0 h-0 border-l-[14px] border-l-white border-y-[8px] border-y-transparent ml-1" />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Title Section */}
-                                <div className="mt-2 px-0.5 w-48 lg:w-56">
-                                    <h3 className="text-xs lg:text-sm font-medium text-white line-clamp-1 group-hover/card:text-gray-200 transition-colors">
-                                        {movie.title}
-                                    </h3>
-                                    {movie.subtitle && (
-                                        <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
-                                            {movie.subtitle}
-                                        </p>
-                                    )}
-                                </div>
-                            </Link>
-                        </HoverPreviewCard>
+                                    {/* Title Section */}
+                                    <div className="mt-2 px-0.5 w-48 lg:w-56">
+                                        <h3 className="text-xs lg:text-sm font-medium text-white line-clamp-1 group-hover/card:text-gray-200 transition-colors">
+                                            {movie.title}
+                                        </h3>
+                                        {movie.subtitle && (
+                                            <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                                                {movie.subtitle}
+                                            </p>
+                                        )}
+                                    </div>
+                                </Link>
+                            </HoverPreviewCard>
                         ))}
                     </div>
 

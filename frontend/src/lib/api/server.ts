@@ -90,7 +90,7 @@ export const serverApi = {
    * Get trending movies
    */
   async getTrendingMovies(timeWindow: 'day' | 'week' = 'week'): Promise<Movie[]> {
-    const result = await serverFetch<Movie[]>(`/movies/trending/${timeWindow}`);
+    const result = await serverFetch<Movie[]>(`/movies/trending?timeWindow=${timeWindow}`);
     return result.data || [];
   },
 
@@ -99,6 +99,14 @@ export const serverApi = {
    */
   async getUpcomingMovies(page: number = 1): Promise<Movie[]> {
     const result = await serverFetch<Movie[]>(`/movies/upcoming?page=${page}`);
+    return result.data || [];
+  },
+
+  /**
+   * Get top rated movies
+   */
+  async getTopRatedMovies(page: number = 1): Promise<Movie[]> {
+    const result = await serverFetch<Movie[]>(`/movies/top-rated?page=${page}`);
     return result.data || [];
   },
 

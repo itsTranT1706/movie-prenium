@@ -3,6 +3,7 @@ import UpcomingMoviesSection from './upcoming-movies-section';
 
 interface UpcomingMovie {
     id: string;
+    externalId?: string;
     title: string;
     subtitle?: string;
     backdropUrl: string;
@@ -27,6 +28,7 @@ export async function UpcomingMoviesWrapper() {
     // Map to component format
     const upcomingMovies: UpcomingMovie[] = (upcomingData || []).slice(0, 8).map((movie) => ({
         id: movie.id,
+        externalId: movie.externalId,
         title: movie.title,
         subtitle: movie.originalTitle,
         backdropUrl: movie.backdropUrl || movie.posterUrl || 'https://image.tmdb.org/t/p/w780/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',

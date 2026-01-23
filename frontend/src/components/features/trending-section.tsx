@@ -66,7 +66,7 @@ export default function TrendingSection({
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/trending" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem thêm</Link>
+                        <Link href="/movies/trending" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem toàn bộ</Link>
                     </div>
 
                     {/* Yêu Thích Nhất */}
@@ -85,7 +85,7 @@ export default function TrendingSection({
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/favorites" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem thêm</Link>
+                        <Link href="/movies" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem toàn bộ</Link>
                     </div>
 
                     {/* Thể Loại Hot */}
@@ -103,7 +103,7 @@ export default function TrendingSection({
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/genres" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem thêm</Link>
+                        <Link href="/movies" className="text-[10px] text-gray-500 hover:text-gray-400 mt-2 block">Xem toàn bộ</Link>
                     </div>
 
                     {/* Bình Luận Mới */}

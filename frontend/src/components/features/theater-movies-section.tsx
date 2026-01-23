@@ -20,7 +20,6 @@ export interface TheaterMovie {
 
 interface TheaterMoviesSectionProps {
     title?: string;
-    href?: string;
     movies: TheaterMovie[];
     autoPlayInterval?: number;
 }
@@ -54,7 +53,6 @@ function isYouTubeUrl(url: string): boolean {
  */
 export default function TheaterMoviesSection({
     title = 'Theater Movies is coming soon',
-    href = '/movies/theater',
     movies,
     autoPlayInterval = 4000,
 }: TheaterMoviesSectionProps) {
@@ -149,17 +147,18 @@ export default function TheaterMoviesSection({
         <section className="py-4 lg:py-6">
             <div className="container">
                 {/* Header */}
-                <Link
-                    href={href}
-                    className="inline-flex items-center gap-2 mb-4 group"
-                >
-                    <h2 className="text-base lg:text-lg font-bold text-white group-hover:text-gray-200 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base lg:text-lg font-bold text-white">
                         {title}
                     </h2>
-                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                        <ChevronRight className="w-4 h-4 text-white" />
-                    </div>
-                </Link>
+                    <Link
+                        href="/movies/now-playing"
+                        className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                        Xem toàn bộ
+                        <ChevronRight className="w-3 h-3" />
+                    </Link>
+                </div>
 
                 {/* Main Card with Navigation */}
                 <div

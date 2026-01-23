@@ -65,19 +65,21 @@ export default function MovieRow({ title, href, movies, isLoading, icon }: Movie
                     {href && (
                         <Link
                             href={href}
-                            className="text-xs text-gray-400 hover:text-white transition-colors flex items-center"
+                            className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
                         >
-                            <span>View all</span>
-                            <ChevronRight className="w-4 h-4" />
+                            <span>Xem toàn bộ</span>
+                            <ChevronRight className="w-3 h-3" />
                         </Link>
                     )}
                 </div>
 
                 {/* Scrollable Row - Tighter gaps */}
                 <div className="relative -mx-4 sm:-mx-6 lg:-mx-12">
-                    <div className="flex gap-2 lg:gap-3 overflow-x-auto scrollbar-hide px-4 sm:px-6 lg:px-12 pb-2">
+                    <div className="flex gap-3 lg:gap-4 overflow-x-auto scrollbar-hide px-4 sm:px-6 lg:px-12 pb-2">
                         {movies.map((movie) => (
-                            <MovieCard key={movie.id} movie={movie} />
+                            <div key={movie.id} className="flex-shrink-0 w-[140px] sm:w-[160px] lg:w-[180px]">
+                                <MovieCard movie={movie} />
+                            </div>
                         ))}
                     </div>
                 </div>
