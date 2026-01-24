@@ -100,22 +100,24 @@ function CountryMovieRow({
     if (!movies.length) return null;
 
     return (
-        <div className="flex gap-4 lg:gap-6 items-center">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-4 lg:gap-6 items-start md:items-center">
             {/* Left: Title Section */}
-            <div className="flex-shrink-0 w-36 lg:w-44 xl:w-48 flex flex-col justify-center">
-                <h2 className={`text-xl lg:text-2xl xl:text-3xl font-bold leading-tight mb-2 bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent`}>
+            <div className="flex-shrink-0 w-full md:w-36 lg:w-44 xl:w-48 flex flex-row md:flex-col justify-between md:justify-center items-center md:items-start">
+                <h2 className={`text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold leading-tight md:mb-2 bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent`}>
                     {title}
                 </h2>
                 <Link
                     href={href}
                     className="text-xs lg:text-sm text-gray-500 hover:text-gray-400 transition-colors flex items-center gap-0.5"
                 >
-                    Xem toàn bộ <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
+                    <span className="hidden md:inline">Xem toàn bộ</span>
+                    <span className="md:hidden">Xem thêm</span>
+                    <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
                 </Link>
             </div>
 
             {/* Right: Carousel Cards */}
-            <div className="flex-1 min-w-0 relative overflow-hidden">
+            <div className="flex-1 w-full min-w-0 relative overflow-hidden">
                 <Carousel
                     opts={{
                         align: 'start',
@@ -126,12 +128,12 @@ function CountryMovieRow({
                     className="w-full"
                 >
                     <div className="relative">
-                        {/* Fade mask on right edge */}
-                        <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-[5] pointer-events-none" />
+                        {/* Fade mask on right edge - Hidden on mobile */}
+                        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent z-[5] pointer-events-none" />
 
-                        <CarouselContent className="-ml-4">
+                        <CarouselContent className="-ml-3 md:-ml-4">
                             {movies.map((movie, index) => (
-                                <CarouselItem key={movie.id} className="pl-4 basis-auto">
+                                <CarouselItem key={movie.id} className="pl-3 md:pl-4 basis-auto">
                                     <HoverPreviewCard
                                         movie={{
                                             id: movie.id,
@@ -147,7 +149,7 @@ function CountryMovieRow({
                                             href={`/movies/${movie.externalId || movie.id}`}
                                             className="country-movie-card group/card block"
                                         >
-                                            <div className="relative w-52 lg:w-64 xl:w-72 aspect-[16/10] rounded-lg overflow-hidden">
+                                            <div className="relative w-44 md:w-52 lg:w-64 xl:w-72 aspect-[16/10] rounded-lg overflow-hidden">
                                                 <CountryMovieCardImage
                                                     src={movie.backdropUrl}
                                                     alt={movie.title}
@@ -156,12 +158,12 @@ function CountryMovieRow({
                                                 <div className={`absolute inset-0 bg-gradient-to-t ${movie.gradientColor || gradientFrom} via-transparent to-black/40 opacity-60 group-hover/card:opacity-40 transition-opacity`} />
                                                 <div className="absolute top-1.5 left-1.5 flex items-center gap-1">
                                                     {movie.episodeCount && (
-                                                        <span className="px-1.5 py-1 bg-black/60 backdrop-blur-sm rounded text-[10px] lg:text-xs font-medium text-white">
+                                                        <span className="px-1.5 py-0.5 md:py-1 bg-black/60 backdrop-blur-sm rounded text-[10px] lg:text-xs font-medium text-white">
                                                             EP.{movie.episodeCount}
                                                         </span>
                                                     )}
                                                     {movie.rating && (
-                                                        <span className="px-1.5 py-1 bg-emerald-500/80 backdrop-blur-sm rounded text-[10px] lg:text-xs font-bold text-white">
+                                                        <span className="px-1.5 py-0.5 md:py-1 bg-emerald-500/80 backdrop-blur-sm rounded text-[10px] lg:text-xs font-bold text-white">
                                                             TM.{movie.rating}
                                                         </span>
                                                     )}
@@ -172,12 +174,12 @@ function CountryMovieRow({
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="mt-1.5 w-52 lg:w-64 xl:w-72">
-                                                <h3 className="text-sm lg:text-base font-medium text-white line-clamp-1 group-hover/card:text-gray-200 transition-colors">
+                                            <div className="mt-1.5 w-44 md:w-52 lg:w-64 xl:w-72">
+                                                <h3 className="text-xs md:text-sm lg:text-base font-medium text-white line-clamp-1 group-hover/card:text-gray-200 transition-colors">
                                                     {movie.title}
                                                 </h3>
                                                 {movie.subtitle && (
-                                                    <p className="text-xs lg:text-sm text-gray-500 line-clamp-1">
+                                                    <p className="text-[10px] md:text-xs lg:text-sm text-gray-500 line-clamp-1">
                                                         {movie.subtitle}
                                                     </p>
                                                 )}
@@ -188,9 +190,9 @@ function CountryMovieRow({
                             ))}
                         </CarouselContent>
 
-                        {/* Navigation Arrows */}
-                        <CarouselPrevious className="absolute left-0 top-[40%] -translate-y-1/2 z-10 w-8 h-8 bg-black/70 hover:bg-black/90 rounded-full text-white border-0 disabled:opacity-0" />
-                        <CarouselNext className="absolute right-0 top-[40%] -translate-y-1/2 z-10 w-8 h-8 bg-black/70 hover:bg-black/90 rounded-full text-white border-0 disabled:opacity-0" />
+                        {/* Navigation Arrows - Hidden on mobile */}
+                        <CarouselPrevious className="hidden md:flex absolute left-0 top-[40%] -translate-y-1/2 z-10 w-8 h-8 bg-black/70 hover:bg-black/90 rounded-full text-white border-0 disabled:opacity-0" />
+                        <CarouselNext className="hidden md:flex absolute right-0 top-[40%] -translate-y-1/2 z-10 w-8 h-8 bg-black/70 hover:bg-black/90 rounded-full text-white border-0 disabled:opacity-0" />
                     </div>
                 </Carousel>
             </div>
@@ -217,9 +219,9 @@ export function CountryMoviesSection({
     }
 
     return (
-        <section className="py-3 lg:py-4">
-            <div className="container">
-                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 lg:p-5 space-y-5">
+        <section className="py-3 md:py-4 lg:py-5">
+            <div className="container px-4 md:px-6">
+                <div className="bg-white/[0.03] border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 lg:p-5 space-y-4 md:space-y-5">
                     {/* Korean Movies Row */}
                     {koreanMovies.length > 0 && (
                         <CountryMovieRow

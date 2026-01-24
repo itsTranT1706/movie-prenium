@@ -81,7 +81,8 @@ export default function MovieCard({ movie, enablePreview = true, priority = fals
                             alt={movie.title}
                             className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                                 }`}
-                            loading={priority ? 'eager' : 'lazy'}
+                            loading="lazy"
+                            decoding="async"
                             onLoad={() => setImageLoaded(true)}
                             onError={() => setImageError(true)}
                             style={{ objectFit: 'cover', width: '100%', height: '100%' }}

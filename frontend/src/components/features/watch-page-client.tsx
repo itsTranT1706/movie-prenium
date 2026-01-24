@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Heart, Plus, Star, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { EpisodeSelector, CommentSection } from '@/components/features';
+import { EpisodeSelector, CommentSection, CurvedVideoPlayer, EpisodeTabs } from '@/components/features';
 import { useAuth, useRequireAuth } from '@/hooks';
 
 interface WatchPageClientProps {
@@ -11,13 +11,36 @@ interface WatchPageClientProps {
     seasons: any[];
     comments: any[];
     topWeeklyMovies: any[];
+    currentServerId?: string;
+    currentEpisodeId?: string;
 }
 
-export function WatchPageClient({ movie, seasons, comments, topWeeklyMovies }: WatchPageClientProps) {
+export function WatchPageClient({ 
+    movie, 
+    seasons, 
+    comments, 
+    topWeeklyMovies,
+    currentServerId = 'server1',
+    currentEpisodeId = 'e1'
+}: WatchPageClientProps) {
     const { user } = useAuth();
     const requireAuth = useRequireAuth();
 
-    const videoUrl = movie.sources?.[0]?.episodes?.[0]?.embedUrl || 
+    // Find the current server and episode
+    const currentServer = seasons.find(s => s.id === currentServerId) || seasons[0];
+    const currentEpisode = currentServer?.episodes.find((ep: any) => ep.id === currentEpisodeId);
+    const episodeNumber = currentEpisode ? currentEpisode.number : 1;
+
+    // Get the server index (server1 -> 0, server2 -> 1, etc.)
+    const serverIndex = seasons.findIndex(s => s.id === currentServerId);
+    const sourceIndex = serverIndex >= 0 ? serverIndex : 0;
+
+    // Get video URL for the current episode from the selected server
+    const selectedSource = movie.sources?.[sourceIndex];
+    const episodeData = selectedSource?.episodes?.find((ep: any) => ep.episodeNumber === episodeNumber);
+    const videoUrl = episodeData?.embedUrl || 
+                     selectedSource?.episodes?.[0]?.embedUrl ||
+                     movie.sources?.[0]?.episodes?.[0]?.embedUrl ||
                      'https://embed11.streamc.xyz/embed.php?hash=162622c76599d49fbc5cbcb9c3e6b5c3';
 
     const handleAddToFavorites = () => {
@@ -38,6 +61,7 @@ export function WatchPageClient({ movie, seasons, comments, topWeeklyMovies }: W
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] pt-16">
+            {/* Breadcrumb */}
             <div className="w-full flex justify-center px-4">
                 <div className="w-full max-w-7xl py-4">
                     <Link href={`/movies/${movie.externalId || movie.id}`} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
@@ -49,7 +73,8 @@ export function WatchPageClient({ movie, seasons, comments, topWeeklyMovies }: W
                 </div>
             </div>
 
-            <div className="relative bg-[#0a0a0a]">
+            {/* Video Player Section */}
+            <div className="relative bg-[#0a0a0a] pb-8">
                 <div className="w-full flex justify-center px-4">
                     <div className="w-full max-w-7xl">
                         <div className="mb-3">
@@ -59,13 +84,25 @@ export function WatchPageClient({ movie, seasons, comments, topWeeklyMovies }: W
                             )}
                         </div>
                         
-                        <div className="relative aspect-video bg-black rounded overflow-hidden">
-                            <iframe src={videoUrl} className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={movie.title}></iframe>
-                        </div>
+                        {/* Curved Video Player */}
+                        <CurvedVideoPlayer 
+                            videoUrl={videoUrl}
+                            title={movie.title}
+                        />
                     </div>
                 </div>
+
+                {/* Episode Tabs - Overlapping the video */}
+                <EpisodeTabs
+                    movieId={movie.id}
+                    externalId={movie.externalId}
+                    seasons={seasons}
+                    currentSeasonId={currentServerId}
+                    currentEpisodeId={currentEpisodeId}
+                />
             </div>
 
+            {/* Movie Info and Content */}
             <div className="w-full flex justify-center px-4">
                 <div className="w-full max-w-7xl py-6">
                     <div className="mb-6">
@@ -120,15 +157,11 @@ export function WatchPageClient({ movie, seasons, comments, topWeeklyMovies }: W
                         </div>
                     </div>
 
+                    {/* Comments and Sidebar */}
                     <div className="border-t border-white/10 pt-6">
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="flex-1 min-w-0">
-                                <div className="mb-8">
-                                    <EpisodeSelector movieId={movie.id} seasons={seasons} currentSeasonId="s1" currentEpisodeId="e1" showSubtitleToggle={false} showAutoPlay={false} basePath="watch" />
-                                </div>
-                                <div className="border-t border-white/10 pt-8">
-                                    <CommentSection movieId={movie.id} comments={comments} onSubmitComment={handleSubmitComment} />
-                                </div>
+                                <CommentSection movieId={movie.id} comments={comments} onSubmitComment={handleSubmitComment} />
                             </div>
 
                             <div className="w-full lg:w-80 flex-shrink-0 lg:pl-8 lg:border-l lg:border-white/10">

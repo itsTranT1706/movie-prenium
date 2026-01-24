@@ -64,14 +64,14 @@ export default function GenreCardGrid({ genres, showAll = false }: GenreCardGrid
         <section className="relative pt-6 lg:pt-8 pb-4 lg:pb-5">
             <div className="container">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg lg:text-xl font-bold text-white">
-                        {showAll ? 'Tất Cả Thể Loại' : 'Chủ đề quan tâm'}
+                <div className="flex justify-between items-center mb-4 md:mb-3">
+                    <h2 className="text-xl md:text-lg lg:text-xl font-bold text-white">
+                        {showAll ? 'Tất Cả Thể Loại' : 'Thể Loại'}
                     </h2>
                     {!showAll && (
                         <Link
                             href="/genres"
-                            className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                            className="text-sm md:text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
                         >
                             <span>Xem tất cả</span>
                             <ChevronRight className="w-4 h-4" />
@@ -81,25 +81,34 @@ export default function GenreCardGrid({ genres, showAll = false }: GenreCardGrid
 
                 {/* Mobile: Horizontal Scroll (only on homepage) */}
                 {!showAll && (
-                    <div className="lg:hidden -mx-4 sm:-mx-6">
-                        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 sm:px-6 pb-2">
+                    <div className="md:hidden -mx-4">
+                        <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory">
                             {displayGenres.map((genre) => (
-                                <GenreCard key={genre.id} genre={genre} />
+                                <GenreCard key={genre.id} genre={genre} mobile />
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Desktop: Grid */}
+                {/* Tablet: Grid 3 columns */}
+                {!showAll && (
+                    <div className="hidden md:grid lg:hidden grid-cols-3 gap-3">
+                        {displayGenres.map((genre) => (
+                            <GenreCard key={genre.id} genre={genre} />
+                        ))}
+                    </div>
+                )}
+
+                {/* Desktop: Grid - compact like original */}
                 <div className={`hidden lg:grid gap-3 ${showAll ? 'grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6' : 'grid-cols-3 xl:grid-cols-6'}`}>
                     {displayGenres.map((genre) => (
                         <GenreCard key={genre.id} genre={genre} />
                     ))}
                 </div>
 
-                {/* Mobile: Grid (only on all genres page) */}
+                {/* Mobile/Tablet: Grid (only on all genres page) */}
                 {showAll && (
-                    <div className="lg:hidden grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="lg:hidden grid grid-cols-2 md:grid-cols-3 gap-3">
                         {displayGenres.map((genre) => (
                             <GenreCard key={genre.id} genre={genre} />
                         ))}
@@ -110,30 +119,35 @@ export default function GenreCardGrid({ genres, showAll = false }: GenreCardGrid
     );
 }
 
-function GenreCard({ genre }: { genre: Genre }) {
+function GenreCard({ genre, mobile = false }: { genre: Genre; mobile?: boolean }) {
     return (
         <Link
             href={`/genre/${genre.id}`}
-            className="group flex-shrink-0 w-[130px] lg:w-auto"
+            className={`group ${mobile ? 'flex-shrink-0 w-[140px] snap-start' : 'w-auto'}`}
         >
             <div className={`
-                relative overflow-hidden rounded-lg p-4
+                relative overflow-hidden rounded-lg
+                ${mobile ? 'p-5 h-[120px]' : 'p-4'}
                 bg-gradient-to-br ${genre.gradient}
                 transition-all duration-200
                 group-hover:scale-[1.03] group-hover:shadow-lg
+                group-active:scale-[0.98]
+                ${mobile ? 'flex flex-col justify-between' : ''}
             `}>
                 {/* Icon */}
-                <div className="text-white/40 mb-2 group-hover:text-white/60 transition-colors">
+                <div className={`text-white/50 group-hover:text-white/70 transition-colors ${mobile ? '' : 'mb-2'}`}>
                     {genre.icon}
                 </div>
 
                 {/* Content */}
-                <h3 className="text-sm font-bold text-white">
-                    {genre.name}
-                </h3>
-                <p className="text-[10px] text-white/60">
-                    {genre.count} titles
-                </p>
+                <div>
+                    <h3 className="text-sm font-bold text-white mb-0.5">
+                        {genre.name}
+                    </h3>
+                    <p className="text-[10px] text-white/70">
+                        {genre.count} phim
+                    </p>
+                </div>
             </div>
         </Link>
     );
