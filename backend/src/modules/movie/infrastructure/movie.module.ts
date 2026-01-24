@@ -12,6 +12,7 @@ import {
     GetTrendingMoviesUseCase,
     GetUpcomingMoviesUseCase,
     GetMovieDetailsUseCase,
+    FilterMoviesUseCase,
 } from '../application';
 import {
     PrismaMovieRepository,
@@ -38,6 +39,7 @@ import { MovieController } from './controllers';
         GetTrendingMoviesUseCase,
         GetUpcomingMoviesUseCase,
         GetMovieDetailsUseCase,
+        FilterMoviesUseCase,
 
         // Repository binding (Port -> Adapter)
         {

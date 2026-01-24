@@ -71,18 +71,47 @@ export class TMDBMovieProvider implements MovieProviderPort {
     }
 
     /**
-     * Get popular movies
+     * Get popular movies with retry logic
      */
     async getPopularMovies(page = 1): Promise<Movie[]> {
         this.logger.log(`Getting popular movies, page: ${page}`);
 
-        try {
-            const response = await this.tmdbClient.getPopularMovies(page);
-            return response.results.map((movie) => this.mapToMovie(movie));
-        } catch (error) {
-            this.logger.error(`Failed to get popular movies: ${error}`);
-            return [];
+        const maxRetries = 3;
+        let lastError: Error | null = null;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await this.tmdbClient.getPopularMovies(page);
+                
+                if (!response || !response.results || response.results.length === 0) {
+                    this.logger.warn(`Empty response from TMDB for popular movies, page: ${page}`);
+                    if (attempt < maxRetries) {
+                        await this.delay(1000 * attempt); // Exponential backoff
+                        continue;
+                    }
+                    return [];
+                }
+                
+                return response.results.map((movie) => this.mapToMovie(movie));
+            } catch (error) {
+                lastError = error as Error;
+                this.logger.error(`Failed to get popular movies (attempt ${attempt}/${maxRetries}): ${error}`);
+                
+                if (attempt < maxRetries) {
+                    await this.delay(1000 * attempt); // Wait before retry
+                }
+            }
         }
+
+        this.logger.error(`All retries failed for popular movies: ${lastError?.message}`);
+        return [];
+    }
+
+    /**
+     * Delay helper for retry logic
+     */
+    private delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**

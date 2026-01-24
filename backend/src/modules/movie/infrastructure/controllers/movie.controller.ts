@@ -10,6 +10,7 @@ import {
     GetTrendingMoviesUseCase,
     GetUpcomingMoviesUseCase,
     GetMovieDetailsUseCase,
+    FilterMoviesUseCase,
 } from '../../application';
 import { KKPhimMovieProvider } from '../adapters';
 
@@ -26,12 +27,16 @@ export class MovieController {
         private readonly getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
         private readonly getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
         private readonly getMovieDetailsUseCase: GetMovieDetailsUseCase,
+        private readonly filterMoviesUseCase: FilterMoviesUseCase,
         private readonly kkphimProvider: KKPhimMovieProvider,
     ) { }
 
     @Get('search')
-    async searchMovies(@Query('q') query: string) {
-        const result = await this.searchMoviesUseCase.execute({ query });
+    async searchMovies(
+        @Query('q') query: string,
+        @Query('page') page = 1,
+    ) {
+        const result = await this.searchMoviesUseCase.execute({ query, page: Number(page) });
 
         if (result.isFailure) {
             throw new HttpException(
@@ -46,8 +51,76 @@ export class MovieController {
         };
     }
 
+    /**
+     * Filter movies with multiple criteria
+     * @param search - Search query
+     * @param genres - Genre slugs (comma-separated)
+     * @param countries - Country slugs (comma-separated)
+     * @param yearFrom - Start year
+     * @param yearTo - End year
+     * @param qualities - Quality values (comma-separated)
+     * @param languages - Language values (comma-separated)
+     * @param status - Status values (comma-separated)
+     * @param type - Movie type (phim-bo, phim-le, hoat-hinh, tv-shows)
+     * @param page - Page number
+     * @param limit - Items per page
+     */
+    @Get('filter')
+    async filterMovies(
+        @Query('search') search?: string,
+        @Query('genres') genres?: string,
+        @Query('countries') countries?: string,
+        @Query('yearFrom') yearFrom?: string,
+        @Query('yearTo') yearTo?: string,
+        @Query('qualities') qualities?: string,
+        @Query('languages') languages?: string,
+        @Query('status') status?: string,
+        @Query('type') type?: string,
+        @Query('page') page = 1,
+        @Query('limit') limit = 24,
+    ) {
+        const filters = {
+            search: search || undefined,
+            genres: genres ? genres.split(',').filter(Boolean) : undefined,
+            countries: countries ? countries.split(',').filter(Boolean) : undefined,
+            yearFrom: yearFrom ? parseInt(yearFrom) : undefined,
+            yearTo: yearTo ? parseInt(yearTo) : undefined,
+            qualities: qualities ? qualities.split(',').filter(Boolean) : undefined,
+            languages: languages ? languages.split(',').filter(Boolean) : undefined,
+            status: status ? status.split(',').filter(Boolean) : undefined,
+            type: type || undefined,
+            page: Number(page),
+            limit: Number(limit),
+        };
+
+        const result = await this.filterMoviesUseCase.execute(filters);
+
+        if (result.isFailure) {
+            throw new HttpException(
+                result.error.message,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        const { movies, total, page: currentPage, totalPages } = result.value;
+
+        return {
+            success: true,
+            data: movies.map(this.toResponse),
+            pagination: {
+                total,
+                page: currentPage,
+                totalPages,
+                limit: Number(limit),
+            },
+        };
+    }
+
     @Get('popular')
-    async getPopularMovies(@Query('page') page = 1) {
+    async getPopularMovies(
+        @Query('page') page = 1,
+        @Query('limit') limit = 24
+    ) {
         const result = await this.getPopularMoviesUseCase.execute(Number(page));
 
         if (result.isFailure) {
@@ -57,9 +130,22 @@ export class MovieController {
             );
         }
 
+        const movies = result.value;
+        const currentPage = Number(page);
+        
+        // TMDB popular movies have many pages (usually 500+)
+        // We'll show pagination up to page 10 for performance
+        const totalPages = currentPage < 10 ? currentPage + 1 : 10;
+
         return {
             success: true,
-            data: result.value.map(this.toResponse),
+            data: movies.map(this.toResponse),
+            pagination: {
+                total: movies.length,
+                page: currentPage,
+                totalPages,
+                limit: Number(limit),
+            },
         };
     }
 

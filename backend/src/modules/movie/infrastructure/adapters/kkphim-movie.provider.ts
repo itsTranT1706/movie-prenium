@@ -242,12 +242,29 @@ export class KKPhimMovieProvider implements MovieProviderPort {
     }
 
     /**
-     * Get movies by genre
-     * GET /v1/api/the-loai/{genre}?page={page}
+     * Get movies by genre with advanced filters
+     * GET /v1/api/the-loai/{genre}?page={page}&sort_field={sort_field}&sort_type={sort_type}&sort_lang={sort_lang}&country={country}&year={year}&limit={limit}
      */
-    async getMoviesByGenre(genre: string, page = 1): Promise<Movie[]> {
+    async getMoviesByGenre(genre: string, page = 1, filters?: {
+        sortField?: 'modified.time' | '_id' | 'year';
+        sortType?: 'desc' | 'asc';
+        sortLang?: 'vietsub' | 'thuyet-minh' | 'long-tieng';
+        country?: string;
+        year?: number;
+        limit?: number;
+    }): Promise<Movie[]> {
         try {
-            const url = `${this.baseUrl}/v1/api/the-loai/${encodeURIComponent(genre)}?page=${page}&limit=24`;
+            const params = new URLSearchParams();
+            params.append('page', page.toString());
+            params.append('limit', (filters?.limit || 24).toString());
+            
+            if (filters?.sortField) params.append('sort_field', filters.sortField);
+            if (filters?.sortType) params.append('sort_type', filters.sortType);
+            if (filters?.sortLang) params.append('sort_lang', filters.sortLang);
+            if (filters?.country) params.append('country', filters.country);
+            if (filters?.year) params.append('year', filters.year.toString());
+
+            const url = `${this.baseUrl}/v1/api/the-loai/${encodeURIComponent(genre)}?${params.toString()}`;
             this.logger.debug(`Getting by genre: ${url}`);
 
             const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
@@ -265,12 +282,29 @@ export class KKPhimMovieProvider implements MovieProviderPort {
     }
 
     /**
-     * Get movies by country
-     * GET /v1/api/quoc-gia/{country}?page={page}
+     * Get movies by country with advanced filters
+     * GET /v1/api/quoc-gia/{country}?page={page}&sort_field={sort_field}&sort_type={sort_type}&sort_lang={sort_lang}&category={category}&year={year}&limit={limit}
      */
-    async getMoviesByCountry(country: string, page = 1): Promise<Movie[]> {
+    async getMoviesByCountry(country: string, page = 1, filters?: {
+        sortField?: 'modified.time' | '_id' | 'year';
+        sortType?: 'desc' | 'asc';
+        sortLang?: 'vietsub' | 'thuyet-minh' | 'long-tieng';
+        category?: string;
+        year?: number;
+        limit?: number;
+    }): Promise<Movie[]> {
         try {
-            const url = `${this.baseUrl}/v1/api/quoc-gia/${encodeURIComponent(country)}?page=${page}&limit=24`;
+            const params = new URLSearchParams();
+            params.append('page', page.toString());
+            params.append('limit', (filters?.limit || 24).toString());
+            
+            if (filters?.sortField) params.append('sort_field', filters.sortField);
+            if (filters?.sortType) params.append('sort_type', filters.sortType);
+            if (filters?.sortLang) params.append('sort_lang', filters.sortLang);
+            if (filters?.category) params.append('category', filters.category);
+            if (filters?.year) params.append('year', filters.year.toString());
+
+            const url = `${this.baseUrl}/v1/api/quoc-gia/${encodeURIComponent(country)}?${params.toString()}`;
             this.logger.debug(`Getting by country: ${url}`);
 
             const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
@@ -283,6 +317,146 @@ export class KKPhimMovieProvider implements MovieProviderPort {
             return response.data.data.items.map((movie: KKPhimMovie) => this.mapToMovie(movie, undefined, cdnUrl));
         } catch (error) {
             this.logger.error(`Get by country failed: ${error.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Advanced search with multiple filters (returns pagination data)
+     * GET /v1/api/tim-kiem?keyword={keyword}&page={page}&sort_field={sort_field}&sort_type={sort_type}&sort_lang={sort_lang}&category={category}&country={country}&year={year}&limit={limit}
+     */
+    async advancedSearchWithPagination(filters: {
+        keyword?: string;
+        page?: number;
+        sortField?: 'modified.time' | '_id' | 'year';
+        sortType?: 'desc' | 'asc';
+        sortLang?: 'vietsub' | 'thuyet-minh' | 'long-tieng';
+        category?: string;
+        country?: string;
+        year?: number;
+        limit?: number;
+    }): Promise<{ movies: Movie[]; totalPages: number; currentPage: number }> {
+        try {
+            const params = new URLSearchParams();
+            
+            if (filters.keyword) params.append('keyword', filters.keyword);
+            params.append('page', (filters.page || 1).toString());
+            params.append('limit', (filters.limit || 24).toString());
+            
+            if (filters.sortField) params.append('sort_field', filters.sortField);
+            if (filters.sortType) params.append('sort_type', filters.sortType);
+            if (filters.sortLang) params.append('sort_lang', filters.sortLang);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.country) params.append('country', filters.country);
+            if (filters.year) params.append('year', filters.year.toString());
+
+            const url = `${this.baseUrl}/v1/api/tim-kiem?${params.toString()}`;
+            this.logger.debug(`Advanced search with pagination: ${url}`);
+
+            const response = await this.httpService.axiosRef.get<KKPhimSearchResponse>(url);
+
+            if (response.data?.status !== 'success' || !response.data?.data?.items) {
+                return { movies: [], totalPages: 1, currentPage: 1 };
+            }
+
+            const cdnUrl = response.data.data.APP_DOMAIN_CDN_IMAGE || this.cdnImageUrl;
+            const movies = response.data.data.items.map(movie => this.mapToMovie(movie, undefined, cdnUrl));
+            const totalPages = response.data.data.params?.pagination?.totalPages || 1;
+            const currentPage = response.data.data.params?.pagination?.currentPage || 1;
+
+            this.logger.debug(`Search returned ${movies.length} movies, page ${currentPage}/${totalPages}`);
+
+            return { movies, totalPages, currentPage };
+        } catch (error) {
+            this.logger.error(`Advanced search with pagination failed: ${error.message}`);
+            return { movies: [], totalPages: 1, currentPage: 1 };
+        }
+    }
+
+    /**
+     * Advanced search with multiple filters
+     * GET /v1/api/tim-kiem?keyword={keyword}&page={page}&sort_field={sort_field}&sort_type={sort_type}&sort_lang={sort_lang}&category={category}&country={country}&year={year}&limit={limit}
+     */
+    async advancedSearch(filters: {
+        keyword?: string;
+        page?: number;
+        sortField?: 'modified.time' | '_id' | 'year';
+        sortType?: 'desc' | 'asc';
+        sortLang?: 'vietsub' | 'thuyet-minh' | 'long-tieng';
+        category?: string;
+        country?: string;
+        year?: number;
+        limit?: number;
+    }): Promise<Movie[]> {
+        try {
+            const params = new URLSearchParams();
+            
+            if (filters.keyword) params.append('keyword', filters.keyword);
+            params.append('page', (filters.page || 1).toString());
+            params.append('limit', (filters.limit || 24).toString());
+            
+            if (filters.sortField) params.append('sort_field', filters.sortField);
+            if (filters.sortType) params.append('sort_type', filters.sortType);
+            if (filters.sortLang) params.append('sort_lang', filters.sortLang);
+            if (filters.category) params.append('category', filters.category);
+            if (filters.country) params.append('country', filters.country);
+            if (filters.year) params.append('year', filters.year.toString());
+
+            const url = `${this.baseUrl}/v1/api/tim-kiem?${params.toString()}`;
+            this.logger.debug(`Advanced search: ${url}`);
+
+            const response = await this.httpService.axiosRef.get<KKPhimSearchResponse>(url);
+
+            if (response.data?.status !== 'success' || !response.data?.data?.items) {
+                return [];
+            }
+
+            const cdnUrl = response.data.data.APP_DOMAIN_CDN_IMAGE || this.cdnImageUrl;
+            return response.data.data.items.map(movie => this.mapToMovie(movie, undefined, cdnUrl));
+        } catch (error) {
+            this.logger.error(`Advanced search failed: ${error.message}`);
+            return [];
+        }
+    }
+
+    /**
+     * Get movies by type with advanced filters
+     * GET /v1/api/danh-sach/{type}?page={page}&sort_field={sort_field}&sort_type={sort_type}&sort_lang={sort_lang}&category={category}&country={country}&year={year}&limit={limit}
+     */
+    async getMoviesByTypeAdvanced(type: string, page = 1, filters?: {
+        sortField?: 'modified.time' | '_id' | 'year';
+        sortType?: 'desc' | 'asc';
+        sortLang?: 'vietsub' | 'thuyet-minh' | 'long-tieng';
+        category?: string;
+        country?: string;
+        year?: number;
+        limit?: number;
+    }): Promise<Movie[]> {
+        try {
+            const params = new URLSearchParams();
+            params.append('page', page.toString());
+            params.append('limit', (filters?.limit || 24).toString());
+            
+            if (filters?.sortField) params.append('sort_field', filters.sortField);
+            if (filters?.sortType) params.append('sort_type', filters.sortType);
+            if (filters?.sortLang) params.append('sort_lang', filters.sortLang);
+            if (filters?.category) params.append('category', filters.category);
+            if (filters?.country) params.append('country', filters.country);
+            if (filters?.year) params.append('year', filters.year.toString());
+
+            const url = `${this.baseUrl}/v1/api/danh-sach/${type}?${params.toString()}`;
+            this.logger.debug(`Getting by type (advanced): ${url}`);
+
+            const response = await this.httpService.axiosRef.get<KKPhimApiResponse>(url);
+
+            if (!response.data?.status || !response.data?.data?.items) {
+                return [];
+            }
+
+            const cdnUrl = response.data.data.APP_DOMAIN_CDN_IMAGE || this.cdnImageUrl;
+            return response.data.data.items.map((movie: KKPhimMovie) => this.mapToMovie(movie, undefined, cdnUrl));
+        } catch (error) {
+            this.logger.error(`Get by type (advanced) failed: ${error.message}`);
             return [];
         }
     }

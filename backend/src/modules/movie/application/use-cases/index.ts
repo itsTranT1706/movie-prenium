@@ -8,3 +8,4 @@ export * from './get-movies-by-country.use-case';
 export * from './get-trending-movies.use-case';
 export * from './get-upcoming-movies.use-case';
 export * from './get-movie-details.use-case';
+export * from './filter-movies.use-case';
