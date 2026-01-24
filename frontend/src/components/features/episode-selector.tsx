@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Play, MessageSquare } from 'lucide-react';
 
@@ -19,6 +19,7 @@ interface Season {
 
 interface EpisodeSelectorProps {
     movieId: string;
+    externalId?: string;
     seasons: Season[];
     currentSeasonId?: string;
     currentEpisodeId?: string;
@@ -29,20 +30,37 @@ interface EpisodeSelectorProps {
 
 export function EpisodeSelector({
     movieId,
+    externalId,
     seasons,
     currentSeasonId,
     currentEpisodeId,
     showSubtitleToggle = false,
     showAutoPlay = false,
-    basePath = 'movies',
 }: EpisodeSelectorProps) {
     const [selectedSeasonId, setSelectedSeasonId] = useState(
         currentSeasonId || seasons[0]?.id
     );
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isSubtitleEnabled, setIsSubtitleEnabled] = useState(false);
     const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(true);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const selectedSeason = seasons.find((s) => s.id === selectedSeasonId);
+    const watchId = externalId || movieId;
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        }
+        
+        if (isDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [isDropdownOpen]);
 
     if (!seasons.length) return null;
 
@@ -53,26 +71,61 @@ export function EpisodeSelector({
                 {/* Left: Season Dropdown + Subtitle Toggle */}
                 <div className="flex items-center gap-3">
                     {/* Season Dropdown */}
-                    <div className="relative">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded text-white text-sm hover:bg-white/10 transition-colors">
-                            <span className="font-semibold">
-                                {selectedSeason?.name || 'Phần 1'}
-                            </span>
-                            <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                    {seasons.length > 1 ? (
+                        <div ref={dropdownRef} className="relative">
+                            <button 
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded text-white text-sm hover:bg-white/10 transition-colors"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
-                        </button>
-                    </div>
+                                <span className="font-semibold">
+                                    {selectedSeason?.name || 'Server 1'}
+                                </span>
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                    />
+                                </svg>
+                            </button>
+                            
+                            {/* Dropdown Menu */}
+                            {isDropdownOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-64 bg-[#1a1a1a] border border-white/10 rounded shadow-xl z-50">
+                                    {seasons.map((season) => (
+                                        <button
+                                            key={season.id}
+                                            onClick={() => {
+                                                setSelectedSeasonId(season.id);
+                                                setIsDropdownOpen(false);
+                                            }}
+                                            className={`
+                                                w-full text-left px-4 py-2.5 text-sm transition-colors
+                                                ${selectedSeasonId === season.id 
+                                                    ? 'bg-white/10 text-white font-semibold' 
+                                                    : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                                                }
+                                            `}
+                                        >
+                                            {season.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="px-4 py-2 bg-white/5 border border-white/10 rounded text-white text-sm">
+                            <span className="font-semibold">
+                                {selectedSeason?.name || 'Server 1'}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Subtitle Toggle */}
                     {showSubtitleToggle && (
@@ -108,10 +161,9 @@ export function EpisodeSelector({
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                 {selectedSeason?.episodes.map((episode) => {
                     const isActive = episode.id === currentEpisodeId;
-                    const href =
-                        basePath === 'watch'
-                            ? `/watch/${movieId}?episode=${episode.id}`
-                            : `/movies/${movieId}?episode=${episode.id}`;
+                    // From detail page -> go to watch page
+                    // From watch page -> stay on watch page with different episode
+                    const href = `/watch/${watchId}?server=${selectedSeasonId}&episode=${episode.id}`;
 
                     return (
                         <Link
