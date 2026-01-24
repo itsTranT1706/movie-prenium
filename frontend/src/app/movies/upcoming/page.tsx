@@ -1,6 +1,9 @@
 import { MoviesPageClient } from '@/components/features/movies-page-client';
 import { serverApi } from '@/lib/api/server';
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic';
+
 interface UpcomingMoviesPageProps {
     searchParams: Promise<{ page?: string }>;
 }

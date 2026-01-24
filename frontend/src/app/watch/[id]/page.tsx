@@ -2,6 +2,9 @@ import { serverApi } from '@/lib/api/server';
 import { WatchPageClient } from '@/components/features/watch-page-client';
 import { notFound } from 'next/navigation';
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic';
+
 export default async function WatchPage({ 
     params,
     searchParams 

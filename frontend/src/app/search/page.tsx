@@ -3,6 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import { MoviesFilterPage } from '@/components/features';
 
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
+
 /**
  * Search Results Page with Pagination
  * Displays full search results with filter capabilities

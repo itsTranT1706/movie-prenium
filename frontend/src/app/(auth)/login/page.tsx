@@ -7,6 +7,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 
+// Disable static generation for this page
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();

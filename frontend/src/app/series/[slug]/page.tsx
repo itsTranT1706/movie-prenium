@@ -2,6 +2,9 @@ import { MoviesFilterPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 import { notFound } from 'next/navigation';
 
+// Disable static generation for this dynamic page
+export const dynamic = 'force-dynamic';
+
 interface TypePageProps {
     params: Promise<{ slug: string }>;
     searchParams: Promise<{ page?: string }>;
