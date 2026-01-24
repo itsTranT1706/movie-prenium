@@ -19,20 +19,35 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
         notFound();
     }
 
-    // Sample episodes data - always show at least episode 1
-    const seasons = [
-        {
-            id: 's1',
+    // Build servers and episodes from movie sources data
+    // Each source represents a different streaming server (VIP #1, VIP #2, etc.)
+    const seasons = [];
+    if (movie.sources && movie.sources.length > 0) {
+        movie.sources.forEach((source: any, sourceIndex: number) => {
+            if (source.episodes && source.episodes.length > 0) {
+                seasons.push({
+                    id: `server${sourceIndex + 1}`,
+                    number: sourceIndex + 1,
+                    name: source.serverName || `Server ${sourceIndex + 1}`,
+                    episodes: source.episodes.map((ep: any) => ({
+                        id: `e${ep.episodeNumber}`,
+                        number: ep.episodeNumber,
+                        title: ep.title || `Tập ${ep.episodeNumber}`,
+                    })),
+                });
+            }
+        });
+    }
+    
+    // Fallback if no sources
+    if (seasons.length === 0) {
+        seasons.push({
+            id: 'server1',
             number: 1,
-            name: 'Phần 1',
-            episodes: movie.mediaType !== 'tv' 
-                ? [{ id: 'e1', number: 1, title: movie.title }]
-                : [
-                    { id: 'e1', number: 1, title: 'Episode 1' },
-                    { id: 'e2', number: 2, title: 'Episode 2' },
-                ],
-        },
-    ];
+            name: 'Server 1',
+            episodes: [{ id: 'e1', number: 1, title: movie.title }],
+        });
+    }
 
     // Sample comments data
     const comments = [

@@ -100,7 +100,10 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
     });
 
     const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-        onFilterChange({ ...filters, [key]: value });
+        console.log('🔧 Filter updated:', key, value);
+        const newFilters = { ...filters, [key]: value };
+        console.log('📦 New filters object:', newFilters);
+        onFilterChange(newFilters);
     };
 
     const toggleArrayFilter = (key: 'genres' | 'countries' | 'qualities' | 'languages' | 'status', value: string) => {
@@ -108,6 +111,7 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
         const updated = current.includes(value)
             ? current.filter((item) => item !== value)
             : [...current, value];
+        console.log(`✅ Toggle ${key}:`, value, '→', updated);
         updateFilter(key, updated);
     };
 

@@ -1,33 +1,31 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
+import { MoviesUnifiedPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 
-interface MoviesPageProps {
-    searchParams: Promise<{ page?: string }>;
-}
+export default async function MoviesPage() {
+    // Fetch popular movies on server
+    const popularMovies = await serverApi.getPopularMovies(1);
 
-// Estimate total pages (TMDB returns ~20 per page, max 500 pages)
-const TOTAL_PAGES = 100;
-
-export default async function MoviesPage({ searchParams }: MoviesPageProps) {
-    const params = await searchParams;
-    const currentPage = Math.max(1, parseInt(params.page || '1', 10));
-
-    let movies: any[] = [];
-
-    try {
-        // Fetch popular movies for current page on server
-        movies = await serverApi.getPopularMovies(currentPage);
-    } catch (error) {
-        console.error('Failed to fetch movies:', error);
-    }
+    // Map to the format expected by MoviesUnifiedPage
+    const movies = popularMovies.map((movie) => ({
+        id: movie.id,
+        externalId: movie.externalId,
+        title: movie.title,
+        posterUrl: movie.posterUrl || '',
+        backdropUrl: movie.backdropUrl,
+        trailerUrl: movie.trailerUrl,
+        rating: movie.rating || 0,
+        year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : new Date().getFullYear(),
+        quality: movie.quality || 'HD',
+        genres: movie.genres || [],
+        duration: movie.duration,
+        mediaType: movie.mediaType || 'movie',
+    }));
 
     return (
-        <MoviesPageClient
-            movies={movies}
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
+        <MoviesUnifiedPage 
+            initialMovies={movies} 
             pageTitle="Phim Phổ Biến"
-            baseUrl="/movies"
+            apiEndpoint="/movies/popular"
         />
     );
 }

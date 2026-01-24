@@ -1,31 +1,9 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
-import { serverApi } from '@/lib/api/server';
+import { MoviesFilterPageSimple } from '@/components/features';
 
-interface NowPlayingMoviesPageProps {
-    searchParams: Promise<{ page?: string }>;
-}
-
-const TOTAL_PAGES = 100;
-
-export default async function NowPlayingMoviesPage({ searchParams }: NowPlayingMoviesPageProps) {
-    const params = await searchParams;
-    const currentPage = Math.max(1, parseInt(params.page || '1', 10));
-
-    let movies: any[] = [];
-
-    try {
-        movies = await serverApi.getCinemaMovies(currentPage, 20);
-    } catch (error) {
-        console.error('Failed to fetch now playing movies:', error);
-    }
-
+export default async function NowPlayingMoviesPage() {
     return (
-        <MoviesPageClient
-            movies={movies}
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
+        <MoviesFilterPageSimple 
             pageTitle="Phim Đang Chiếu Rạp"
-            baseUrl="/movies/now-playing"
         />
     );
 }

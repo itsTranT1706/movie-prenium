@@ -1,4 +1,4 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
+import { MoviesFilterPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 import { notFound } from 'next/navigation';
 
@@ -15,8 +15,6 @@ const TYPE_CONFIG: Record<string, { name: string; apiSlug: string }> = {
     'hoat-hinh': { name: 'Hoạt Hình', apiSlug: 'hoat-hinh' },
 };
 
-const TOTAL_PAGES = 50;
-
 export default async function TypePage({ params, searchParams }: TypePageProps) {
     const { slug } = await params;
     const { page = '1' } = await searchParams;
@@ -28,21 +26,21 @@ export default async function TypePage({ params, searchParams }: TypePageProps) 
         notFound();
     }
 
-    let movies: any[] = [];
-
+    // Fetch initial movies for the type
+    let initialMovies: any[] = [];
     try {
-        movies = await serverApi.getMoviesByType(typeConfig.apiSlug, currentPage);
+        initialMovies = await serverApi.getMoviesByType(typeConfig.apiSlug, currentPage);
     } catch (error) {
         console.error('Failed to fetch movies by type:', error);
     }
 
     return (
-        <MoviesPageClient
-            movies={movies}
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
+        <MoviesFilterPage
+            initialMovies={initialMovies}
+            initialPage={currentPage}
             pageTitle={typeConfig.name}
             baseUrl={`/series/${slug}`}
+            initialFilters={{ type: typeConfig.apiSlug }}
         />
     );
 }

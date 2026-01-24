@@ -2,8 +2,8 @@ import BaseApiClient from '../base-client';
 import { Movie, MovieWithSources, StreamSource } from '@/types';
 
 class MovieService extends BaseApiClient {
-  async searchMovies(query: string) {
-    return this.request<Movie[]>(`/movies/search?q=${encodeURIComponent(query)}`);
+  async searchMovies(query: string, page = 1) {
+    return this.request<Movie[]>(`/movies/search?q=${encodeURIComponent(query)}&page=${page}`);
   }
 
   async getPopularMovies(page = 1) {
@@ -42,6 +42,41 @@ class MovieService extends BaseApiClient {
 
   async getMovieDetails(slug: string) {
     return this.request<MovieWithSources>(`/movies/${slug}`);
+  }
+
+  async filterMovies(filters: {
+    search?: string;
+    genres?: string[];
+    countries?: string[];
+    yearFrom?: number;
+    yearTo?: number;
+    qualities?: string[];
+    languages?: string[];
+    status?: string[];
+    type?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append('search', filters.search);
+    if (filters.genres?.length) params.append('genres', filters.genres.join(','));
+    if (filters.countries?.length) params.append('countries', filters.countries.join(','));
+    if (filters.yearFrom) params.append('yearFrom', filters.yearFrom.toString());
+    if (filters.yearTo) params.append('yearTo', filters.yearTo.toString());
+    if (filters.qualities?.length) params.append('qualities', filters.qualities.join(','));
+    if (filters.languages?.length) params.append('languages', filters.languages.join(','));
+    if (filters.status?.length) params.append('status', filters.status.join(','));
+    if (filters.type) params.append('type', filters.type);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    return this.request<Movie[]>(`/movies/filter?${params.toString()}`);
+  }
+
+  // Generic GET method for any endpoint
+  async get<T = any>(endpoint: string) {
+    return this.request<T>(endpoint);
   }
 }
 

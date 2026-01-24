@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
-
+import { apiClient } from '@/lib/api/client';
+import { Movie } from '@/types';
+import MovieCard from '@/components/features/movie-card';
 /**
  * Premium Header Component
  * - Fixed, transparent at top
@@ -13,6 +16,7 @@ import { useAuth } from '@/hooks';
  * - Smooth scroll transition
  */
 export default function Header() {
+    const router = useRouter();
     const { user, logout } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -21,6 +25,15 @@ export default function Header() {
     const [isGenresOpen, setIsGenresOpen] = useState(false);
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
 
+    // Search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<Movie[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(8); // Initially show 8 items
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -28,6 +41,102 @@ export default function Header() {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Debounced search effect
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            setVisibleCount(8); // Reset when query changes
+            return;
+        }
+
+        const timeoutId = setTimeout(async () => {
+            setIsSearching(true);
+            setVisibleCount(8); // Reset visible count for new search
+            try {
+                const response = await apiClient.searchMovies(searchQuery);
+                if (response.success && response.data) {
+                    setSearchResults(response.data);
+                } else {
+                    setSearchResults([]);
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery]);
+
+    // Infinite scroll handler for search container
+    useEffect(() => {
+        const container = searchContainerRef.current;
+        if (!container || !isSearchOpen) return;
+
+        const handleSearchScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            // Load more when scrolled to bottom (with 100px threshold)
+            if (scrollHeight - scrollTop - clientHeight < 100 && !isLoadingMore && visibleCount < searchResults.length) {
+                setIsLoadingMore(true);
+                // Simulate loading delay for smooth UX
+                setTimeout(() => {
+                    setVisibleCount(prev => Math.min(prev + 8, searchResults.length));
+                    setIsLoadingMore(false);
+                }, 200);
+            }
+        };
+
+        container.addEventListener('scroll', handleSearchScroll);
+        return () => container.removeEventListener('scroll', handleSearchScroll);
+    }, [isSearchOpen, isLoadingMore, visibleCount, searchResults.length]);
+
+    // Focus search input when modal opens
+    useEffect(() => {
+        if (isSearchOpen && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [isSearchOpen]);
+
+    // Close search on ESC key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isSearchOpen) {
+                setIsSearchOpen(false);
+                setSearchQuery('');
+                setSearchResults([]);
+                setVisibleCount(8);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isSearchOpen]);
+
+    // Close search and navigate to movie
+    const handleMovieClick = (movie: Movie) => {
+        setIsSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults([]);
+        setVisibleCount(8);
+        const identifier = movie.externalId || movie.slug || movie.id;
+        router.push(`/movie/${identifier}`);
+    };
+
+    // Close search modal - memoized to prevent recreation
+    const closeSearch = useCallback(() => {
+        setIsSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults([]);
+        setVisibleCount(8);
+    }, []);
+
+    // Memoize visible results to prevent recalculation
+    const visibleResults = useMemo(() =>
+        searchResults.slice(0, visibleCount),
+        [searchResults, visibleCount]
+    );
 
     const handleLogout = () => {
         logout();
@@ -245,7 +354,7 @@ export default function Header() {
                                                 <span>Continue Watching</span>
                                             </Link>
                                             <hr className="my-1 border-white/10" />
-                                            <button 
+                                            <button
                                                 onClick={handleLogout}
                                                 className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/10"
                                             >
@@ -310,24 +419,131 @@ export default function Header() {
 
             {/* Search Modal */}
             {isSearchOpen && (
-                <div className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm">
-                    <div className="container pt-20">
+                <div
+                    ref={searchContainerRef}
+                    className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-y-auto"
+                >
+                    <div className="container py-6">
                         <button
-                            onClick={() => setIsSearchOpen(false)}
-                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+                            onClick={closeSearch}
+                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white z-10"
                         >
                             <X className="w-6 h-6" />
                         </button>
-                        <div className="max-w-2xl mx-auto">
+
+                        <div className="max-w-4xl mx-auto pt-12">
+                            {/* Search Input */}
                             <div className="relative">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                {isSearching && (
+                                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 animate-spin" />
+                                )}
                                 <input
+                                    ref={searchInputRef}
                                     type="text"
-                                    placeholder="Search movies, series..."
-                                    autoFocus
-                                    className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Tìm kiếm phim, series... (Ví dụ: Ngôi trường xác sống)"
+                                    className="w-full pl-12 pr-12 py-4 bg-gray-900 border border-gray-700 rounded-xl text-white text-lg placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors"
                                 />
                             </div>
+
+                            {/* Search Results */}
+                            {searchQuery.trim() && (
+                                <div className="mt-6">
+                                    {isSearching ? (
+                                        <div className="flex items-center justify-center py-12">
+                                            <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
+                                            <span className="ml-3 text-gray-400">Đang tìm kiếm...</span>
+                                        </div>
+                                    ) : searchResults.length > 0 ? (
+                                        <>
+                                            <p className="text-gray-400 text-sm mb-4">
+                                                Tìm thấy {searchResults.length} kết quả
+                                                {visibleCount < searchResults.length && (
+                                                    <span className="text-gray-600"> • Hiển thị {visibleCount}/{searchResults.length}</span>
+                                                )}
+                                            </p>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                                                {visibleResults.map((movie, index) => (
+                                                    <div key={movie.id || movie.slug} onClick={closeSearch}>
+                                                        <MovieCard
+                                                            movie={{
+                                                                id: movie.id,
+                                                                externalId: movie.externalId,
+                                                                title: movie.title,
+                                                                posterUrl: movie.posterUrl,
+                                                                backdropUrl: movie.backdropUrl,
+                                                                trailerUrl: movie.trailerUrl,
+                                                                rating: movie.rating,
+                                                                year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : undefined,
+                                                                quality: movie.quality,
+                                                                genres: movie.genres,
+                                                            }}
+                                                            enablePreview={true}
+                                                            priority={index < 4}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {/* Loading more indicator */}
+                                            {isLoadingMore && (
+                                                <div className="flex items-center justify-center py-6">
+                                                    <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
+                                                    <span className="ml-2 text-gray-400 text-sm">Đang tải thêm...</span>
+                                                </div>
+                                            )}
+                                            {/* Scroll hint */}
+                                            {visibleCount < searchResults.length && !isLoadingMore && (
+                                                <div className="flex items-center justify-center py-4">
+                                                    <span className="text-gray-600 text-sm">↓ Cuộn xuống để xem thêm</span>
+                                                </div>
+                                            )}
+                                            {/* View All Button - At the bottom */}
+                                            <div className="flex justify-center mt-8 pt-6 border-t border-gray-800">
+                                                <Link
+                                                    href={`/search?q=${encodeURIComponent(searchQuery)}`}
+                                                    onClick={closeSearch}
+                                                    className="w-full max-w-md px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-base font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/50"
+                                                >
+                                                    <span>Xem toàn bộ kết quả</span>
+                                                    <ChevronDown className="w-5 h-5 rotate-[-90deg]" />
+                                                </Link>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-12">
+                                            <Search className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                                            <p className="text-gray-400">
+                                                Không tìm thấy kết quả cho &quot;{searchQuery}&quot;
+                                            </p>
+                                            <p className="text-gray-600 text-sm mt-2">
+                                                Thử tìm kiếm với từ khóa khác
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Search tips when empty */}
+                            {!searchQuery.trim() && (
+                                <div className="mt-8 text-center">
+                                    <p className="text-gray-500 text-sm">
+                                        Gợi ý: Tìm kiếm theo tên phim tiếng Việt hoặc tiếng Anh
+                                    </p>
+                                    <div className="flex flex-wrap justify-center gap-2 mt-4">
+                                        {['Hành động', 'Tình cảm', 'Kinh dị', 'Hoạt hình'].map((tag) => (
+                                            <button
+                                                key={tag}
+                                                onClick={() => setSearchQuery(tag)}
+                                                className="px-3 py-1.5 bg-gray-800 text-gray-400 text-sm rounded-full hover:bg-gray-700 hover:text-white transition-colors"
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

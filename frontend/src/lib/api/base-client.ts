@@ -2,6 +2,12 @@ interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  pagination?: {
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+  };
 }
 
 class BaseApiClient {

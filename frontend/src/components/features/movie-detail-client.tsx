@@ -183,8 +183,9 @@ export function MovieDetailClient({
                                 {/* Episodes Section */}
                                 <EpisodeSelector
                                     movieId={movie.id}
+                                    externalId={movie.externalId}
                                     seasons={seasons}
-                                    currentSeasonId="s1"
+                                    currentSeasonId="server1"
                                     currentEpisodeId="e1"
                                     showSubtitleToggle={true}
                                     showAutoPlay={false}

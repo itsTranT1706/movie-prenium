@@ -37,6 +37,9 @@ export const apiClient = {
   setToken,
   getToken,
 
+  // Generic GET request
+  get: movieService.get.bind(movieService),
+
   // Auth
   login: authService.login.bind(authService),
   register: authService.register.bind(authService),
@@ -51,6 +54,7 @@ export const apiClient = {
   getTrendingMovies: movieService.getTrendingMovies.bind(movieService),
   getUpcomingMovies: movieService.getUpcomingMovies.bind(movieService),
   getMovieDetails: movieService.getMovieDetails.bind(movieService),
+  filterMovies: movieService.filterMovies.bind(movieService),
 
   // Favorites
   getFavorites: favoriteService.getFavorites.bind(favoriteService),

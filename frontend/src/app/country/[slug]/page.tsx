@@ -1,10 +1,8 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
-import { serverApi } from '@/lib/api/server';
+import { MoviesUnifiedPage } from '@/components/features';
 import { notFound } from 'next/navigation';
 
 interface CountryPageProps {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<{ page?: string }>;
 }
 
 // Country mapping for display names
@@ -47,33 +45,21 @@ const COUNTRY_NAMES: Record<string, string> = {
     'viet-nam': 'Việt Nam',
 };
 
-const TOTAL_PAGES = 50;
-
-export default async function CountryPage({ params, searchParams }: CountryPageProps) {
+export default async function CountryPage({ params }: CountryPageProps) {
     const { slug } = await params;
-    const { page = '1' } = await searchParams;
-    const currentPage = Math.max(1, parseInt(page, 10));
 
     // Validate country slug
     if (!COUNTRY_NAMES[slug]) {
         notFound();
     }
 
-    let movies: any[] = [];
-
-    try {
-        movies = await serverApi.getMoviesByCountry(slug, currentPage);
-    } catch (error) {
-        console.error('Failed to fetch movies by country:', error);
-    }
-
     return (
-        <MoviesPageClient
-            movies={movies}
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
+        <MoviesUnifiedPage 
+            initialMovies={[]}
             pageTitle={`Phim ${COUNTRY_NAMES[slug]}`}
-            baseUrl={`/country/${slug}`}
+            initialFilters={{
+                countries: [slug], // Pre-select country
+            }}
         />
     );
 }

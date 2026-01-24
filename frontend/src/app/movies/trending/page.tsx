@@ -1,33 +1,17 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
+import { MoviesTrendingPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 
-interface TrendingMoviesPageProps {
-    searchParams: Promise<{ page?: string }>;
-}
-
-const TOTAL_PAGES = 100;
-
-export default async function TrendingMoviesPage({ searchParams }: TrendingMoviesPageProps) {
-    const params = await searchParams;
-    const currentPage = Math.max(1, parseInt(params.page || '1', 10));
-
-    let movies: any[] = [];
+export default async function TrendingMoviesPage() {
+    let trendingMovies: any[] = [];
 
     try {
-        movies = await serverApi.getTrendingMovies('week');
+        trendingMovies = await serverApi.getTrendingMovies('week');
+        console.log('🔥 Loaded trending movies:', trendingMovies.length);
     } catch (error) {
-        console.error('Failed to fetch trending movies:', error);
+        console.error('❌ Failed to fetch trending movies:', error);
     }
 
-    return (
-        <MoviesPageClient
-            movies={movies}
-            currentPage={currentPage}
-            totalPages={TOTAL_PAGES}
-            pageTitle="Phim Trending"
-            baseUrl="/movies/trending"
-        />
-    );
+    return <MoviesTrendingPage initialMovies={trendingMovies} />;
 }
 
 export const metadata = {

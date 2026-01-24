@@ -59,7 +59,7 @@ export function MoviesPageClient({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Filter movies based on current filters (client-side filtering for search, year, quality)
+    // Filter movies based on current filters
     const filteredMovies = useMemo(() => {
         return movies.filter((movie) => {
             // Search filter
@@ -158,7 +158,7 @@ export function MoviesPageClient({
                         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3">{pageTitle}</h1>
                         <div className="flex items-center gap-2 text-sm text-gray-400">
                             <span className="font-medium text-white">{filteredMovies.length}</span>
-                            <span>{filteredMovies.length === 1 ? 'phim' : 'phim'}</span>
+                            <span>phim</span>
                             {totalPages > 1 && (
                                 <>
                                     <span className="text-gray-600">•</span>
@@ -172,8 +172,13 @@ export function MoviesPageClient({
                     {filteredMovies.length > 0 ? (
                         <>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-5">
-                                {filteredMovies.map((movie) => (
-                                    <MovieCard key={movie.id} movie={movie} enablePreview={true} />
+                                {filteredMovies.map((movie, index) => (
+                                    <MovieCard 
+                                        key={movie.id} 
+                                        movie={movie} 
+                                        enablePreview={true}
+                                        priority={index < 6}
+                                    />
                                 ))}
                             </div>
 
