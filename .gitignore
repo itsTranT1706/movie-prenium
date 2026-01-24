@@ -8,6 +8,10 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+.env.production
+
+# Deployment configs with sensitive data
+render.yaml
 
 # Build outputs
 dist/
