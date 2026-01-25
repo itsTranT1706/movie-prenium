@@ -17,6 +17,19 @@ const bebasNeue = Bebas_Neue({
 export const metadata: Metadata = {
   title: "PhePhim - Premium Movie Streaming",
   description: "Discover, stream, and enjoy your favorite movies and series in HD & 4K",
+  manifest: "/manifest.json",
+  themeColor: "#e50914",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PhePhim",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({

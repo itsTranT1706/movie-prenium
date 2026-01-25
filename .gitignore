@@ -1,8 +1,24 @@
-# Dependencies
-node_modules/
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# PWA
+public/sw.js
+public/workbox-*.js
+public/sw.js.map
+public/workbox-*.js.map
 
 # Environment variables
 .env
@@ -12,12 +28,6 @@ yarn-error.log*
 
 # Deployment configs with sensitive data
 render.yaml
-
-# Build outputs
-dist/
-build/
-.next/
-out/
 
 # IDE
 .vscode/
@@ -32,10 +42,6 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
-
-# Logs
-logs/
-*.log
 
 # Database
 *.db
