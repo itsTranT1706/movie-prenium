@@ -2,6 +2,7 @@ import { MoviesPageClient } from '@/components/features/movies-page-client';
 import { serverApi } from '@/lib/api/server';
 
 // Disable static generation for this dynamic page
+// Remove dynamic export - using Suspense instead
 export const dynamic = 'force-dynamic';
 
 interface UpcomingMoviesPageProps {

@@ -3,6 +3,7 @@ import { WatchPageClient } from '@/components/features/watch-page-client';
 import { notFound } from 'next/navigation';
 
 // Disable static generation for this dynamic page
+// Remove dynamic export - using Suspense instead
 export const dynamic = 'force-dynamic';
 
 export default async function WatchPage({ 

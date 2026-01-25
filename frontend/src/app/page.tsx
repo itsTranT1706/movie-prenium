@@ -12,6 +12,9 @@ import { UpcomingMoviesWrapper } from '@/components/features/upcoming-movies-wra
 import { LazySection } from '@/components/ui';
 import { serverApi } from '@/lib/api/server';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 /**
  * Homepage - Movie Streaming Platform
  * Cinema-style layout with real TMDB poster data

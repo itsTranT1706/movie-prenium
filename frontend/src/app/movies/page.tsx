@@ -1,6 +1,9 @@
 import { MoviesUnifiedPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default async function MoviesPage() {
     // Fetch popular movies on server
     const popularMovies = await serverApi.getPopularMovies(1);

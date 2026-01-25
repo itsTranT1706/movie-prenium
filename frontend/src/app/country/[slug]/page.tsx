@@ -1,6 +1,9 @@
 import { MoviesUnifiedPage } from '@/components/features';
 import { notFound } from 'next/navigation';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface CountryPageProps {
     params: Promise<{ slug: string }>;
 }

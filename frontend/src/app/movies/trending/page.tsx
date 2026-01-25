@@ -1,6 +1,9 @@
 import { MoviesTrendingPage } from '@/components/features';
 import { serverApi } from '@/lib/api/server';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 export default async function TrendingMoviesPage() {
     let trendingMovies: any[] = [];
 

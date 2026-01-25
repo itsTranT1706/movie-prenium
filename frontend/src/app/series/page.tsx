@@ -4,6 +4,9 @@ import { MoviesGrid } from '@/components/features/movies-grid';
 import { StageSpotlight } from '@/components/ui/stage-spotlight';
 import { AnimatedShapeCard } from '@/components/ui/animated-shape-card';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 // Series types configuration
 const SERIES_TYPES = [
     {

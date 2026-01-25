@@ -1,6 +1,9 @@
 import { MoviesFilterPage } from '@/components/features';
 import { notFound } from 'next/navigation';
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface GenrePageProps {
     params: Promise<{ slug: string }>;
 }
