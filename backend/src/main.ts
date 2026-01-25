@@ -22,8 +22,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      // Add your Vercel frontend URL here after deployment
-      // Example: 'https://your-app.vercel.app'
+      process.env.FRONTEND_URL || 'https://phephim-vn.vercel.app', // Add your Vercel URL
     ],
     credentials: true,
   });
