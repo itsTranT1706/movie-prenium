@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 import { apiClient } from '@/lib/api/client';
 import { Movie } from '@/types';
 import MovieCard from '@/components/features/movie-card';
+import { NavigationLink } from '@/components/ui';
+import { useLoading } from '@/contexts/loading-context';
 /**
  * Premium Header Component
  * - Fixed, transparent at top
@@ -17,7 +20,20 @@ import MovieCard from '@/components/features/movie-card';
  */
 export default function Header() {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, logout } = useAuth();
+
+    // Hide header on specific pages that have their own custom headers
+    // Using startsWith to handle potential sub-routes or trailing slashes
+    if (!pathname) return null;
+    const hiddenRoutes = ['/about', '/terms', '/privacy', '/dmca', '/contact'];
+    const currentPath = pathname.toLowerCase();
+    const shouldHideHeader = hiddenRoutes.some(route => currentPath === route || currentPath.startsWith(`${route}/`));
+
+    if (shouldHideHeader) {
+        return null;
+    }
+    const { showLoading } = useLoading();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -224,22 +240,22 @@ export default function Header() {
                 <div className="container">
                     <div className="flex items-center justify-between h-14 lg:h-16">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center">
+                        <NavigationLink href="/" loadingType="fade" className="flex items-center">
                             <span className="text-xl lg:text-2xl font-black text-red-600">
                                 PhePhim
                             </span>
-                        </Link>
+                        </NavigationLink>
 
                         {/* Navigation - Desktop */}
                         <nav className="hidden lg:flex items-center gap-6">
                             {navLinks.map((link) => (
-                                <Link
+                                <NavigationLink
                                     key={link.href}
                                     href={link.href}
                                     className="text-sm text-gray-300 hover:text-white transition-colors"
                                 >
                                     {link.label}
-                                </Link>
+                                </NavigationLink>
                             ))}
 
                             {/* Genres Dropdown */}
@@ -257,13 +273,13 @@ export default function Header() {
                                     <div className="absolute top-full left-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
                                         <div className="grid grid-cols-2 gap-1 px-2">
                                             {genres.map((genre) => (
-                                                <Link
+                                                <NavigationLink
                                                     key={genre.slug}
                                                     href={`/genre/${genre.slug}`}
                                                     className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors"
                                                 >
                                                     {genre.name}
-                                                </Link>
+                                                </NavigationLink>
                                             ))}
                                         </div>
                                     </div>
@@ -285,31 +301,31 @@ export default function Header() {
                                     <div className="absolute top-full left-0 mt-2 w-96 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-2 z-50">
                                         <div className="grid grid-cols-3 gap-1 px-2">
                                             {countries.map((country) => (
-                                                <Link
+                                                <NavigationLink
                                                     key={country.slug}
                                                     href={`/country/${country.slug}`}
                                                     className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition-colors text-center break-words"
                                                 >
                                                     {country.name}
-                                                </Link>
+                                                </NavigationLink>
                                             ))}
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            <Link
+                            <NavigationLink
                                 href="/coming-soon"
                                 className="text-sm text-gray-300 hover:text-white transition-colors"
                             >
                                 Coming Soon
-                            </Link>
-                            <Link
+                            </NavigationLink>
+                            <NavigationLink
                                 href="/watch-together"
                                 className="text-sm text-gray-300 hover:text-white transition-colors"
                             >
                                 Watch Together
-                            </Link>
+                            </NavigationLink>
                         </nav>
 
                         {/* Right Actions */}
@@ -331,28 +347,40 @@ export default function Header() {
                                         onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 150)}
                                         className="flex items-center gap-1 p-1.5"
                                     >
-                                        <div className="w-7 h-7 rounded bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                                            <span className="text-white text-xs font-bold">
-                                                {user.name?.charAt(0).toUpperCase() || 'U'}
-                                            </span>
-                                        </div>
+                                        {user.avatar ? (
+                                            <div className="w-7 h-7 rounded overflow-hidden relative">
+                                                <Image
+                                                    src={user.avatar}
+                                                    alt={user.name || 'User avatar'}
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="28px"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="w-7 h-7 rounded bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                                                <span className="text-white text-xs font-bold">
+                                                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                                                </span>
+                                            </div>
+                                        )}
                                         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     {isUserMenuOpen && (
                                         <div className="absolute top-full right-0 mt-1 w-44 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-1 z-50">
-                                            <Link href="/account" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                            <NavigationLink href="/profile" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
                                                 <User className="w-4 h-4" />
-                                                <span>Account</span>
-                                            </Link>
-                                            <Link href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                                <span>Profile</span>
+                                            </NavigationLink>
+                                            <NavigationLink href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
                                                 <Heart className="w-4 h-4" />
                                                 <span>My List</span>
-                                            </Link>
-                                            <Link href="/continue-watching" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
+                                            </NavigationLink>
+                                            <NavigationLink href="/continue-watching" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
                                                 <Play className="w-4 h-4" />
                                                 <span>Continue Watching</span>
-                                            </Link>
+                                            </NavigationLink>
                                             <hr className="my-1 border-white/10" />
                                             <button
                                                 onClick={handleLogout}
@@ -365,12 +393,12 @@ export default function Header() {
                                     )}
                                 </div>
                             ) : (
-                                <Link
+                                <NavigationLink
                                     href="/login"
                                     className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded transition-colors"
                                 >
                                     Login
-                                </Link>
+                                </NavigationLink>
                             )}
 
                             {/* Mobile Menu */}
@@ -389,29 +417,29 @@ export default function Header() {
                     <div className="lg:hidden bg-black/95 border-t border-gray-800">
                         <nav className="container py-3 flex flex-col gap-1">
                             {navLinks.map((link) => (
-                                <Link
+                                <NavigationLink
                                     key={link.href}
                                     href={link.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className="px-2 py-2 text-sm text-gray-300 hover:text-white"
                                 >
                                     {link.label}
-                                </Link>
+                                </NavigationLink>
                             ))}
-                            <Link
+                            <NavigationLink
                                 href="/coming-soon"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="px-2 py-2 text-sm text-gray-300 hover:text-white"
                             >
                                 Coming Soon
-                            </Link>
-                            <Link
+                            </NavigationLink>
+                            <NavigationLink
                                 href="/watch-together"
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="px-2 py-2 text-sm text-gray-300 hover:text-white"
                             >
                                 Watch Together
-                            </Link>
+                            </NavigationLink>
                         </nav>
                     </div>
                 )}
@@ -501,14 +529,17 @@ export default function Header() {
                                             )}
                                             {/* View All Button - At the bottom */}
                                             <div className="flex justify-center mt-8 pt-6 border-t border-gray-800">
-                                                <Link
-                                                    href={`/search?q=${encodeURIComponent(searchQuery)}`}
-                                                    onClick={closeSearch}
+                                                <button
+                                                    onClick={() => {
+                                                        showLoading('skeleton');
+                                                        router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+                                                        closeSearch();
+                                                    }}
                                                     className="w-full max-w-md px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-base font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/50"
                                                 >
                                                     <span>Xem toàn bộ kết quả</span>
                                                     <ChevronDown className="w-5 h-5 rotate-[-90deg]" />
-                                                </Link>
+                                                </button>
                                             </div>
                                         </>
                                     ) : (

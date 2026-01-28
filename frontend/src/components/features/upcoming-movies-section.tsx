@@ -104,13 +104,13 @@ export default function UpcomingMoviesSection({
                     <h2 className="text-base lg:text-lg font-bold text-white">
                         {title}
                     </h2>
-                    <Link
+                    {/* <Link
                         href="/movies/upcoming"
                         className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
                     >
                         Xem toàn bộ
                         <ChevronRight className="w-3 h-3" />
-                    </Link>
+                    </Link> */}
                 </div>
 
                 {/* Carousel Container with styled arrows */}

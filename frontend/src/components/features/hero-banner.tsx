@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Link from 'next/link';
 import { Play, Plus, Star, Info } from 'lucide-react';
+import { NavigationLink } from '@/components/ui';
 
 interface FeaturedMovie {
     id: string;
@@ -243,20 +243,20 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                         className={`flex flex-col w-full gap-3 transition-all duration-500 delay-150 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                             }`}
                     >
-                        <Link
+                        <NavigationLink
                             href={`/watch/${activeMovie.externalId || activeMovie.id}`}
-                            className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-white hover:bg-gray-200 text-black font-bold text-base rounded-lg transition-all active:scale-95 shadow-lg"
+                            className="flex items-center justify-center gap-2 w-full px-8 py-3.5 bg-white hover:bg-gray-200 text-black font-bold text-base rounded-lg transition-all active:scale-95 shadow-lg"
                         >
                             <Play className="w-5 h-5 fill-black" />
                             <span>Xem Phim</span>
-                        </Link>
-                        <Link
+                        </NavigationLink>
+                        <NavigationLink
                             href={`/movies/${activeMovie.externalId || activeMovie.id}`}
                             className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-white/20 hover:bg-white/30 text-white font-semibold text-base rounded-lg backdrop-blur-sm transition-all active:scale-95"
                         >
                             <Info className="w-5 h-5" />
                             <span>Thông Tin</span>
-                        </Link>
+                        </NavigationLink>
                     </div>
 
                     {/* Dots Indicator - Mobile */}
@@ -320,20 +320,20 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                             className={`flex gap-3 transition-all duration-500 delay-150 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                                 }`}
                         >
-                            <Link
-                                href={`/watch/${activeMovie.externalId || activeMovie.id}`}
-                                className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
-                            >
-                                <Play className="w-5 h-5 fill-black" />
-                                <span>Play</span>
-                            </Link>
-                            <Link
+                        <NavigationLink
+                            href={`/watch/${activeMovie.externalId || activeMovie.id}`}
+                            className="inline-flex items-center gap-2 px-8 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
+                        >
+                            <Play className="w-5 h-5 fill-black" />
+                            <span>Play</span>
+                        </NavigationLink>
+                            <NavigationLink
                                 href={`/movies/${activeMovie.externalId || activeMovie.id}`}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-sm rounded backdrop-blur-sm transition-all active:scale-95"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span>Chi tiết</span>
-                            </Link>
+                            </NavigationLink>
                         </div>
                     </div>
 

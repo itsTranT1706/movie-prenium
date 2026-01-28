@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import MovieCard, { Movie } from './movie-card';
 import { ChevronRight, Flame, Sparkles, Tv } from 'lucide-react';
+import { NavigationLink } from '@/components/ui';
 import {
     Carousel,
     CarouselContent,
@@ -70,13 +70,13 @@ export default function MovieRow({ title, href, movies, isLoading, icon }: Movie
                         <span>{title}</span>
                     </h2>
                     {href && (
-                        <Link
+                        <NavigationLink
                             href={href}
                             className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
                         >
                             <span>Xem toàn bộ</span>
                             <ChevronRight className="w-3 h-3" />
-                        </Link>
+                        </NavigationLink>
                     )}
                 </div>
 
