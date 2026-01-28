@@ -92,15 +92,17 @@ model Favorite {
 // ============================================
 
 model WatchHistory {
-  id         String   @id @default(uuid())
-  userId     String
-  movieId    String
-  watchedAt  DateTime @default(now())
-  progress   Int      @default(0) // Progress in seconds
-  completed  Boolean  @default(false)
+  id             String   @id @default(uuid())
+  userId         String
+  movieId        String
+  episodeNumber  Int?              // Episode number for series
+  firstWatchedAt DateTime @default(now())
+  lastWatchedAt  DateTime @default(now())
+  completed      Boolean  @default(false)
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, movieId, episodeNumber])
   @@map("watch_history")
 }

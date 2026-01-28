@@ -65,4 +65,9 @@ export class User extends BaseEntity<string> {
     public updateAvatar(avatar: string): void {
         this.props.avatar = avatar;
     }
+
+    public updatePassword(hashedPassword: string): void {
+        this.props.password = hashedPassword;
+        this.props.updatedAt = new Date();
+    }
 }

@@ -7,6 +7,7 @@ import { User } from '../entities/user.entity';
  */
 export interface UserRepositoryPort extends RepositoryPort<User, string> {
     findByEmail(email: string): Promise<User | null>;
+    update(user: User): Promise<User>;
 }
 
 export const USER_REPOSITORY = Symbol('USER_REPOSITORY');

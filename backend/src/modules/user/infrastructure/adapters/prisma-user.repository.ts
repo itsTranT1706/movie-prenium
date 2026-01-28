@@ -66,6 +66,20 @@ export class PrismaUserRepository implements UserRepositoryPort {
         return count > 0;
     }
 
+    async update(user: User): Promise<User> {
+        const updated = await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+                name: user.name,
+                avatar: user.avatar,
+                password: user.password,
+                updatedAt: new Date(),
+            },
+        });
+
+        return this.toDomain(updated);
+    }
+
     private toDomain(raw: any): User {
         return User.create(raw.id, {
             email: raw.email,

@@ -18,8 +18,16 @@ export class PrismaFavoriteRepository implements FavoriteRepositoryPort {
     }
 
     async findByUserId(userId: string): Promise<Favorite[]> {
-        const favs = await this.prisma.favorite.findMany({ where: { userId } });
-        return favs.map(this.toDomain);
+        const favs = await this.prisma.favorite.findMany({ 
+            where: { userId },
+            include: { movie: true }, // Include movie details
+        });
+        return favs.map((fav) => {
+            const favorite = this.toDomain(fav);
+            // Attach movie data to favorite (we'll handle this in controller)
+            (favorite as any).movie = fav.movie;
+            return favorite;
+        });
     }
 
     async findByUserAndMovie(userId: string, movieId: string): Promise<Favorite | null> {

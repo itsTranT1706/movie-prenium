@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/infrastructure/auth.module';
 import { UserModule } from './modules/user/infrastructure/user.module';
 import { MovieModule } from './modules/movie/infrastructure/movie.module';
 import { FavoriteModule } from './modules/favorite/infrastructure/favorite.module';
+import { WatchHistoryModule } from './modules/watch-history/infrastructure/watch-history.module';
 import { StreamingModule } from './modules/streaming/infrastructure/streaming.module';
 import { RecommendationModule } from './modules/recommendation/infrastructure/recommendation.module';
 import { AIModule } from './modules/ai/infrastructure/ai.module';
@@ -29,6 +30,7 @@ import { AIModule } from './modules/ai/infrastructure/ai.module';
     UserModule,
     MovieModule,
     FavoriteModule,
+    WatchHistoryModule,
     StreamingModule,
     RecommendationModule,
 
