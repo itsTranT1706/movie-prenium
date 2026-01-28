@@ -1,10 +1,12 @@
 'use client';
 
-import Link from 'next/link';
-import { Play, Plus, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, Plus, Check, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
+import { NavigationLink } from '@/components/ui';
 import { toast } from 'sonner';
 import { MovieRow, EpisodeSelector, CommentSection } from '@/components/features';
 import { useAuth, useRequireAuth } from '@/hooks';
+import { apiClient } from '@/lib/api/client';
 
 interface MovieDetailClientProps {
     movie: any;
@@ -21,17 +23,102 @@ export function MovieDetailClient({
     similarMovies,
     topWeeklyMovies,
 }: MovieDetailClientProps) {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const requireAuth = useRequireAuth();
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
 
-    const handleAddToList = () => {
-        requireAuth(
-            () => {
-                console.log('Adding to list...');
-                toast.success('Đã thêm vào danh sách của bạn!');
-            },
-            'Vui lòng đăng nhập để lưu phim vào danh sách'
-        );
+    // Check if movie is in favorites
+    useEffect(() => {
+        const checkFavorite = async () => {
+            if (!isAuthenticated || !movie?.id) return;
+            
+            try {
+                const response = await apiClient.getFavorites();
+                const favoriteData = response?.data || response || [];
+                const favorites = Array.isArray(favoriteData) ? favoriteData : [];
+                
+                // Check if current movie is in favorites
+                // Compare with both internal movieId and externalId from the favorite's movie object
+                const movieIdentifier = movie.externalId || movie.id;
+                const isInFavorites = favorites.some((fav: any) => {
+                    // Check against the favorite's movie data if available
+                    if (fav.movie) {
+                        return fav.movie.id === movie.id || 
+                               fav.movie.externalId === movieIdentifier ||
+                               fav.movie.id === movieIdentifier;
+                    }
+                    // Fallback to checking movieId directly
+                    return fav.movieId === movie.id || fav.movieId === movieIdentifier;
+                });
+                
+                console.log('🔍 Check favorite status:', { 
+                    movieId: movie.id, 
+                    externalId: movie.externalId,
+                    isInFavorites,
+                    totalFavorites: favorites.length 
+                });
+                
+                setIsFavorite(isInFavorites);
+            } catch (error) {
+                console.error('Failed to check favorite status:', error);
+            }
+        };
+
+        checkFavorite();
+    }, [isAuthenticated, movie?.id, movie?.externalId]);
+
+    const handleToggleFavorite = async () => {
+        if (!isAuthenticated) {
+            requireAuth(
+                () => {},
+                'Vui lòng đăng nhập để lưu phim vào danh sách'
+            );
+            return;
+        }
+
+        setIsLoadingFavorite(true);
+        const previousState = isFavorite; // Save previous state for rollback
+        
+        try {
+            const movieId = movie.externalId || movie.id;
+            
+            if (isFavorite) {
+                // Optimistically update UI
+                setIsFavorite(false);
+                
+                // Remove from favorites
+                await apiClient.removeFavorite(movieId);
+                toast.success('Đã xóa khỏi danh sách yêu thích');
+            } else {
+                // Optimistically update UI
+                setIsFavorite(true);
+                
+                // Add to favorites
+                await apiClient.addFavorite(movieId);
+                toast.success('Đã thêm vào danh sách yêu thích');
+            }
+        } catch (error: any) {
+            console.error('Toggle favorite error:', error);
+            
+            // Rollback UI state on error
+            setIsFavorite(previousState);
+            
+            // Check error message for specific cases
+            const errorMessage = error?.message || '';
+            
+            if (errorMessage.includes('already in favorites') || errorMessage.includes('Movie already in favorites')) {
+                setIsFavorite(true);
+                toast.info('Phim đã có trong danh sách yêu thích');
+            } else if (errorMessage.includes('not in favorites') || errorMessage.includes('Movie not in favorites')) {
+                setIsFavorite(false);
+                toast.info('Phim không có trong danh sách yêu thích');
+            } else {
+                toast.error(previousState ? 'Không thể xóa khỏi danh sách' : 'Không thể thêm vào danh sách');
+            }
+        } finally {
+            setIsLoadingFavorite(false);
+        }
     };
 
     const handleSubmitComment = (text: string) => {
@@ -55,13 +142,13 @@ export function MovieDetailClient({
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/40" />
 
                 {/* Back Button */}
-                <Link
+                <NavigationLink
                     href="/movies"
                     className="absolute top-20 left-4 lg:left-8 flex items-center gap-2 text-white/70 hover:text-white transition-colors z-10"
                 >
                     <ArrowLeft className="w-5 h-5" />
                     <span className="text-sm">Back</span>
-                </Link>
+                </NavigationLink>
             </div>
 
             {/* Content */}
@@ -137,19 +224,38 @@ export function MovieDetailClient({
 
                             {/* CTA */}
                             <div className="flex gap-3 mb-6">
-                                <Link
+                                <NavigationLink
                                     href={`/watch/${movie.externalId || movie.id}`}
                                     className="flex items-center gap-2 px-6 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-colors"
                                 >
                                     <Play className="w-5 h-5 fill-black" />
                                     <span>Xem ngay</span>
-                                </Link>
+                                </NavigationLink>
                                 <button 
-                                    onClick={handleAddToList}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-700/50 text-white font-semibold text-sm rounded hover:bg-gray-700 transition-colors"
+                                    onClick={handleToggleFavorite}
+                                    disabled={isLoadingFavorite}
+                                    className={`flex items-center gap-2 px-5 py-2.5 font-semibold text-sm rounded transition-all ${
+                                        isFavorite 
+                                            ? 'bg-white/20 text-white hover:bg-white/30 border border-white/30' 
+                                            : 'bg-gray-700/50 text-white hover:bg-gray-700'
+                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
-                                    <Plus className="w-5 h-5" />
-                                    <span>Danh sách</span>
+                                    {isLoadingFavorite ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>Đang xử lý...</span>
+                                        </>
+                                    ) : isFavorite ? (
+                                        <>
+                                            <Check className="w-5 h-5" />
+                                            <span>Đã thêm</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-5 h-5" />
+                                            <span>Danh sách</span>
+                                        </>
+                                    )}
                                 </button>
                             </div>
 
@@ -208,7 +314,7 @@ export function MovieDetailClient({
                                 <div className="space-y-0">
                                     {topWeeklyMovies.map((item: any, index: number) => (
                                         <div key={item.id}>
-                                            <Link
+                                            <NavigationLink
                                                 href={`/movies/${item.id}`}
                                                 className="flex gap-3 py-3 hover:bg-white/5 transition-colors group"
                                             >
@@ -234,7 +340,7 @@ export function MovieDetailClient({
                                                         <span>{item.episode}</span>
                                                     </div>
                                                 </div>
-                                            </Link>
+                                            </NavigationLink>
                                             {index < topWeeklyMovies.length - 1 && (
                                                 <div className="border-t border-white/5" />
                                             )}

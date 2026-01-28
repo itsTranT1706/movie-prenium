@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Play, Heart, Info, Volume2, VolumeX } from 'lucide-react';
+import { Play, Heart, Info, Volume2, VolumeX, Check } from 'lucide-react';
 import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/hooks';
 
 export interface MoviePreviewData {
     id: string;
@@ -60,12 +61,15 @@ export function HoverPreviewCard({
     delay = 500,
     disabled = false,
 }: HoverPreviewCardProps) {
+    const { isAuthenticated } = useAuth();
     const [isVisible, setIsVisible] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [actualPosition, setActualPosition] = useState<'left' | 'right' | 'center'>('center');
     const [isMounted, setIsMounted] = useState(false);
     const [trailerUrl, setTrailerUrl] = useState<string | undefined>(movie.trailerUrl);
     const [isLoadingTrailer, setIsLoadingTrailer] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
     const triggerRef = useRef<HTMLDivElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,6 +101,39 @@ export function HoverPreviewCard({
             fetchTrailer();
         }
     }, [isVisible, trailerUrl, isLoadingTrailer, movie.externalId, movie.id, movie.title]);
+
+    // Check if movie is in favorites when preview becomes visible
+    useEffect(() => {
+        const checkFavorite = async () => {
+            if (!isVisible || !isAuthenticated) return;
+            
+            try {
+                const response = await apiClient.getFavorites();
+                const favoriteData = response?.data || response || [];
+                const favorites = Array.isArray(favoriteData) ? favoriteData : [];
+                
+                // Check if current movie is in favorites
+                // Compare with both internal movieId and externalId from the favorite's movie object
+                const movieIdentifier = movie.externalId || movie.id;
+                const isInFavorites = favorites.some((fav: any) => {
+                    // Check against the favorite's movie data if available
+                    if (fav.movie) {
+                        return fav.movie.id === movie.id || 
+                               fav.movie.externalId === movieIdentifier ||
+                               fav.movie.id === movieIdentifier;
+                    }
+                    // Fallback to checking movieId directly
+                    return fav.movieId === movie.id || fav.movieId === movieIdentifier;
+                });
+                
+                setIsFavorite(isInFavorites);
+            } catch (error) {
+                console.error('Failed to check favorite status:', error);
+            }
+        };
+
+        checkFavorite();
+    }, [isVisible, isAuthenticated, movie.externalId, movie.id]);
 
     // Calculate position based on viewport
     useEffect(() => {
@@ -207,8 +244,92 @@ export function HoverPreviewCard({
                             <Play className="w-4 h-4 fill-black" />
                             <span>Xem ngay</span>
                         </Link>
-                        <button className="w-10 h-10 rounded-full border-2 border-gray-500 hover:border-white flex items-center justify-center text-white transition-colors">
-                            <Heart className="w-4 h-4" />
+                        <button 
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                if (!isAuthenticated) {
+                                    const { toast } = await import('sonner');
+                                    toast.error('Vui lòng đăng nhập để thêm vào yêu thích');
+                                    return;
+                                }
+
+                                setIsLoadingFavorite(true);
+                                const previousState = isFavorite; // Save previous state for rollback
+                                
+                                try {
+                                    const movieId = movie.externalId || movie.id;
+                                    
+                                    if (isFavorite) {
+                                        // Optimistically update UI
+                                        setIsFavorite(false);
+                                        
+                                        // Remove from favorites
+                                        await apiClient.removeFavorite(movieId);
+                                        const { toast } = await import('sonner');
+                                        toast.success('Đã xóa khỏi danh sách yêu thích');
+                                    } else {
+                                        // Optimistically update UI
+                                        setIsFavorite(true);
+                                        
+                                        // Add to favorites
+                                        const movieData = {
+                                            title: movie.title,
+                                            originalTitle: movie.subtitle,
+                                            mediaType: 'movie',
+                                            posterUrl: movie.posterUrl,
+                                            backdropUrl: movie.backdropUrl,
+                                            trailerUrl: movie.trailerUrl,
+                                            releaseDate: movie.year ? `${movie.year}-01-01` : undefined,
+                                            duration: movie.duration ? parseInt(movie.duration) : undefined,
+                                            genres: movie.genres || [],
+                                            provider: 'tmdb',
+                                        };
+                                        
+                                        await apiClient.addFavorite(movieId, movieData);
+                                        const { toast } = await import('sonner');
+                                        toast.success('Đã thêm vào danh sách yêu thích');
+                                    }
+                                } catch (error: any) {
+                                    console.error('Toggle favorite error:', error);
+                                    
+                                    // Rollback UI state on error
+                                    setIsFavorite(previousState);
+                                    
+                                    const { toast } = await import('sonner');
+                                    
+                                    // Check error message for specific cases
+                                    const errorMessage = error?.message || '';
+                                    
+                                    if (errorMessage.includes('already in favorites') || errorMessage.includes('Movie already in favorites')) {
+                                        setIsFavorite(true);
+                                        toast.info('Phim đã có trong danh sách yêu thích');
+                                    } else if (errorMessage.includes('not in favorites') || errorMessage.includes('Movie not in favorites')) {
+                                        setIsFavorite(false);
+                                        toast.info('Phim không có trong danh sách yêu thích');
+                                    } else {
+                                        toast.error(previousState ? 'Không thể xóa khỏi danh sách' : 'Không thể thêm vào danh sách');
+                                    }
+                                } finally {
+                                    setIsLoadingFavorite(false);
+                                }
+                            }}
+                            disabled={isLoadingFavorite}
+                            className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                                isFavorite 
+                                    ? 'border-white bg-white/10 text-white hover:bg-white/20' 
+                                    : 'border-gray-500 hover:border-white text-white hover:bg-white/10'
+                            }`}
+                            title={isFavorite ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                            {isLoadingFavorite ? (
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : isFavorite ? (
+                                <Check className="w-4 h-4" />
+                            ) : (
+                                <Heart className="w-4 h-4" />
+                            )}
                         </button>
                         <Link
                             href={`/movies/${movie.externalId || movie.id}`}

@@ -1,10 +1,12 @@
 'use client';
 
-import Link from 'next/link';
+import { useEffect } from 'react';
 import { Heart, Plus, Star, Calendar, Clock } from 'lucide-react';
+import { NavigationLink } from '@/components/ui';
 import { toast } from 'sonner';
 import { EpisodeSelector, CommentSection, CurvedVideoPlayer, EpisodeTabs } from '@/components/features';
 import { useAuth, useRequireAuth } from '@/hooks';
+import { apiClient } from '@/lib/api/client';
 
 interface WatchPageClientProps {
     movie: any;
@@ -23,7 +25,7 @@ export function WatchPageClient({
     currentServerId = 'server1',
     currentEpisodeId = 'e1'
 }: WatchPageClientProps) {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const requireAuth = useRequireAuth();
 
     // Find the current server and episode
@@ -43,9 +45,90 @@ export function WatchPageClient({
                      movie.sources?.[0]?.episodes?.[0]?.embedUrl ||
                      'https://embed11.streamc.xyz/embed.php?hash=162622c76599d49fbc5cbcb9c3e6b5c3';
 
-    const handleAddToFavorites = () => {
-        requireAuth(() => {
-            toast.success('Đã thêm vào yêu thích!');
+    // Track watch history
+    useEffect(() => {
+        const trackHistory = async () => {
+            if (isAuthenticated && movie?.id) {
+                try {
+                    console.log('🎬 Tracking watch history:', {
+                        movieId: movie.id,
+                        episodeNumber,
+                        isAuthenticated,
+                        user,
+                        movie
+                    });
+                    
+                    // Send movie data to ensure it exists in database
+                    const movieData = {
+                        externalId: movie.externalId || movie.id,
+                        title: movie.title || 'Unknown Movie',
+                        originalTitle: movie.originalTitle,
+                        posterUrl: movie.posterUrl,
+                        backdropUrl: movie.backdropUrl,
+                        mediaType: movie.mediaType || 'movie',
+                        description: movie.description,
+                        releaseDate: movie.releaseDate,
+                        rating: movie.rating,
+                        genres: movie.genres || [],
+                    };
+                    
+                    console.log('📦 Movie data being sent:', movieData);
+                    
+                    const result = await apiClient.addWatchHistory(movie.id, episodeNumber, movieData);
+                    console.log('✅ Watch history tracked:', result);
+                } catch (err) {
+                    console.error('❌ Failed to track watch history:', err);
+                }
+            } else {
+                console.log('⏸️ Not tracking:', { isAuthenticated, movieId: movie?.id });
+            }
+        };
+
+        trackHistory();
+    }, [isAuthenticated, movie?.id, episodeNumber, user]);
+
+    const handleAddToFavorites = async () => {
+        console.log('handleAddToFavorites called!', { movieId: movie.id, externalId: movie.externalId, movie });
+        
+        requireAuth(async () => {
+            try {
+                console.log('Auth passed, calling API...');
+                const apiClient = (await import('@/lib/api/client')).default;
+                console.log('API client loaded:', apiClient);
+                
+                // Use externalId if available, otherwise use id
+                const movieId = movie.externalId || movie.id;
+                
+                // Prepare movie data to send to backend
+                const movieData = {
+                    title: movie.title,
+                    originalTitle: movie.originalTitle,
+                    mediaType: movie.mediaType || 'movie',
+                    description: movie.description,
+                    posterUrl: movie.posterUrl,
+                    backdropUrl: movie.backdropUrl,
+                    trailerUrl: movie.trailerUrl,
+                    releaseDate: movie.releaseDate,
+                    duration: movie.duration,
+                    rating: movie.rating,
+                    genres: movie.genres || [],
+                    provider: 'tmdb',
+                };
+                
+                console.log('Calling addFavorite with movieId:', movieId, 'and movieData:', movieData);
+                const result = await apiClient.addFavorite(movieId, movieData);
+                console.log('Add favorite result:', result);
+                
+                toast.success('Đã thêm vào yêu thích!');
+            } catch (error: any) {
+                console.error('Add to favorites error:', error);
+                
+                if (error?.message?.includes('already in favorites')) {
+                    toast.info('Phim đã có trong danh sách yêu thích');
+                } else {
+                    toast.error('Không thể thêm vào yêu thích');
+                }
+            }
         }, 'Vui lòng đăng nhập để thêm vào yêu thích');
     };
 
@@ -64,12 +147,12 @@ export function WatchPageClient({
             {/* Breadcrumb */}
             <div className="w-full flex justify-center px-4">
                 <div className="w-full max-w-7xl py-4">
-                    <Link href={`/movies/${movie.externalId || movie.id}`} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                    <NavigationLink href={`/movies/${movie.externalId || movie.id}`} className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                         </svg>
                         <span className="text-sm">Xem phim {movie.title}</span>
-                    </Link>
+                    </NavigationLink>
                 </div>
             </div>
 
@@ -169,7 +252,7 @@ export function WatchPageClient({
                                 <div className="space-y-0">
                                     {topWeeklyMovies.map((item: any, index: number) => (
                                         <div key={item.id}>
-                                            <Link href={`/movies/${item.id}`} className="flex gap-3 py-3 hover:bg-white/5 transition-colors group">
+                                            <NavigationLink href={`/movies/${item.id}`} className="flex gap-3 py-3 hover:bg-white/5 transition-colors group">
                                                 <div className="flex-shrink-0 w-16 h-24 rounded overflow-hidden bg-white/5">
                                                     <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
                                                 </div>
@@ -180,7 +263,7 @@ export function WatchPageClient({
                                                         <span>{item.season}</span><span>•</span><span>{item.episode}</span>
                                                     </div>
                                                 </div>
-                                            </Link>
+                                            </NavigationLink>
                                             {index < topWeeklyMovies.length - 1 && <div className="border-t border-white/5" />}
                                         </div>
                                     ))}

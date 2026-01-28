@@ -6,10 +6,11 @@ import {
   StreamingService,
   UserService,
 } from './services';
+import WatchHistoryService from './services/watch-history.service';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const API_PREFIX = '/api/v1';
-const BASE_URL = API_BASE_URL + API_PREFIX;
+// Don't add /api/v1 here if NEXT_PUBLIC_API_URL already includes it
+const BASE_URL = API_BASE_URL.includes('/api/v1') ? API_BASE_URL : `${API_BASE_URL}/api/v1`;
 
 // Initialize service instances
 const authService = new AuthService(BASE_URL);
@@ -18,6 +19,7 @@ const favoriteService = new FavoriteService(BASE_URL);
 const recommendationService = new RecommendationService(BASE_URL);
 const streamingService = new StreamingService(BASE_URL);
 const userService = new UserService(BASE_URL);
+const watchHistoryService = new WatchHistoryService(BASE_URL);
 
 // Shared token management across all services
 const setToken = (token: string | null) => {
@@ -27,6 +29,7 @@ const setToken = (token: string | null) => {
   recommendationService.setToken(token);
   streamingService.setToken(token);
   userService.setToken(token);
+  watchHistoryService.setToken(token);
 };
 
 const getToken = () => authService.getToken();
@@ -59,6 +62,7 @@ export const apiClient = {
   // Favorites
   getFavorites: favoriteService.getFavorites.bind(favoriteService),
   addFavorite: favoriteService.addFavorite.bind(favoriteService),
+  removeFavorite: favoriteService.removeFavorite.bind(favoriteService),
 
   // Recommendations
   getRecommendations: recommendationService.getRecommendations.bind(recommendationService),
@@ -68,6 +72,16 @@ export const apiClient = {
 
   // Users
   getUser: userService.getUser.bind(userService),
+  updateProfile: userService.updateProfile.bind(userService),
+  changePassword: userService.changePassword.bind(userService),
+
+  // Watch History
+  addWatchHistory: (movieId: string, episodeNumber?: number, movieData?: any) => 
+    watchHistoryService.addWatchHistory(movieId, episodeNumber, movieData),
+  markCompleted: watchHistoryService.markCompleted.bind(watchHistoryService),
+  getContinueWatching: watchHistoryService.getContinueWatching.bind(watchHistoryService),
+  getWatchHistory: watchHistoryService.getHistory.bind(watchHistoryService),
+  removeWatchHistory: watchHistoryService.removeWatchHistory.bind(watchHistoryService),
 };
 
 export default apiClient;
