@@ -11,6 +11,23 @@ const nextConfig: NextConfig = {
   /* config options here */
   // Add empty turbopack config to silence warning
   turbopack: {},
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.tmdb.org',
+        pathname: '/t/p/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.vecteezy.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**', // Allow all HTTPS domains for user avatars
+      },
+    ],
+  },
 };
 
 export default withPWA(nextConfig);

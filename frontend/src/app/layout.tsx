@@ -4,6 +4,8 @@ import "./globals.css";
 import { Header, Footer } from "@/components/layout";
 import { AuthProviderWrapper } from "@/components/providers";
 import { ScrollToTop } from "@/components/ui";
+import { LoadingProvider } from "@/contexts/loading-context";
+import { NavigationLoadingProvider } from "@/components/providers/navigation-loading-provider";
 import { Toaster } from "sonner";
 
 // Cinematic font for movie titles
@@ -40,36 +42,40 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${bebasNeue.variable}`}>
       <body className="min-h-screen bg-black text-white font-sans antialiased">
-        <AuthProviderWrapper>
-          {/* Fixed Header */}
-          <Header />
+        <LoadingProvider>
+          <NavigationLoadingProvider>
+            <AuthProviderWrapper>
+              {/* Fixed Header */}
+              <Header />
 
-          {/* Main Content */}
-          <main className="min-h-screen">
-            {children}
-          </main>
+              {/* Main Content */}
+              <main className="min-h-screen">
+                {children}
+              </main>
 
-          {/* Footer */}
-          <Footer />
+              {/* Footer */}
+              <Footer />
 
-          {/* Scroll to Top Button */}
-          <ScrollToTop />
+              {/* Scroll to Top Button */}
+              <ScrollToTop />
 
-          {/* Toast Notifications */}
-          <Toaster
-            position="top-right"
-            theme="dark"
-            richColors
-            closeButton
-            toastOptions={{
-              style: {
-                background: 'rgba(23, 23, 23, 0.8)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          />
-        </AuthProviderWrapper>
+              {/* Toast Notifications */}
+              <Toaster
+                position="top-right"
+                theme="dark"
+                richColors
+                closeButton
+                toastOptions={{
+                  style: {
+                    background: 'rgba(23, 23, 23, 0.8)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              />
+            </AuthProviderWrapper>
+          </NavigationLoadingProvider>
+        </LoadingProvider>
       </body>
     </html>
   );
