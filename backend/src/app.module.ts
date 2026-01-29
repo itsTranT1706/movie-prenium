@@ -12,6 +12,7 @@ import { WatchHistoryModule } from './modules/watch-history/infrastructure/watch
 import { StreamingModule } from './modules/streaming/infrastructure/streaming.module';
 import { RecommendationModule } from './modules/recommendation/infrastructure/recommendation.module';
 import { AIModule } from './modules/ai/infrastructure/ai.module';
+import { CommentModule } from './modules/comment/infrastructure/comment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AIModule } from './modules/ai/infrastructure/ai.module';
     WatchHistoryModule,
     StreamingModule,
     RecommendationModule,
+    CommentModule,
 
     // AI Module (Stub)
     AIModule,
