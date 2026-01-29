@@ -17,6 +17,7 @@ export class UserController {
     @Get(':id')
     @UseGuards(JwtAuthGuard)
     async getUserById(@Param('id') id: string) {
+        console.log('📡 [UserController] Getting user by id:', id);
         const result = await this.getUserByIdUseCase.execute({ userId: id });
 
         if (result.isFailure) {
@@ -24,7 +25,7 @@ export class UserController {
         }
 
         const user = result.value;
-        return {
+        const response = {
             success: true,
             data: {
                 id: user.id,
@@ -34,6 +35,8 @@ export class UserController {
                 role: user.role,
             },
         };
+        console.log('✅ [UserController] Returning user data:', response);
+        return response;
     }
 
     @Patch(':id')
@@ -43,6 +46,8 @@ export class UserController {
         @Param('id') id: string,
         @Body() updateUserDto: UpdateUserDto,
     ) {
+        console.log('📝 [UserController] Updating user profile:', { id, updateData: updateUserDto });
+        
         // Authorization check: user can only update their own profile
         if (req.user.userId !== id) {
             throw new ForbiddenException('You can only update your own profile');
@@ -58,7 +63,7 @@ export class UserController {
         }
 
         const user = result.value;
-        return {
+        const response = {
             success: true,
             data: {
                 id: user.id,
@@ -68,6 +73,8 @@ export class UserController {
                 role: user.role,
             },
         };
+        console.log('✅ [UserController] Profile updated:', response);
+        return response;
     }
 
     @Patch(':id/password')

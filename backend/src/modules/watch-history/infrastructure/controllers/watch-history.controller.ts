@@ -34,7 +34,7 @@ export class WatchHistoryController {
     @Post()
     async addWatchHistory(
         @Req() req: any,
-        @Body() body: { movieId: string; episodeNumber?: number; movieData?: any },
+        @Body() body: { movieId: string; episodeNumber?: number; serverName?: string; movieData?: any },
     ) {
         console.log('🔐 [WatchHistory] Request user:', req.user);
         console.log('📦 [WatchHistory] Raw body received:', JSON.stringify(body, null, 2));
@@ -51,6 +51,7 @@ export class WatchHistoryController {
             userId,
             movieId: body.movieId,
             episodeNumber: body.episodeNumber,
+            serverName: body.serverName,
             hasMovieData: !!body.movieData,
             movieDataKeys: body.movieData ? Object.keys(body.movieData) : [],
         });
@@ -60,6 +61,7 @@ export class WatchHistoryController {
                 userId,
                 body.movieId,
                 body.episodeNumber,
+                body.serverName,
                 body.movieData,
             );
             console.log('✅ [WatchHistory] Successfully added:', result);

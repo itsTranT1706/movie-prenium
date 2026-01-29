@@ -13,6 +13,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
         userId: string,
         movieId: string,
         episodeNumber?: number,
+        serverName?: string,
         movieData?: any,
     ): Promise<WatchHistory> {
         const episodeNum = episodeNumber !== undefined ? episodeNumber : null;
@@ -21,6 +22,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
             userId,
             movieId,
             episodeNumber: episodeNum,
+            serverName,
             hasMovieData: !!movieData,
         });
         
@@ -119,11 +121,13 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                 update: {
                     lastWatchedAt: new Date(),
                     completed: false,
+                    serverName: serverName || undefined,
                 },
                 create: {
                     userId,
                     movieId: actualMovieId, // Use the actual movie ID
                     episodeNumber: episodeNum,
+                    serverName: serverName || undefined,
                     firstWatchedAt: new Date(),
                     lastWatchedAt: new Date(),
                     completed: false,
@@ -241,6 +245,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
             userId: data.userId,
             movieId: data.movieId,
             episodeNumber: data.episodeNumber ?? undefined,
+            serverName: data.serverName ?? undefined,
             firstWatchedAt: data.firstWatchedAt,
             lastWatchedAt: data.lastWatchedAt,
             completed: data.completed,

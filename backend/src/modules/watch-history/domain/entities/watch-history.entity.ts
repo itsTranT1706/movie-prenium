@@ -4,6 +4,7 @@ export interface WatchHistoryProps {
     userId: string;
     movieId: string;
     episodeNumber?: number;
+    serverName?: string;
     firstWatchedAt: Date;
     lastWatchedAt: Date;
     completed: boolean;
@@ -27,6 +28,10 @@ export class WatchHistory extends BaseEntity<string> {
 
     get episodeNumber(): number | undefined {
         return this.props.episodeNumber;
+    }
+
+    get serverName(): string | undefined {
+        return this.props.serverName;
     }
 
     get firstWatchedAt(): Date {

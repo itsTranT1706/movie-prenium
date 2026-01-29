@@ -33,7 +33,7 @@ import { apiClient } from '@/lib/api/client';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>('favorites');
   const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
   const [continueWatchingItems, setContinueWatchingItems] = useState<WatchingItem[]>([]);
@@ -127,6 +127,7 @@ export default function ProfilePage() {
             progress: 0, // We don't track progress, so set to 0
             lastWatchedAt: new Date(item.lastWatchedAt),
             currentEpisode: item.episodeNumber ? `Tập ${item.episodeNumber}` : undefined,
+            serverName: item.serverName,
             remainingTime: undefined,
           }));
           
@@ -230,8 +231,10 @@ export default function ProfilePage() {
       await apiClient.updateProfile(user.id, updateData);
       toast.success('Cập nhật thông tin thành công');
       
-      // Optionally refresh user data
-      window.location.reload();
+      // Refresh user data from server
+      console.log('🔄 Calling refreshUser...');
+      await refreshUser();
+      console.log('✅ refreshUser completed');
     } catch (error) {
       toast.error('Không thể cập nhật thông tin');
       console.error('Update profile error:', error);
@@ -304,6 +307,7 @@ export default function ProfilePage() {
             <ContinueWatchingSection
               items={continueWatchingItems}
               onRemove={handleRemoveContinueWatching}
+              onPlay={() => {}} // Enable play button (navigation handled by MovieCard)
               isLoading={loadingContinueWatching}
             />
           )}

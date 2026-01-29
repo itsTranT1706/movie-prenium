@@ -5,6 +5,7 @@ export interface WatchHistoryRepository {
         userId: string,
         movieId: string,
         episodeNumber?: number,
+        serverName?: string,
         movieData?: any,
     ): Promise<WatchHistory>;
 

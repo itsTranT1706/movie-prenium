@@ -15,8 +15,9 @@ export class AddWatchHistoryUseCase {
         userId: string,
         movieId: string,
         episodeNumber?: number,
+        serverName?: string,
         movieData?: any,
     ) {
-        return await this.repository.addOrUpdate(userId, movieId, episodeNumber, movieData);
+        return await this.repository.addOrUpdate(userId, movieId, episodeNumber, serverName, movieData);
     }
 }
