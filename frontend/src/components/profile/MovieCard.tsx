@@ -15,6 +15,7 @@ import { Play, Trash2, Info } from 'lucide-react';
 
 export interface MovieCardMetadata {
   episode?: string;
+  serverName?: string;
   watchedAt?: Date;
   remainingTime?: string;
 }
@@ -90,24 +91,25 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-3 profile-transition-fast">
             {/* Quick actions */}
             <div className="flex gap-2 mb-2">
-              {onPlay && (
+              {onPlay ? (
                 <NavigationLink
-                  href={`/watch/${movieLink}`}
+                  href={`/watch/${movieLink}${metadata?.serverName || metadata?.episode ? '?' : ''}${metadata?.serverName ? `server=${metadata.serverName}` : ''}${metadata?.serverName && metadata?.episode ? '&' : ''}${metadata?.episode ? `episode=e${metadata.episode.match(/\d+/)?.[0] || '1'}` : ''}`}
+                  loadingType="fade"
+                  className="w-9 h-9 rounded-full bg-white hover:bg-white/90 flex items-center justify-center profile-transition-fast"
+                  title="Xem phim"
+                >
+                  <Play className="w-4 h-4 text-black fill-black" />
+                </NavigationLink>
+              ) : (
+                <NavigationLink
+                  href={`/movies/${movieLink}`}
                   loadingType="fade"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center profile-transition-fast"
-                  title="Phát"
+                  title="Chi tiết"
                 >
-                  <Play className="w-4 h-4 text-white" />
+                  <Info className="w-4 h-4 text-white" />
                 </NavigationLink>
               )}
-              <NavigationLink
-                href={`/movies/${movieLink}`}
-                loadingType="fade"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center profile-transition-fast"
-                title="Chi tiết"
-              >
-                <Info className="w-4 h-4 text-white" />
-              </NavigationLink>
               {onRemove && (
                 <button
                   onClick={(e) => {

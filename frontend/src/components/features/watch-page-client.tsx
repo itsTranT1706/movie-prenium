@@ -74,7 +74,12 @@ export function WatchPageClient({
                     
                     console.log('📦 Movie data being sent:', movieData);
                     
-                    const result = await apiClient.addWatchHistory(movie.id, episodeNumber, movieData);
+                    const result = await apiClient.addWatchHistory(
+                        movie.id, 
+                        episodeNumber, 
+                        movieData,
+                        currentServerId // Pass server name
+                    );
                     console.log('✅ Watch history tracked:', result);
                 } catch (err) {
                     console.error('❌ Failed to track watch history:', err);
@@ -244,7 +249,7 @@ export function WatchPageClient({
                     <div className="border-t border-white/10 pt-6">
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="flex-1 min-w-0">
-                                <CommentSection movieId={movie.id} comments={comments} onSubmitComment={handleSubmitComment} />
+                                <CommentSection movieId={movie.externalId || movie.id} />
                             </div>
 
                             <div className="w-full lg:w-80 flex-shrink-0 lg:pl-8 lg:border-l lg:border-white/10">

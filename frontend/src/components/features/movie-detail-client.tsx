@@ -300,11 +300,7 @@ export function MovieDetailClient({
 
                                 {/* Comments Section */}
                                 <div className="mt-12 pt-8 border-t border-white/10">
-                                    <CommentSection
-                                        movieId={movie.id}
-                                        comments={comments}
-                                        onSubmitComment={handleSubmitComment}
-                                    />
+                                    <CommentSection movieId={movie.externalId || movie.id} />
                                 </div>
                             </div>
 

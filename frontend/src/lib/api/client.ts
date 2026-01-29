@@ -7,6 +7,7 @@ import {
   UserService,
 } from './services';
 import WatchHistoryService from './services/watch-history.service';
+import CommentService from './services/comment.service';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 // Don't add /api/v1 here if NEXT_PUBLIC_API_URL already includes it
@@ -20,6 +21,7 @@ const recommendationService = new RecommendationService(BASE_URL);
 const streamingService = new StreamingService(BASE_URL);
 const userService = new UserService(BASE_URL);
 const watchHistoryService = new WatchHistoryService(BASE_URL);
+const commentService = new CommentService(BASE_URL);
 
 // Shared token management across all services
 const setToken = (token: string | null) => {
@@ -30,6 +32,7 @@ const setToken = (token: string | null) => {
   streamingService.setToken(token);
   userService.setToken(token);
   watchHistoryService.setToken(token);
+  commentService.setToken(token);
 };
 
 const getToken = () => authService.getToken();
@@ -76,12 +79,21 @@ export const apiClient = {
   changePassword: userService.changePassword.bind(userService),
 
   // Watch History
-  addWatchHistory: (movieId: string, episodeNumber?: number, movieData?: any) => 
-    watchHistoryService.addWatchHistory(movieId, episodeNumber, movieData),
+  addWatchHistory: (movieId: string, episodeNumber?: number, movieData?: any, serverName?: string) => 
+    watchHistoryService.addWatchHistory(movieId, episodeNumber, movieData, serverName),
   markCompleted: watchHistoryService.markCompleted.bind(watchHistoryService),
   getContinueWatching: watchHistoryService.getContinueWatching.bind(watchHistoryService),
   getWatchHistory: watchHistoryService.getHistory.bind(watchHistoryService),
   removeWatchHistory: watchHistoryService.removeWatchHistory.bind(watchHistoryService),
+
+  // Comments
+  createComment: commentService.createComment.bind(commentService),
+  createReply: commentService.createReply.bind(commentService),
+  getMovieComments: commentService.getMovieComments.bind(commentService),
+  getCommentCount: commentService.getCommentCount.bind(commentService),
+  updateComment: commentService.updateComment.bind(commentService),
+  deleteComment: commentService.deleteComment.bind(commentService),
+  voteComment: commentService.voteComment.bind(commentService),
 };
 
 export default apiClient;

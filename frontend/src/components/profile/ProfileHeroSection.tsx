@@ -42,6 +42,8 @@ export const ProfileHeroSection: React.FC<ProfileHeroSectionProps> = ({
                   alt={user.name || 'User'}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  unoptimized
+                  key={user.avatar}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-4xl md:text-5xl font-bold text-gray-400 bg-[#2a2a2a]">
