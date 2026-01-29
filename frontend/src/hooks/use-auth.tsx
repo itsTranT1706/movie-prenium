@@ -11,6 +11,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     register: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,6 +87,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        const token = apiClient.getToken();
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.userId) {
+                    console.log('🔄 Refreshing user data...');
+                    const response = await apiClient.getUser(payload.userId);
+                    console.log('✅ User data refreshed:', response);
+                    if (response.success && response.data) {
+                        // Create new object to trigger re-render
+                        setUser({ ...response.data });
+                        console.log('✅ User state updated:', response.data);
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Failed to refresh user:', error);
+            }
+        }
+    };
+
     return (
         <AuthContext.Provider value={{ 
             user, 
@@ -93,7 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAuthenticated: !!user,
             login, 
             register, 
-            logout 
+            logout,
+            refreshUser
         }}>
             {children}
         </AuthContext.Provider>

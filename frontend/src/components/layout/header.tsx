@@ -355,6 +355,8 @@ export default function Header() {
                                                     fill
                                                     className="object-cover"
                                                     sizes="28px"
+                                                    unoptimized
+                                                    key={user.avatar}
                                                 />
                                             </div>
                                         ) : (
