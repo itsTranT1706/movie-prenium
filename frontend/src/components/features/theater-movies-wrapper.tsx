@@ -11,10 +11,10 @@ export default async function TheaterMoviesWrapper() {
     try {
         // Get popular movies (page 1)
         const popularMovies = await serverApi.getPopularMovies(1);
-        
+
         // Take first 5 movies
         const topMovies = popularMovies.slice(0, 5);
-        
+
         // Fetch details for each movie to get complete information including trailer
         const moviesWithDetails = await Promise.all(
             topMovies.map(async (movie) => {
@@ -67,16 +67,16 @@ export default async function TheaterMoviesWrapper() {
                 }
             })
         );
-        
+
         movies = moviesWithDetails;
-        
+
         // Server-side logging
-        console.log('[Server] Theater movies loaded:', moviesWithDetails.map(m => ({
-            title: m.title,
-            hasTrailer: !!m.trailerUrl,
-            hasBackdrop: !!m.backdropUrl,
-            trailerUrl: m.trailerUrl,
-        })));
+        // console.log('[Server] Theater movies loaded:', moviesWithDetails.map(m => ({
+        //     title: m.title,
+        //     hasTrailer: !!m.trailerUrl,
+        //     hasBackdrop: !!m.backdropUrl,
+        //     trailerUrl: m.trailerUrl,
+        // })));
     } catch (error) {
         console.error('[Server] Failed to fetch theater movies:', error);
     }

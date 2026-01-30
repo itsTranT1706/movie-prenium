@@ -23,7 +23,7 @@ interface MoviesFilterPageProps {
     };
 }
 
-export function MoviesFilterPage({ 
+export function MoviesFilterPage({
     initialMovies = [],
     initialPage = 1,
     pageTitle = 'Phim Phổ Biến',
@@ -48,13 +48,13 @@ export function MoviesFilterPage({
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-    console.log('MoviesFilterPage rendered with filters:', filters);
-    console.log('Current movies count:', movies.length);
-    console.log('🔢 Pagination state:', { currentPage, totalPages, shouldShowPagination: totalPages > 1 });
+    // console.log('MoviesFilterPage rendered with filters:', filters);
+    // console.log('Current movies count:', movies.length);
+    // console.log('🔢 Pagination state:', { currentPage, totalPages, shouldShowPagination: totalPages > 1 });
 
     // Handle filter changes
     const handleFilterChange = useCallback((newFilters: FilterState) => {
-        console.log('🎯 handleFilterChange called with:', newFilters);
+        // console.log('🎯 handleFilterChange called with:', newFilters);
         setFilters(newFilters);
     }, []);
 
@@ -75,16 +75,16 @@ export function MoviesFilterPage({
     const fetchMovies = useCallback(async (page: number = 1) => {
         setIsLoading(true);
         try {
-            console.log('🎬 Fetching movies with filters:', {
-                search: filters.search,
-                genres: filters.genres,
-                countries: filters.countries,
-                yearRange: filters.yearRange,
-                qualities: filters.qualities,
-                languages: filters.languages,
-                status: filters.status,
-                page,
-            });
+            // console.log('🎬 Fetching movies with filters:', {
+            //     search: filters.search,
+            //     genres: filters.genres,
+            //     countries: filters.countries,
+            //     yearRange: filters.yearRange,
+            //     qualities: filters.qualities,
+            //     languages: filters.languages,
+            //     status: filters.status,
+            //     page,
+            // });
 
             const response = await apiClient.filterMovies({
                 search: filters.search || undefined,
@@ -100,16 +100,16 @@ export function MoviesFilterPage({
                 limit: 24,
             });
 
-            console.log('✅ API response:', {
-                success: response.success,
-                dataCount: response.data?.length || 0,
-                pagination: response.pagination,
-            });
+            // console.log('✅ API response:', {
+            //     success: response.success,
+            //     dataCount: response.data?.length || 0,
+            //     pagination: response.pagination,
+            // });
 
             if (response.success && response.data) {
                 setMovies(response.data);
                 setCurrentPage(page);
-                
+
                 // Calculate total pages from response
                 if (response.pagination && response.pagination.totalPages) {
                     console.log('📊 Setting totalPages from API:', response.pagination.totalPages);
@@ -127,12 +127,12 @@ export function MoviesFilterPage({
                     console.log('📊 No results, setting totalPages to 1');
                     setTotalPages(1);
                 }
-                
-                console.log('📊 Final state:', {
-                    currentPage: page,
-                    totalPages: response.pagination?.totalPages || 'calculated',
-                    moviesCount: response.data.length
-                });
+
+                // console.log('📊 Final state:', {
+                //     currentPage: page,
+                //     totalPages: response.pagination?.totalPages || 'calculated',
+                //     moviesCount: response.data.length
+                // });
             }
         } catch (error) {
             console.error('❌ Failed to fetch movies:', error);
@@ -161,10 +161,10 @@ export function MoviesFilterPage({
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const activeFilterCount = 
+    const activeFilterCount =
         (filters.search ? 1 : 0) +
-        filters.genres.length + 
-        filters.countries.length + 
+        filters.genres.length +
+        filters.countries.length +
         filters.qualities.length +
         filters.languages.length +
         filters.status.length +
@@ -224,9 +224,8 @@ export function MoviesFilterPage({
             <div className="flex gap-6 lg:gap-8 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[2000px] mx-auto transition-all duration-300 relative z-10">
                 {/* Left Sidebar - Desktop Only */}
                 <div
-                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${
-                        isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
-                    }`}
+                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+                        }`}
                 >
                     <div className="sticky top-24 border-r border-white/10 pr-6">
                         <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
@@ -274,12 +273,12 @@ export function MoviesFilterPage({
                         <>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-5">
                                 {movies.map((movie, index) => (
-                                    <MovieCard 
-                                        key={movie.id} 
+                                    <MovieCard
+                                        key={movie.id}
                                         movie={{
                                             ...movie,
                                             duration: movie.duration ? `${movie.duration} phút` : undefined,
-                                        }} 
+                                        }}
                                         enablePreview={true}
                                         priority={index < 6}
                                     />

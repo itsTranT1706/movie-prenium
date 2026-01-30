@@ -33,34 +33,34 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isFiltered, setIsFiltered] = useState(false);
 
-    console.log('🎬 Trending page rendered, isFiltered:', isFiltered, 'movies:', movies.length);
+    // console.log('🎬 Trending page rendered, isFiltered:', isFiltered, 'movies:', movies.length);
 
-    const hasActiveFilters = 
-        filters.search || 
-        filters.genres.length > 0 || 
-        filters.countries.length > 0 || 
+    const hasActiveFilters =
+        filters.search ||
+        filters.genres.length > 0 ||
+        filters.countries.length > 0 ||
         filters.qualities.length > 0 ||
         filters.languages.length > 0 ||
         filters.status.length > 0 ||
-        filters.yearRange[0] !== 1990 || 
+        filters.yearRange[0] !== 1990 ||
         filters.yearRange[1] !== 2026;
 
     useEffect(() => {
-        console.log('🔄 useEffect triggered, hasActiveFilters:', hasActiveFilters);
-        
+        // console.log('🔄 useEffect triggered, hasActiveFilters:', hasActiveFilters);
+
         if (!hasActiveFilters) {
-            console.log('✨ No filters, showing trending movies');
+            // console.log('✨ No filters, showing trending movies');
             setMovies(initialMovies);
             setIsFiltered(false);
             return;
         }
 
         const timer = setTimeout(async () => {
-            console.log('⏰ Debounce timer fired, fetching filtered movies...');
+            // console.log('⏰ Debounce timer fired, fetching filtered movies...');
             setIsLoading(true);
             setIsFiltered(true);
             setCurrentPage(1); // Reset to page 1 when filters change
-            
+
             try {
                 const response = await apiClient.filterMovies({
                     search: filters.search || undefined,
@@ -75,15 +75,12 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
                     limit: 24,
                 });
 
-                console.log('✅ Filter API response:', {
-                    success: response.success,
-                    count: response.data?.length || 0,
-                    pagination: response.pagination,
-                });
-                
+                // console.log('✅ Filter API response:', {
+
+
                 if (response.success && response.data) {
                     setMovies(response.data);
-                    
+
                     // Update pagination info
                     if (response.pagination) {
                         setTotalPages(response.pagination.totalPages || 1);
@@ -99,15 +96,15 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
         }, 500);
 
         return () => {
-            console.log('🧹 Cleanup timer');
+            // console.log('🧹 Cleanup timer');
             clearTimeout(timer);
         };
     }, [filters, hasActiveFilters, initialMovies]);
 
-    const activeFilterCount = 
+    const activeFilterCount =
         (filters.search ? 1 : 0) +
-        filters.genres.length + 
-        filters.countries.length + 
+        filters.genres.length +
+        filters.countries.length +
         filters.qualities.length +
         filters.languages.length +
         filters.status.length +
@@ -135,7 +132,7 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
 
             if (response.success && response.data) {
                 setMovies(response.data);
-                
+
                 if (response.pagination) {
                     setTotalPages(response.pagination.totalPages || 1);
                 }
@@ -193,9 +190,8 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
 
             <div className="flex gap-6 lg:gap-8 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[2000px] mx-auto transition-all duration-300 relative z-10">
                 <div
-                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${
-                        isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
-                    }`}
+                    className={`hidden lg:block flex-shrink-0 transition-all duration-300 ${isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+                        }`}
                 >
                     <div className="sticky top-24 border-r border-white/10 pr-6">
                         <FilterSidebar filters={filters} onFilterChange={setFilters} />
@@ -254,12 +250,12 @@ export function MoviesTrendingPage({ initialMovies, pageTitle = 'Phim Trending',
                         <>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 lg:gap-5">
                                 {movies.map((movie, index) => (
-                                    <MovieCard 
-                                        key={movie.id} 
+                                    <MovieCard
+                                        key={movie.id}
                                         movie={{
                                             ...movie,
                                             duration: movie.duration ? `${movie.duration} phút` : undefined,
-                                        }} 
+                                        }}
                                         enablePreview={true}
                                         priority={index < 6}
                                     />

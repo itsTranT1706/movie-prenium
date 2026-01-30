@@ -32,6 +32,7 @@ export interface Movie {
     quality?: string;
     lang?: string;
     episodeCurrent?: string;
+    ageRating?: string;
 }
 
 export interface MovieWithSources extends Movie {

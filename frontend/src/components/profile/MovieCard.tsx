@@ -13,6 +13,37 @@ import { Play, Trash2, Info } from 'lucide-react';
  * Reusable movie card with flexible aspect ratios and hover effects
  */
 
+/**
+ * Format server name to friendly Vietnamese label
+ * Example: "#Hà Nội (Vietsub)" -> "Vietsub"
+ */
+function formatServerName(serverName?: string): string | undefined {
+  if (!serverName) return undefined;
+
+  const name = serverName.toLowerCase();
+
+  // Check for subtitle types in the server name
+  if (name.includes('vietsub') || name.includes('viet sub')) return 'Vietsub';
+  if (name.includes('thuyết minh') || name.includes('thuyet minh')) return 'Thuyết minh';
+  if (name.includes('lồng tiếng') || name.includes('long tieng')) return 'Lồng tiếng';
+  if (name.includes('engsub') || name.includes('eng sub')) return 'Engsub';
+  if (name.includes('raw')) return 'Raw';
+
+  // If contains server + number only (like "server1"), hide it
+  if (/^server\s*\d+$/i.test(name.trim())) {
+    return undefined;
+  }
+
+  // Try to extract text in parentheses like "(Vietsub)" or "(Thuyết minh)"
+  const parenMatch = serverName.match(/\(([^)]+)\)/);
+  if (parenMatch) {
+    return parenMatch[1]; // Return content inside parentheses
+  }
+
+  // Return original with first letter capitalized
+  return serverName.charAt(0).toUpperCase() + serverName.slice(1);
+}
+
 export interface MovieCardMetadata {
   episode?: string;
   serverName?: string;
@@ -42,12 +73,12 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const imageUrl = aspectRatio === '16:9' 
+  const imageUrl = aspectRatio === '16:9'
     ? (movie.backdropUrl || movie.posterUrl)
     : (movie.posterUrl || movie.backdropUrl);
 
   const paddingBottom = aspectRatio === '16:9' ? '56.25%' : '150%';
-  
+
   // Use externalId for links if available, fallback to internal id
   const movieLink = movie.externalId || movie.id;
 
@@ -79,8 +110,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         {/* Progress bar */}
         {showProgress && progress > 0 && (
           <div className="absolute bottom-0 left-0 right-0 progress-bar">
-            <div 
-              className="progress-bar-fill" 
+            <div
+              className="progress-bar-fill"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
@@ -132,13 +163,16 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         <h3 className="text-sm font-semibold text-white line-clamp-2 leading-tight">
           {movie.title}
         </h3>
-        
+
         {/* Metadata */}
         {metadata && (
           <div className="mt-1 flex flex-col gap-0.5">
-            {metadata.episode && (
-              <p className="text-xs text-text-secondary">
-                {metadata.episode}
+            {/* Episode and server name combined */}
+            {(metadata.episode || metadata.serverName) && (
+              <p className="text-xs text-text-secondary flex items-center gap-1.5">
+                {metadata.episode && <span>{metadata.episode}</span>}
+                {metadata.episode && metadata.serverName && <span>•</span>}
+                {metadata.serverName && <span>{formatServerName(metadata.serverName)}</span>}
               </p>
             )}
             {metadata.remainingTime && (

@@ -37,7 +37,7 @@ interface Movie {
 async function serverFetch<T>(endpoint: string): Promise<ApiResponse<T>> {
   try {
     const url = `${BASE_URL}${endpoint}`;
-    console.log(`[Server API] Fetching: ${url}`);
+    // console.log(`[Server API] Fetching: ${url}`);
 
     const response = await fetch(url, {
       cache: 'no-store', // Always get fresh data
@@ -55,7 +55,7 @@ async function serverFetch<T>(endpoint: string): Promise<ApiResponse<T>> {
     }
 
     const data = await response.json();
-    console.log(`[Server API] Success for ${endpoint}:`, data.success);
+    // console.log(`[Server API] Success for ${endpoint}:`, data.success);
     return data;
   } catch (error) {
     console.error(`[Server API] Error for ${endpoint}:`, error);

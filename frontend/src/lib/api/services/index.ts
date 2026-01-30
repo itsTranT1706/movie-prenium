@@ -4,3 +4,5 @@ export { default as FavoriteService } from './favorite.service';
 export { default as RecommendationService } from './recommendation.service';
 export { default as StreamingService } from './streaming.service';
 export { default as UserService } from './user.service';
+export { default as CommentService } from './comment.service';
+export type { RecentComment, Comment, CreateCommentDto, CreateReplyDto, UpdateCommentDto } from './comment.service';

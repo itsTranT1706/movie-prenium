@@ -12,6 +12,7 @@ export interface MoviePreviewData {
     externalId?: string;
     title: string;
     subtitle?: string;
+    originalTitle?: string;
     posterUrl?: string;
     backdropUrl?: string;
     trailerUrl?: string;
@@ -19,9 +20,12 @@ export interface MoviePreviewData {
     year?: number;
     season?: number;
     episode?: number;
+    episodeCurrent?: string;
     duration?: string;
     genres?: string[];
     quality?: string;
+    rating?: number;
+    mediaType?: 'movie' | 'tv';
 }
 
 interface HoverPreviewCardProps {
@@ -87,9 +91,9 @@ export function HoverPreviewCard({
                 try {
                     setIsLoadingTrailer(true);
                     const tmdbId = movie.externalId || movie.id;
-                    const response = await apiClient.getMovieDetails(tmdbId);
+                    const response = await apiClient.getMovieDetails(tmdbId, true);
                     if (response.success && response.data?.trailerUrl) {
-                        console.log(`✅ Loaded trailer for ${movie.title}:`, response.data.trailerUrl);
+                        // console.log(`✅ Loaded trailer for ${movie.title}:`, response.data.trailerUrl);
                         setTrailerUrl(response.data.trailerUrl);
                     }
                 } catch (error) {
@@ -106,26 +110,23 @@ export function HoverPreviewCard({
     useEffect(() => {
         const checkFavorite = async () => {
             if (!isVisible || !isAuthenticated) return;
-            
+
             try {
                 const response = await apiClient.getFavorites();
                 const favoriteData = response?.data || response || [];
                 const favorites = Array.isArray(favoriteData) ? favoriteData : [];
-                
+
                 // Check if current movie is in favorites
-                // Compare with both internal movieId and externalId from the favorite's movie object
                 const movieIdentifier = movie.externalId || movie.id;
                 const isInFavorites = favorites.some((fav: any) => {
-                    // Check against the favorite's movie data if available
                     if (fav.movie) {
-                        return fav.movie.id === movie.id || 
-                               fav.movie.externalId === movieIdentifier ||
-                               fav.movie.id === movieIdentifier;
+                        return fav.movie.id === movie.id ||
+                            fav.movie.externalId === movieIdentifier ||
+                            fav.movie.id === movieIdentifier;
                     }
-                    // Fallback to checking movieId directly
                     return fav.movieId === movie.id || fav.movieId === movieIdentifier;
                 });
-                
+
                 setIsFavorite(isInFavorites);
             } catch (error) {
                 console.error('Failed to check favorite status:', error);
@@ -154,9 +155,7 @@ export function HoverPreviewCard({
 
     const handleMouseEnter = () => {
         if (disabled) return;
-        console.log('🎬 Hover preview triggered for:', movie.title);
         timeoutRef.current = setTimeout(() => {
-            console.log('✅ Showing preview for:', movie.title);
             setIsVisible(true);
         }, delay);
     };
@@ -165,7 +164,6 @@ export function HoverPreviewCard({
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
-        console.log('❌ Hiding preview for:', movie.title);
         setIsVisible(false);
     };
 
@@ -230,9 +228,9 @@ export function HoverPreviewCard({
                 {/* Content Section */}
                 <div className="p-5 pt-0">
                     {/* Title */}
-                    <h3 className="text-lg font-bold text-white mb-1.5 line-clamp-1">{movie.title}</h3>
-                    {movie.subtitle && movie.subtitle !== movie.title && (
-                        <p className="text-sm text-amber-400 mb-3 line-clamp-1">{movie.subtitle}</p>
+                    <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{movie.title}</h3>
+                    {(movie.originalTitle || movie.subtitle) && (movie.originalTitle || movie.subtitle) !== movie.title && (
+                        <p className="text-sm text-gray-400 mb-2 line-clamp-1">{movie.originalTitle || movie.subtitle}</p>
                     )}
 
                     {/* Action Buttons */}
@@ -244,11 +242,11 @@ export function HoverPreviewCard({
                             <Play className="w-4 h-4 fill-black" />
                             <span>Xem ngay</span>
                         </Link>
-                        <button 
+                        <button
                             onClick={async (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                
+
                                 if (!isAuthenticated) {
                                     const { toast } = await import('sonner');
                                     toast.error('Vui lòng đăng nhập để thêm vào yêu thích');
@@ -257,23 +255,17 @@ export function HoverPreviewCard({
 
                                 setIsLoadingFavorite(true);
                                 const previousState = isFavorite; // Save previous state for rollback
-                                
+
                                 try {
                                     const movieId = movie.externalId || movie.id;
-                                    
+
                                     if (isFavorite) {
-                                        // Optimistically update UI
                                         setIsFavorite(false);
-                                        
-                                        // Remove from favorites
                                         await apiClient.removeFavorite(movieId);
                                         const { toast } = await import('sonner');
                                         toast.success('Đã xóa khỏi danh sách yêu thích');
                                     } else {
-                                        // Optimistically update UI
                                         setIsFavorite(true);
-                                        
-                                        // Add to favorites
                                         const movieData = {
                                             title: movie.title,
                                             originalTitle: movie.subtitle,
@@ -286,22 +278,17 @@ export function HoverPreviewCard({
                                             genres: movie.genres || [],
                                             provider: 'tmdb',
                                         };
-                                        
+
                                         await apiClient.addFavorite(movieId, movieData);
                                         const { toast } = await import('sonner');
                                         toast.success('Đã thêm vào danh sách yêu thích');
                                     }
                                 } catch (error: any) {
                                     console.error('Toggle favorite error:', error);
-                                    
-                                    // Rollback UI state on error
                                     setIsFavorite(previousState);
-                                    
                                     const { toast } = await import('sonner');
-                                    
-                                    // Check error message for specific cases
                                     const errorMessage = error?.message || '';
-                                    
+
                                     if (errorMessage.includes('already in favorites') || errorMessage.includes('Movie already in favorites')) {
                                         setIsFavorite(true);
                                         toast.info('Phim đã có trong danh sách yêu thích');
@@ -316,11 +303,10 @@ export function HoverPreviewCard({
                                 }
                             }}
                             disabled={isLoadingFavorite}
-                            className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isFavorite 
-                                    ? 'border-white bg-white/10 text-white hover:bg-white/20' 
-                                    : 'border-gray-500 hover:border-white text-white hover:bg-white/10'
-                            }`}
+                            className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isFavorite
+                                ? 'border-white bg-white/10 text-white hover:bg-white/20'
+                                : 'border-gray-500 hover:border-white text-white hover:bg-white/10'
+                                }`}
                             title={isFavorite ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
                         >
                             {isLoadingFavorite ? (
@@ -339,27 +325,42 @@ export function HoverPreviewCard({
                         </Link>
                     </div>
 
-                    {/* Metadata Row */}
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2.5 flex-wrap">
+                    {/* Metadata Row - IMDb style (Glassmorphism) */}
+                    <div className="flex items-center gap-3 text-xs text-gray-300 mb-2.5 flex-wrap">
+                        {/* IMDb Rating Badge */}
+                        {movie.rating && movie.rating > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-[2px] bg-[#E2B616]/90 backdrop-blur-md border border-[#E2B616]/30 text-black font-black text-[11px] rounded-[4px] shadow-[0_0_10px_rgba(226,182,22,0.4)] tracking-tight">
+                                <span>IMDb</span>
+                                <span className="font-extrabold">{movie.rating.toFixed(1)}</span>
+                            </span>
+                        )}
+                        {/* Age Rating */}
                         {movie.ageRating && (
-                            <span className="px-1.5 py-0.5 border border-gray-600 rounded text-gray-400 font-medium text-[10px]">
+                            <span className="px-1.5 py-[1px] border border-white/40 bg-white/10 backdrop-blur-sm rounded-sm text-gray-200 font-medium text-[10px]">
                                 {movie.ageRating}
                             </span>
                         )}
-                        {movie.year && <span>{movie.year}</span>}
-                        {movie.season && movie.episode && (
-                            <>
-                                <span>•</span>
-                                <span>Phần {movie.season}</span>
-                                <span>•</span>
-                                <span>Tập {movie.episode}</span>
-                            </>
+                        {/* Year */}
+                        {movie.year && <span className="text-white font-medium drop-shadow-md">{movie.year}</span>}
+                        {/* Quality badge - Vivid Blue HD (Glassmorphism Glow) */}
+                        {movie.quality && (
+                            <span className="px-1.5 py-[2px] bg-[#0066FF]/80 backdrop-blur-md border border-[#0066FF]/50 text-white font-bold text-[10px] tracking-wide rounded-[4px] shadow-[0_0_15px_rgba(0,102,255,0.6)]">
+                                {movie.quality}
+                            </span>
                         )}
-                        {movie.duration && (
-                            <>
-                                <span>•</span>
-                                <span>{movie.duration}</span>
-                            </>
+                        {/* Season */}
+                        {movie.season && (
+                            <span className="text-gray-400">Phần {movie.season}</span>
+                        )}
+                        {/* Episode */}
+                        {(movie.episode || movie.episodeCurrent) && (
+                            <span className="text-gray-400">
+                                Tập {movie.episode || movie.episodeCurrent}
+                            </span>
+                        )}
+                        {/* Duration */}
+                        {movie.duration && !movie.episode && !movie.episodeCurrent && (
+                            <span className="text-gray-400">{movie.duration}</span>
                         )}
                     </div>
 
@@ -369,7 +370,7 @@ export function HoverPreviewCard({
                             {movie.genres.map((genre, index) => (
                                 <span key={genre}>
                                     {genre}
-                                    {index < movie.genres!.length - 1 && <span className="mx-1">•</span>}
+                                    {index < (movie.genres?.length || 0) - 1 && <span className="mx-1">•</span>}
                                 </span>
                             ))}
                         </div>

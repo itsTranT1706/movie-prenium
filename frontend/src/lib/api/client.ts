@@ -5,9 +5,9 @@ import {
   RecommendationService,
   StreamingService,
   UserService,
+  CommentService,
 } from './services';
 import WatchHistoryService from './services/watch-history.service';
-import CommentService from './services/comment.service';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 // Don't add /api/v1 here if NEXT_PUBLIC_API_URL already includes it

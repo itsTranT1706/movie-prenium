@@ -40,8 +40,9 @@ class MovieService extends BaseApiClient {
     return this.request<Movie[]>(`/movies/upcoming?page=${page}`);
   }
 
-  async getMovieDetails(slug: string) {
-    return this.request<MovieWithSources>(`/movies/${slug}`);
+  async getMovieDetails(slug: string, preview?: boolean) {
+    const query = preview ? '?preview=true' : '';
+    return this.request<MovieWithSources>(`/movies/${slug}${query}`);
   }
 
   async filterMovies(filters: {
@@ -58,7 +59,7 @@ class MovieService extends BaseApiClient {
     limit?: number;
   }) {
     const params = new URLSearchParams();
-    
+
     if (filters.search) params.append('search', filters.search);
     if (filters.genres?.length) params.append('genres', filters.genres.join(','));
     if (filters.countries?.length) params.append('countries', filters.countries.join(','));
