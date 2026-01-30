@@ -18,9 +18,9 @@ class WatchHistoryService extends BaseApiClient {
    */
   async addWatchHistory(movieId: string, episodeNumber?: number, movieData?: any, serverName?: string) {
     const payload = { movieId, episodeNumber, serverName, movieData };
-    console.log('🚀 [WatchHistoryService] Sending payload:', payload);
-    console.log('🚀 [WatchHistoryService] Payload stringified:', JSON.stringify(payload));
-    
+    // console.log('🚀 [WatchHistoryService] Sending payload:', payload);
+    // console.log('🚀 [WatchHistoryService] Payload stringified:', JSON.stringify(payload));
+
     return this.request<WatchHistoryItem>('/watch-history', {
       method: 'POST',
       body: JSON.stringify(payload),
