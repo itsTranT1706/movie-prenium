@@ -13,8 +13,10 @@ export class GetTrendingMoviesUseCase {
 
     async execute(timeWindow: 'day' | 'week' = 'week'): Promise<Result<Movie[]>> {
         try {
+            console.log('🎬 [GetTrendingMoviesUseCase] Fetching trending movies, timeWindow:', timeWindow);
             // Fetch trending movies from TMDB
             const movies = await this.movieProvider.getTrendingMovies(timeWindow);
+            console.log('✅ [GetTrendingMoviesUseCase] Got movies:', movies.length);
             
             // Cache results in repository
             await Promise.all(
@@ -23,6 +25,7 @@ export class GetTrendingMoviesUseCase {
 
             return Result.ok(movies);
         } catch (error) {
+            console.error('❌ [GetTrendingMoviesUseCase] Error:', error);
             return Result.fail(error as Error);
         }
     }

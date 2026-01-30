@@ -38,12 +38,12 @@ export class GetMovieDetailsUseCase {
         return /^\d+$/.test(identifier);
     }
 
-    async execute(identifier: string): Promise<Result<MovieDetailResult | null>> {
+    async execute(identifier: string, options: { preview?: boolean } = {}): Promise<Result<MovieDetailResult | null>> {
         // Route to appropriate handler based on identifier type
         if (this.isTmdbId(identifier)) {
-            return this.executeWithTmdb(identifier);
+            return this.executeWithTmdb(identifier, options);
         } else {
-            return this.executeWithSlug(identifier);
+            return this.executeWithSlug(identifier, options);
         }
     }
 
@@ -51,18 +51,29 @@ export class GetMovieDetailsUseCase {
      * Handle movie details request using slug (KKPhim direct lookup)
      * This is used when movies don't have a TMDB ID
      */
-    private async executeWithSlug(slug: string): Promise<Result<MovieDetailResult | null>> {
+    private async executeWithSlug(slug: string, options: { preview?: boolean } = {}): Promise<Result<MovieDetailResult | null>> {
         try {
-            this.logger.debug(`Fetching movie by slug: ${slug}`);
+            this.logger.debug(`Fetching movie by slug: ${slug} (preview: ${options.preview})`);
 
-            // Use KKPhim's getMovieWithEpisodes which returns both metadata and sources
-            const result = await this.kkphimProvider.getMovieWithEpisodes(slug);
+            let movie: Movie;
+            let sources: any[] = [];
 
-            if (!result) {
-                return Result.fail(new Error('Movie not found'));
+            if (options.preview) {
+                // In preview mode, just get metadata without episodes
+                const result = await this.kkphimProvider.getMovieDetails(slug);
+                if (!result) {
+                    return Result.fail(new Error('Movie not found'));
+                }
+                movie = result;
+            } else {
+                // Use KKPhim's getMovieWithEpisodes which returns both metadata and sources
+                const result = await this.kkphimProvider.getMovieWithEpisodes(slug);
+                if (!result) {
+                    return Result.fail(new Error('Movie not found'));
+                }
+                movie = result.movie;
+                sources = result.sources;
             }
-
-            let { movie } = result;
 
             // If movie has TMDB ID but no trailer, try to fetch trailer from TMDB
             // KKPhim stores TMDB ID in externalId when available (numeric value)
@@ -115,7 +126,7 @@ export class GetMovieDetailsUseCase {
             // Cache the movie for future lookups
             await this.movieRepository.save(movie);
 
-            return Result.ok({ movie, sources: result.sources });
+            return Result.ok({ movie, sources });
         } catch (error) {
             this.logger.error(`Failed to fetch movie by slug ${slug}: ${error.message}`);
             return Result.fail(error as Error);
@@ -130,7 +141,7 @@ export class GetMovieDetailsUseCase {
      * 3. If no trailer from KKPhim, fetch from TMDB to get trailer
      * 4. Merge KKPhim metadata with TMDB trailer if needed
      */
-    private async executeWithTmdb(tmdbId: string): Promise<Result<MovieDetailResult | null>> {
+    private async executeWithTmdb(tmdbId: string, options: { preview?: boolean } = {}): Promise<Result<MovieDetailResult | null>> {
         try {
             // 1. Check cache first
             let movie = await this.movieRepository.findByExternalIdWithCache(tmdbId);
@@ -144,14 +155,14 @@ export class GetMovieDetailsUseCase {
                 try {
                     // Search KKPhim by TMDB ID - try both movie and TV
                     this.logger.debug(`Searching KKPhim for TMDB ID ${tmdbId}`);
-                    
+
                     // Try movie first - use getMovieDetailsByTmdbId to get trailer_url
                     let kkphimResult = await (kkphimAdapter as any).getMovieDetailsByTmdbId?.(tmdbId, 'movie');
                     if (kkphimResult && kkphimResult.sources && kkphimResult.sources.length > 0) {
                         mediaType = 'movie';
                         sources = kkphimResult.sources;
                         this.logger.debug(`KKPhim found content as movie for TMDB ID ${tmdbId}`);
-                        
+
                         // Map KKPhim API response to Movie entity
                         if (kkphimResult.movie) {
                             kkphimMovie = this.mapKKPhimApiToMovie(kkphimResult.movie, kkphimResult.trailerUrl);
@@ -163,7 +174,7 @@ export class GetMovieDetailsUseCase {
                             mediaType = 'tv';
                             sources = kkphimResult.sources;
                             this.logger.debug(`KKPhim found content as TV for TMDB ID ${tmdbId}`);
-                            
+
                             // Map KKPhim API response to Movie entity
                             if (kkphimResult.movie) {
                                 kkphimMovie = this.mapKKPhimApiToMovie(kkphimResult.movie, kkphimResult.trailerUrl);
@@ -180,11 +191,11 @@ export class GetMovieDetailsUseCase {
                 this.logger.debug(`Using KKPhim movie with trailer for TMDB ID ${tmdbId}`);
                 movie = kkphimMovie;
                 await this.movieRepository.save(movie);
-            } 
+            }
             // 4. If no trailer from KKPhim or no KKPhim data, fetch from TMDB
             else if (!movie || !movie.trailerUrl) {
                 this.logger.debug(`Fetching from TMDB for ID ${tmdbId} (mediaType: ${mediaType})`);
-                
+
                 try {
                     let freshMovie: Movie | null = null;
 
@@ -242,7 +253,7 @@ export class GetMovieDetailsUseCase {
                         } else {
                             movie = freshMovie;
                         }
-                        
+
                         // Cache it
                         await this.movieRepository.save(movie);
                     }
@@ -319,8 +330,8 @@ export class GetMovieDetailsUseCase {
                 return Result.fail(new Error('Movie not found'));
             }
 
-            // 5. If we don't have sources yet, try to fetch them
-            if (sources.length === 0 && kkphimAdapter) {
+            // 5. If we don't have sources yet, try to fetch them (SKIP in preview mode)
+            if (!options.preview && sources.length === 0 && kkphimAdapter) {
                 try {
                     const streamSources = await kkphimAdapter.getStreamSources(tmdbId, movie.mediaType);
                     sources = streamSources || [];
@@ -345,7 +356,7 @@ export class GetMovieDetailsUseCase {
      */
     private mapKKPhimApiToMovie(kkphimApiMovie: any, trailerUrl?: string): Movie {
         const now = new Date();
-        
+
         // Determine mediaType from KKPhim type or tmdb.type
         let mediaType: 'movie' | 'tv' = 'movie';
         if (kkphimApiMovie.tmdb?.type) {

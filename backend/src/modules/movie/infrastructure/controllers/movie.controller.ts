@@ -132,7 +132,7 @@ export class MovieController {
 
         const movies = result.value;
         const currentPage = Number(page);
-        
+
         // TMDB popular movies have many pages (usually 500+)
         // We'll show pagination up to page 10 for performance
         const totalPages = currentPage < 10 ? currentPage + 1 : 10;
@@ -237,19 +237,24 @@ export class MovieController {
     async getTrendingMovies(
         @Query('timeWindow') timeWindow: 'day' | 'week' = 'week',
     ) {
+        console.log('📡 [MovieController] Getting trending movies, timeWindow:', timeWindow);
         const result = await this.getTrendingMoviesUseCase.execute(timeWindow);
 
         if (result.isFailure) {
+            console.error('❌ [MovieController] Trending movies failed:', result.error);
             throw new HttpException(
                 result.error.message,
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
 
-        return {
+        console.log('✅ [MovieController] Trending movies count:', result.value.length);
+        const response = {
             success: true,
             data: result.value.map(this.toResponse),
         };
+        console.log('📤 [MovieController] Returning trending movies:', response.data.length);
+        return response;
     }
 
     /**
@@ -340,8 +345,12 @@ export class MovieController {
      * @returns Movie metadata from TMDB with streaming sources from KKPhim
      */
     @Get(':id')
-    async getMovieDetails(@Param('id') tmdbId: string) {
-        const result = await this.getMovieDetailsUseCase.execute(tmdbId);
+    async getMovieDetails(
+        @Param('id') tmdbId: string,
+        @Query('preview') preview?: string,
+    ) {
+        const isPreview = preview === 'true';
+        const result = await this.getMovieDetailsUseCase.execute(tmdbId, { preview: isPreview });
 
         if (result.isFailure) {
             const errorMessage = result.error.message || 'Movie not found';
@@ -375,6 +384,14 @@ export class MovieController {
 
         const { movie, sources } = result.value;
 
+        if (isPreview) {
+            // Return simplified DTO for preview
+            return {
+                success: true,
+                data: this.toPreviewResponse(movie),
+            };
+        }
+
         return {
             success: true,
             data: {
@@ -393,6 +410,25 @@ export class MovieController {
                     })),
                 })),
             },
+        };
+    }
+
+    private toPreviewResponse(movie: any) {
+        return {
+            id: movie.id,
+            externalId: movie.externalId,
+            title: movie.title,
+            originalTitle: movie.originalTitle,
+            posterUrl: movie.posterUrl,
+            backdropUrl: movie.backdropUrl,
+            trailerUrl: movie.trailerUrl,
+            releaseDate: movie.releaseDate,
+            duration: movie.duration,
+            rating: movie.rating,
+            genres: movie.genres,
+            quality: movie.quality,
+            episodeCurrent: movie.episodeCurrent,
+            // Exclude description, cast, director, country, lang, sources
         };
     }
 
