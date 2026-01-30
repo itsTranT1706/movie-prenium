@@ -9,7 +9,7 @@ export default async function TrendingMoviesPage() {
 
     try {
         trendingMovies = await serverApi.getTrendingMovies('week');
-        console.log('🔥 Loaded trending movies:', trendingMovies.length);
+        // console.log('🔥 Loaded trending movies:', trendingMovies.length);
     } catch (error) {
         console.error('❌ Failed to fetch trending movies:', error);
     }

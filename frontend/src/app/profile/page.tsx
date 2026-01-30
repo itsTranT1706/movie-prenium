@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 import {
@@ -33,6 +33,7 @@ import { apiClient } from '@/lib/api/client';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading, logout, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<ProfileTab>('favorites');
   const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
@@ -41,6 +42,14 @@ export default function ProfilePage() {
   const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [loadingContinueWatching, setLoadingContinueWatching] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Set active tab from URL params
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['favorites', 'continue-watching', 'history', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam as ProfileTab);
+    }
+  }, [searchParams]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -56,7 +65,7 @@ export default function ProfilePage() {
         try {
           setLoadingFavorites(true);
           const response = await apiClient.getFavorites();
-          
+
           // Handle different response formats
           let favoriteData: any[] = [];
           if (response && typeof response === 'object') {
@@ -66,14 +75,14 @@ export default function ProfilePage() {
               favoriteData = response;
             }
           }
-          
-          console.log('📋 Loaded favorites raw data:', favoriteData);
-          
+
+          // console.log('📋 Loaded favorites raw data:', favoriteData);
+
           // Map favorites to Movie objects with full details
           const movies: Movie[] = favoriteData
             .filter((fav: any) => {
               if (!fav.movie) {
-                console.warn('⚠️ Favorite without movie data:', fav);
+                console.warn('⚠️ Favorite without movie data (id hidden)');
                 return false;
               }
               return true;
@@ -94,11 +103,11 @@ export default function ProfilePage() {
                 rating: fav.movie.rating,
                 genres: fav.movie.genres || [],
               };
-              console.log('✅ Mapped movie:', { id: movie.id, externalId: movie.externalId, title: movie.title });
+              // console.log('✅ Mapped movie:', { id: movie.id, externalId: movie.externalId, title: movie.title });
               return movie;
             });
-          
-          console.log(`📊 Total favorites loaded: ${movies.length}`);
+
+          // console.log(`📊 Total favorites loaded: ${movies.length}`);
           setFavoriteMovies(movies);
         } catch (error) {
           console.error('❌ Failed to load favorites:', error);
@@ -120,7 +129,7 @@ export default function ProfilePage() {
         try {
           setLoadingContinueWatching(true);
           const data = await apiClient.getContinueWatching(20);
-          
+
           // Map to WatchingItem format
           const items: WatchingItem[] = data.map((item: any) => ({
             movie: item.movie,
@@ -130,7 +139,7 @@ export default function ProfilePage() {
             serverName: item.serverName,
             remainingTime: undefined,
           }));
-          
+
           setContinueWatchingItems(items);
         } catch (error) {
           console.error('Failed to load continue watching:', error);
@@ -152,14 +161,14 @@ export default function ProfilePage() {
         try {
           setLoadingHistory(true);
           const data = await apiClient.getWatchHistory(50, 0);
-          
+
           // Map to HistoryItem format
           const items: HistoryItem[] = data.map((item: any) => ({
             movie: item.movie,
             watchedAt: new Date(item.lastWatchedAt),
             completed: item.completed,
           }));
-          
+
           setWatchHistoryItems(items);
         } catch (error) {
           console.error('Failed to load watch history:', error);
@@ -186,13 +195,10 @@ export default function ProfilePage() {
   // Handlers
   const handleRemoveContinueWatching = async (movieId: string) => {
     try {
-      // Find the item to get episode number
-      const item = continueWatchingItems.find(i => i.movie.id === movieId);
-      const episodeNumber = item?.currentEpisode ? parseInt(item.currentEpisode.replace('Tập ', '')) : undefined;
-      
-      await apiClient.markCompleted(movieId, episodeNumber);
+      // Remove all episodes of this movie from continue watching
+      await apiClient.removeWatchHistory(movieId);
       toast.success('Đã xóa khỏi danh sách xem tiếp');
-      
+
       // Remove from local state
       setContinueWatchingItems(prev => prev.filter(i => i.movie.id !== movieId));
     } catch (error) {
@@ -202,11 +208,11 @@ export default function ProfilePage() {
   };
 
   const handleRemoveFavorite = async (movieId: string) => {
-    console.log('🗑️ Removing favorite with movieId:', movieId);
+    // console.log('🗑️ Removing favorite with movieId:', movieId);
     try {
       await apiClient.removeFavorite(movieId);
       toast.success('Đã xóa khỏi danh sách yêu thích');
-      
+
       // Remove from local state
       setFavoriteMovies(prev => prev.filter(m => m.id !== movieId));
     } catch (error: any) {
@@ -227,14 +233,14 @@ export default function ProfilePage() {
         name: data.name,
         avatar: data.avatar,
       };
-      
+
       await apiClient.updateProfile(user.id, updateData);
       toast.success('Cập nhật thông tin thành công');
-      
+
       // Refresh user data from server
-      console.log('🔄 Calling refreshUser...');
+      // console.log('🔄 Calling refreshUser...');
       await refreshUser();
-      console.log('✅ refreshUser completed');
+      // console.log('✅ refreshUser completed');
     } catch (error) {
       toast.error('Không thể cập nhật thông tin');
       console.error('Update profile error:', error);
@@ -253,7 +259,7 @@ export default function ProfilePage() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      
+
       toast.success('Đổi mật khẩu thành công');
     } catch (error) {
       toast.error('Không thể đổi mật khẩu. Vui lòng kiểm tra mật khẩu hiện tại');
@@ -307,7 +313,7 @@ export default function ProfilePage() {
             <ContinueWatchingSection
               items={continueWatchingItems}
               onRemove={handleRemoveContinueWatching}
-              onPlay={() => {}} // Enable play button (navigation handled by MovieCard)
+              onPlay={() => { }} // Enable play button (navigation handled by MovieCard)
               isLoading={loadingContinueWatching}
             />
           )}
@@ -321,7 +327,7 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'history' && (
-            <WatchHistorySection 
+            <WatchHistorySection
               items={watchHistoryItems}
               isLoading={loadingHistory}
             />

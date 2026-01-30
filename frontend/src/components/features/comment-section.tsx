@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth, useRequireAuth } from '@/hooks';
 import { apiClient } from '@/lib/api/client';
-import type { Comment } from '@/lib/api/services/comment.service';
+import type { Comment } from '@/lib/api/services';
 import { CommentItem } from './comment-item';
 import { CommentForm } from './comment-form';
 
@@ -26,7 +26,7 @@ export function CommentSection({ movieId }: CommentSectionProps) {
 
     // Fetch comments on mount
     useEffect(() => {
-        console.log('🎬 CommentSection mounted with movieId:', movieId);
+        // console.log('🎬 CommentSection mounted with movieId:', movieId);
         fetchComments();
         fetchCommentCount();
     }, [movieId]);
@@ -34,12 +34,10 @@ export function CommentSection({ movieId }: CommentSectionProps) {
     const fetchComments = async () => {
         try {
             setLoading(true);
-            console.log('📡 Fetching comments for movieId:', movieId);
-            const response = await apiClient.getMovieComments(movieId);
-            console.log('✅ Comments response:', response);
-            if (response.success) {
-                setComments(response.data);
-            }
+            // console.log('📡 Fetching comments for movieId:', movieId);
+            const comments = await apiClient.getMovieComments(movieId);
+            // console.log('✅ Comments response:', comments);
+            setComments(comments);
         } catch (error) {
             console.error('❌ Error fetching comments:', error);
             toast.error('Không thể tải bình luận');
@@ -50,10 +48,8 @@ export function CommentSection({ movieId }: CommentSectionProps) {
 
     const fetchCommentCount = async () => {
         try {
-            const response = await apiClient.getCommentCount(movieId);
-            if (response.success) {
-                setCommentCount(response.data.count);
-            }
+            const count = await apiClient.getCommentCount(movieId);
+            setCommentCount(count);
         } catch (error) {
             console.error('Error fetching comment count:', error);
         }
@@ -62,17 +58,15 @@ export function CommentSection({ movieId }: CommentSectionProps) {
     const handleSubmitComment = async (content: string, isSpoiler: boolean) => {
         try {
             setSubmitting(true);
-            const response = await apiClient.createComment({
+            const comment = await apiClient.createComment({
                 movieId,
                 content,
                 isSpoiler,
             });
 
-            if (response.success) {
-                toast.success('Bình luận đã được đăng!');
-                await fetchComments();
-                await fetchCommentCount();
-            }
+            toast.success('Bình luận đã được đăng!');
+            await fetchComments();
+            await fetchCommentCount();
         } catch (error: any) {
             console.error('Error submitting comment:', error);
             toast.error(error.message || 'Không thể đăng bình luận');

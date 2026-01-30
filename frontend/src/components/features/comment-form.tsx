@@ -114,7 +114,7 @@ export function CommentForm({
                         <button
                             onClick={handleSubmit}
                             disabled={!content.trim() || submitting}
-                            className="flex items-center gap-2 px-6 py-2 bg-[#E50914] text-white text-sm font-bold rounded-[4px] hover:bg-[#b20710] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500 uppercase tracking-wide"
+                            className="flex items-center gap-2 px-6 py-2 bg-white text-black text-sm font-bold rounded hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
                         >
                             <Send className="w-3.5 h-3.5" />
                             {submitting ? 'Đang gửi...' : buttonText}

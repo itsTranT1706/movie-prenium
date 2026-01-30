@@ -8,6 +8,8 @@ import { LoadingProvider } from "@/contexts/loading-context";
 import { NavigationLoadingProvider } from "@/components/providers/navigation-loading-provider";
 import { Toaster } from "sonner";
 
+export const dynamic = 'force-dynamic';
+
 // Cinematic font for movie titles
 const bebasNeue = Bebas_Neue({
   weight: "400",

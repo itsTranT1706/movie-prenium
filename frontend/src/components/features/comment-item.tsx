@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 import { apiClient } from '@/lib/api/client';
-import type { Comment } from '@/lib/api/services/comment.service';
+import type { Comment } from '@/lib/api/services';
 import { CommentForm } from './comment-form';
 import { ReplyList } from './reply-list';
 import { formatDistanceToNow } from 'date-fns';
@@ -30,7 +30,7 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
     const [optimisticUpvotes, setOptimisticUpvotes] = useState(comment.upvotes);
     const [optimisticDownvotes, setOptimisticDownvotes] = useState(comment.downvotes);
 
-    const isOwner = user?.userId === comment.userId;
+    const isOwner = user?.id === comment.userId;
     const hasReplies = comment.replies && comment.replies.length > 0;
 
     // Sync optimistic state with actual data
@@ -50,7 +50,7 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
         }
     };
 
-    const handleVote = async (voteType: 'UPVOTE' | 'DOWNVOTE') => {
+    const handleVote = async (voteType: 'upvote' | 'downvote') => {
         if (!user) {
             toast.error('Vui lòng đăng nhập để vote');
             return;
@@ -65,7 +65,7 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
         const prevUpvotes = optimisticUpvotes;
         const prevDownvotes = optimisticDownvotes;
 
-        if (voteType === 'UPVOTE') {
+        if (voteType === 'upvote') {
             setOptimisticUpvotes(prev => prev + 1);
         } else {
             setOptimisticDownvotes(prev => prev + 1);
@@ -199,7 +199,7 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 pl-2 pr-1">
                                     <button
-                                        onClick={() => handleVote('UPVOTE')}
+                                        onClick={() => handleVote('upvote')}
                                         disabled={isOwner}
                                         className="text-zinc-400 hover:text-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group/up"
                                         title="Upvote"
@@ -213,7 +213,7 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
                                         {netScore}
                                     </span>
                                     <button
-                                        onClick={() => handleVote('DOWNVOTE')}
+                                        onClick={() => handleVote('downvote')}
                                         disabled={isOwner}
                                         className="text-zinc-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group/down"
                                         title="Downvote"

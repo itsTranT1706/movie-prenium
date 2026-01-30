@@ -1,7 +1,7 @@
 import {
   HeroBanner,
   MovieRow,
-  ContinueWatching,
+  ContinueWatchingWrapper,
   GenreCardGrid,
   TheaterMoviesWrapper,
   Top10MoviesWrapper,
@@ -26,16 +26,16 @@ export default async function HomePage() {
   // Fetch all data on server with error handling
   let trendingData: any[] = [];
   let popularData: any[] = [];
-  
+
   try {
     [trendingData, popularData] = await Promise.all([
       serverApi.getTrendingMovies('week'),
       serverApi.getPopularMovies(1),
     ]);
-    console.log('[HomePage] Fetched data:', { 
-      trendingCount: trendingData?.length, 
-      popularCount: popularData?.length 
-    });
+    // console.log('[HomePage] Fetched data:', {
+    //   trendingCount: trendingData?.length,
+    //   popularCount: popularData?.length
+    // });
   } catch (error) {
     console.error('[HomePage] Failed to fetch movies:', error);
   }
@@ -81,11 +81,10 @@ export default async function HomePage() {
   }));
 
   const featuredMovies = heroMovies.slice(0, 6);
-  
-  console.log('[HomePage] Featured movies for HeroBanner:', {
-    count: featuredMovies.length,
-    movies: featuredMovies.map(m => ({ id: m.id, externalId: m.externalId, title: m.title }))
-  });
+  // console.log('[HomePage] Featured movies for HeroBanner:', {
+  //   count: featuredMovies.length,
+  //   movies: featuredMovies.map(m => ({ id: m.id, externalId: m.externalId, title: m.title }))
+  // });
 
   // Map popular movies with safety checks
   const popularMovies = (popularData || []).slice(0, 10).map((movie) => ({
@@ -104,8 +103,8 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero Banner - Always visible */}
-      <HeroBanner 
-        movies={featuredMovies.length > 0 ? featuredMovies : []} 
+      <HeroBanner
+        movies={featuredMovies.length > 0 ? featuredMovies : []}
         isLoading={false}
         key={`hero-${featuredMovies.length}`}
       />
@@ -115,11 +114,13 @@ export default async function HomePage() {
         {/* Genre Section - Above fold, no lazy load */}
         <GenreCardGrid />
 
-        {/* Continue Watching - Above fold */}
-        <ContinueWatching items={[]} isLoggedIn={isLoggedIn} />
+        {/* Continue Watching - Above fold, client-side fetch */}
+        <ContinueWatchingWrapper />
 
         {/* Trending Section - Mock data for display */}
-        <TrendingSectionWrapper />
+        <LazySection minHeight="280px" sectionKey="country">
+          <TrendingSectionWrapper />
+        </LazySection>
 
         {/* Country Movies - Lazy loaded */}
         <LazySection minHeight="280px" sectionKey="country">

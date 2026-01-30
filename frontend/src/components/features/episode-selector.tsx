@@ -26,6 +26,9 @@ interface EpisodeSelectorProps {
     showSubtitleToggle?: boolean;
     showAutoPlay?: boolean;
     basePath?: 'watch' | 'movies';
+    mediaType?: 'movie' | 'tv';
+    movieTitle?: string;
+    backdropUrl?: string;
 }
 
 export function EpisodeSelector({
@@ -36,6 +39,9 @@ export function EpisodeSelector({
     currentEpisodeId,
     showSubtitleToggle = false,
     showAutoPlay = false,
+    mediaType = 'tv',
+    movieTitle,
+    backdropUrl,
 }: EpisodeSelectorProps) {
     const [selectedSeasonId, setSelectedSeasonId] = useState(
         currentSeasonId || seasons[0]?.id
@@ -55,7 +61,7 @@ export function EpisodeSelector({
                 setIsDropdownOpen(false);
             }
         }
-        
+
         if (isDropdownOpen) {
             document.addEventListener('mousedown', handleClickOutside);
             return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -64,6 +70,74 @@ export function EpisodeSelector({
 
     if (!seasons.length) return null;
 
+    // Special rendering for 'movie' type - Card Style
+    if (mediaType === 'movie') {
+        return (
+            <div>
+                <h3 className="text-xl font-bold text-white mb-4">Các bản chiếu</h3>
+                <div className="flex flex-wrap gap-4">
+                    {seasons.map((season) => {
+                        // Simplify: usually 1 episode per season/server for movies or 1 global season.
+                        // If multiple episodes exist (weird for movie), we take the first one.
+                        const firstEp = season.episodes[0];
+                        if (!firstEp) return null;
+
+                        const href = `/watch/${watchId}?server=${season.id}&episode=${firstEp.id}`;
+
+                        return (
+                            <Link
+                                key={season.id}
+                                href={href}
+                                className="relative overflow-hidden rounded-xl bg-[#1e1e1e] border border-white/10 group hover:border-white/30 transition-all w-full max-w-[300px]"
+                            >
+                                <div className="aspect-[2.2/1] relative">
+                                    {/* Background Image with Overlay */}
+                                    <div className="absolute inset-0 z-0">
+                                        {backdropUrl && (
+                                            <img
+                                                src={backdropUrl}
+                                                alt=""
+                                                className="w-full h-full object-cover opacity-50"
+                                            />
+                                        )}
+                                        {/* Strong gradient from left to create the "card" look */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-[#202020] via-[#202020]/95 to-transparent" />
+                                    </div>
+
+                                    <div className="relative z-10 p-4 h-full flex flex-col justify-center items-start">
+                                        {/* Badge */}
+                                        <div className="flex items-center gap-1.5 mb-2 px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded text-[10px] font-semibold text-indigo-200">
+                                            <MessageSquare className="w-3 h-3" />
+                                            <span>
+                                                {(() => {
+                                                    const name = season.name.toLowerCase();
+                                                    if (name.includes('lồng tiếng') || name.includes('long tieng')) return 'Lồng tiếng';
+                                                    if (name.includes('thuyết minh') || name.includes('tm')) return 'Thuyết minh';
+                                                    return 'Vietsub';
+                                                })()}
+                                            </span>
+                                        </div>
+
+                                        {/* Title */}
+                                        <h4 className="text-sm font-bold text-white mb-3 line-clamp-1 pr-8">
+                                            {movieTitle || 'Movie'}
+                                        </h4>
+
+                                        {/* Fake Button */}
+                                        <span className="px-3 py-1.5 bg-white text-black text-[10px] font-bold rounded hover:bg-gray-200 transition-colors">
+                                            Xem bản này
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    // Default renderings for TV/Series
     return (
         <div>
             {/* Header with Season Selector and Subtitle Toggle */}
@@ -73,7 +147,7 @@ export function EpisodeSelector({
                     {/* Season Dropdown */}
                     {seasons.length > 1 ? (
                         <div ref={dropdownRef} className="relative">
-                            <button 
+                            <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                 className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded text-white text-sm hover:bg-white/10 transition-colors"
                             >
@@ -94,7 +168,7 @@ export function EpisodeSelector({
                                     />
                                 </svg>
                             </button>
-                            
+
                             {/* Dropdown Menu */}
                             {isDropdownOpen && (
                                 <div className="absolute top-full left-0 mt-2 w-64 bg-[#1a1a1a] border border-white/10 rounded shadow-xl z-50">
@@ -107,8 +181,8 @@ export function EpisodeSelector({
                                             }}
                                             className={`
                                                 w-full text-left px-4 py-2.5 text-sm transition-colors
-                                                ${selectedSeasonId === season.id 
-                                                    ? 'bg-white/10 text-white font-semibold' 
+                                                ${selectedSeasonId === season.id
+                                                    ? 'bg-white/10 text-white font-semibold'
                                                     : 'text-gray-300 hover:bg-white/5 hover:text-white'
                                                 }
                                             `}
@@ -171,10 +245,9 @@ export function EpisodeSelector({
                             href={href}
                             className={`
                                 flex items-center justify-center gap-2 px-4 py-2.5 rounded text-sm font-medium transition-colors
-                                ${
-                                    isActive
-                                        ? 'bg-white text-black'
-                                        : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
+                                ${isActive
+                                    ? 'bg-white text-black'
+                                    : 'bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white'
                                 }
                             `}
                         >
