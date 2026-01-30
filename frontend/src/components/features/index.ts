@@ -2,6 +2,7 @@ export { default as MovieCard } from './movie-card';
 export { default as HeroBanner } from './hero-banner';
 export { default as MovieRow } from './movie-row';
 export { default as ContinueWatching } from './continue-watching';
+export { ContinueWatchingWrapper } from './continue-watching-wrapper';
 export { default as GenreCardGrid } from './genre-card-grid';
 export { default as TrendingSection } from './trending-section';
 export { default as TrendingSectionWrapper } from './trending-section-wrapper';

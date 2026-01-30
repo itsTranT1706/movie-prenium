@@ -95,11 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (payload.userId) {
                     console.log('🔄 Refreshing user data...');
                     const response = await apiClient.getUser(payload.userId);
-                    console.log('✅ User data refreshed:', response);
+                    // console.log('✅ User data refreshed:', response);
                     if (response.success && response.data) {
                         // Create new object to trigger re-render
                         setUser({ ...response.data });
-                        console.log('✅ User state updated:', response.data);
+                        // console.log('✅ User state updated:', response.data);
                     }
                 }
             } catch (error) {
@@ -109,12 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ 
-            user, 
-            isLoading, 
+        <AuthContext.Provider value={{
+            user,
+            isLoading,
             isAuthenticated: !!user,
-            login, 
-            register, 
+            login,
+            register,
             logout,
             refreshUser
         }}>

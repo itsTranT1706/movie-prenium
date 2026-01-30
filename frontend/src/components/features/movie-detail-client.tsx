@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Play, Plus, Check, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
-import { NavigationLink } from '@/components/ui';
+import { NavigationLink, LazySection } from '@/components/ui';
 import { toast } from 'sonner';
 import { MovieRow, EpisodeSelector, CommentSection } from '@/components/features';
 import { useAuth, useRequireAuth } from '@/hooks';
@@ -32,33 +32,33 @@ export function MovieDetailClient({
     useEffect(() => {
         const checkFavorite = async () => {
             if (!isAuthenticated || !movie?.id) return;
-            
+
             try {
                 const response = await apiClient.getFavorites();
                 const favoriteData = response?.data || response || [];
                 const favorites = Array.isArray(favoriteData) ? favoriteData : [];
-                
+
                 // Check if current movie is in favorites
                 // Compare with both internal movieId and externalId from the favorite's movie object
                 const movieIdentifier = movie.externalId || movie.id;
                 const isInFavorites = favorites.some((fav: any) => {
                     // Check against the favorite's movie data if available
                     if (fav.movie) {
-                        return fav.movie.id === movie.id || 
-                               fav.movie.externalId === movieIdentifier ||
-                               fav.movie.id === movieIdentifier;
+                        return fav.movie.id === movie.id ||
+                            fav.movie.externalId === movieIdentifier ||
+                            fav.movie.id === movieIdentifier;
                     }
                     // Fallback to checking movieId directly
                     return fav.movieId === movie.id || fav.movieId === movieIdentifier;
                 });
-                
-                console.log('🔍 Check favorite status:', { 
-                    movieId: movie.id, 
+
+                console.log('🔍 Check favorite status:', {
+                    movieId: movie.id,
                     externalId: movie.externalId,
                     isInFavorites,
-                    totalFavorites: favorites.length 
+                    totalFavorites: favorites.length
                 });
-                
+
                 setIsFavorite(isInFavorites);
             } catch (error) {
                 console.error('Failed to check favorite status:', error);
@@ -71,7 +71,7 @@ export function MovieDetailClient({
     const handleToggleFavorite = async () => {
         if (!isAuthenticated) {
             requireAuth(
-                () => {},
+                () => { },
                 'Vui lòng đăng nhập để lưu phim vào danh sách'
             );
             return;
@@ -79,34 +79,34 @@ export function MovieDetailClient({
 
         setIsLoadingFavorite(true);
         const previousState = isFavorite; // Save previous state for rollback
-        
+
         try {
             const movieId = movie.externalId || movie.id;
-            
+
             if (isFavorite) {
                 // Optimistically update UI
                 setIsFavorite(false);
-                
+
                 // Remove from favorites
                 await apiClient.removeFavorite(movieId);
                 toast.success('Đã xóa khỏi danh sách yêu thích');
             } else {
                 // Optimistically update UI
                 setIsFavorite(true);
-                
+
                 // Add to favorites
                 await apiClient.addFavorite(movieId);
                 toast.success('Đã thêm vào danh sách yêu thích');
             }
         } catch (error: any) {
             console.error('Toggle favorite error:', error);
-            
+
             // Rollback UI state on error
             setIsFavorite(previousState);
-            
+
             // Check error message for specific cases
             const errorMessage = error?.message || '';
-            
+
             if (errorMessage.includes('already in favorites') || errorMessage.includes('Movie already in favorites')) {
                 setIsFavorite(true);
                 toast.info('Phim đã có trong danh sách yêu thích');
@@ -217,9 +217,10 @@ export function MovieDetailClient({
 
                             {/* Description */}
                             {movie.description && (
-                                <p className="text-gray-300 text-sm leading-relaxed mb-6 max-w-2xl">
-                                    {movie.description}
-                                </p>
+                                <p
+                                    className="text-gray-300 text-sm leading-relaxed mb-6 max-w-xl"
+                                    dangerouslySetInnerHTML={{ __html: movie.description }}
+                                />
                             )}
 
                             {/* CTA */}
@@ -231,14 +232,13 @@ export function MovieDetailClient({
                                     <Play className="w-5 h-5 fill-black" />
                                     <span>Xem ngay</span>
                                 </NavigationLink>
-                                <button 
+                                <button
                                     onClick={handleToggleFavorite}
                                     disabled={isLoadingFavorite}
-                                    className={`flex items-center gap-2 px-5 py-2.5 font-semibold text-sm rounded transition-all ${
-                                        isFavorite 
-                                            ? 'bg-white/20 text-white hover:bg-white/30 border border-white/30' 
-                                            : 'bg-gray-700/50 text-white hover:bg-gray-700'
-                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    className={`flex items-center gap-2 px-5 py-2.5 font-semibold text-sm rounded transition-all ${isFavorite
+                                        ? 'bg-white/20 text-white hover:bg-white/30 border border-white/30'
+                                        : 'bg-gray-700/50 text-white hover:bg-gray-700'
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     {isLoadingFavorite ? (
                                         <>
@@ -261,18 +261,23 @@ export function MovieDetailClient({
 
                             {/* Credits */}
                             {(movie.director || movie.cast) && (
-                                <div className="space-y-2 text-sm">
+                                <div className="space-y-2 text-sm max-w-xl">
                                     {movie.director && (
-                                        <p className="text-gray-400">
-                                            <span className="text-gray-500">Đạo diễn:</span>{' '}
-                                            <span className="text-white">{movie.director}</span>
-                                        </p>
+                                        <div className="text-gray-400 flex gap-1">
+                                            <span className="text-gray-500 shrink-0">Đạo diễn:</span>
+                                            <span className="text-white" dangerouslySetInnerHTML={{ __html: movie.director }} />
+                                        </div>
                                     )}
                                     {movie.cast && (
-                                        <p className="text-gray-400">
-                                            <span className="text-gray-500">Diễn viên:</span>{' '}
-                                            <span className="text-white">{Array.isArray(movie.cast) ? movie.cast.join(', ') : movie.cast}</span>
-                                        </p>
+                                        <div className="text-gray-400 flex gap-1">
+                                            <span className="text-gray-500 shrink-0">Diễn viên:</span>
+                                            <span
+                                                className="text-white"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: Array.isArray(movie.cast) ? movie.cast.join(', ') : movie.cast
+                                                }}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             )}
@@ -296,6 +301,9 @@ export function MovieDetailClient({
                                     showSubtitleToggle={true}
                                     showAutoPlay={false}
                                     basePath="movies"
+                                    mediaType={movie.mediaType}
+                                    movieTitle={movie.title}
+                                    backdropUrl={movie.backdropUrl || movie.posterUrl}
                                 />
 
                                 {/* Comments Section */}
@@ -350,12 +358,14 @@ export function MovieDetailClient({
 
                 {/* Similar Movies */}
                 {similarMovies.length > 0 && (
-                    <div className="mt-12 pb-12">
-                        <MovieRow
-                            title="Phim tương tự"
-                            movies={similarMovies}
-                        />
-                    </div>
+                    <LazySection minHeight="300px" rootMargin="200px">
+                        <div className="mt-12 pb-12">
+                            <MovieRow
+                                title="Phim tương tự"
+                                movies={similarMovies}
+                            />
+                        </div>
+                    </LazySection>
                 )}
             </div>
         </div>

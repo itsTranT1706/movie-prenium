@@ -100,9 +100,9 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
     });
 
     const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-        console.log('🔧 Filter updated:', key, value);
+        // console.log('🔧 Filter updated:', key, value);
         const newFilters = { ...filters, [key]: value };
-        console.log('📦 New filters object:', newFilters);
+        // console.log('📦 New filters object:', newFilters);
         onFilterChange(newFilters);
     };
 
@@ -111,7 +111,7 @@ export function FilterSidebar({ filters, onFilterChange, className }: FilterSide
         const updated = current.includes(value)
             ? current.filter((item) => item !== value)
             : [...current, value];
-        console.log(`✅ Toggle ${key}:`, value, '→', updated);
+        // console.log(`✅ Toggle ${key}:`, value, '→', updated);
         updateFilter(key, updated);
     };
 

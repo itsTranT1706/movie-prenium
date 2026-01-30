@@ -1,6 +1,6 @@
 'use client';
 
-import type { Comment } from '@/lib/api/services/comment.service';
+import type { Comment } from '@/lib/api/services';
 import { CommentItem } from './comment-item';
 
 interface ReplyListProps {

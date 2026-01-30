@@ -36,20 +36,14 @@ export const ProfileHeroSection: React.FC<ProfileHeroSectionProps> = ({
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-br from-red-600 to-red-900 rounded-lg blur opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-lg overflow-hidden bg-[#1a1a1a] ring-4 ring-[#0a0a0a] shadow-2xl">
-              {user.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt={user.name || 'User'}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  unoptimized
-                  key={user.avatar}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl md:text-5xl font-bold text-gray-400 bg-[#2a2a2a]">
-                  {(user.name || user.email)?.[0]?.toUpperCase() || 'U'}
-                </div>
-              )}
+              <Image
+                src={user.avatar || `https://i.pravatar.cc/150?u=${user.id}`}
+                alt={user.name || 'User'}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                unoptimized
+                key={user.avatar || 'default-avatar'}
+              />
             </div>
           </div>
 

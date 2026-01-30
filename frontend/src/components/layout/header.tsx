@@ -341,65 +341,85 @@ export default function Header() {
 
                             {/* User Menu or Login Button */}
                             {user ? (
-                                <div className="relative">
+                                <div className="relative group">
                                     <button
                                         onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                        onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 150)}
-                                        className="flex items-center gap-1 p-1.5"
+                                        onBlur={() => setTimeout(() => setIsUserMenuOpen(false), 200)}
+                                        className="relative rounded-full transition-transform active:scale-95 outline-none"
                                     >
-                                        {user.avatar ? (
-                                            <div className="w-7 h-7 rounded overflow-hidden relative">
-                                                <Image
-                                                    src={user.avatar}
-                                                    alt={user.name || 'User avatar'}
-                                                    fill
-                                                    className="object-cover"
-                                                    sizes="28px"
-                                                    unoptimized
-                                                    key={user.avatar}
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="w-7 h-7 rounded bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                                                <span className="text-white text-xs font-bold">
-                                                    {user.name?.charAt(0).toUpperCase() || 'U'}
-                                                </span>
-                                            </div>
-                                        )}
-                                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                        <div className="w-9 h-9 rounded-full border border-white/10 overflow-hidden relative shadow-sm group-hover:border-white/50 transition-all ring-2 ring-transparent group-hover:ring-white/10">
+                                            <Image
+                                                src={user.avatar || `https://i.pravatar.cc/150?u=${user.id}`}
+                                                alt={user.name || 'User avatar'}
+                                                fill
+                                                className="object-cover"
+                                                sizes="36px"
+                                                unoptimized
+                                            />
+                                        </div>
+                                        {/* Status Indicator (Online/AI feel) */}
+                                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full" />
                                     </button>
 
                                     {isUserMenuOpen && (
-                                        <div className="absolute top-full right-0 mt-1 w-44 bg-black/90 backdrop-blur-md border border-white/10 rounded shadow-xl py-1 z-50">
-                                            <NavigationLink href="/profile" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
-                                                <User className="w-4 h-4" />
-                                                <span>Profile</span>
-                                            </NavigationLink>
-                                            <NavigationLink href="/favorites" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
-                                                <Heart className="w-4 h-4" />
-                                                <span>My List</span>
-                                            </NavigationLink>
-                                            <NavigationLink href="/continue-watching" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10">
-                                                <Play className="w-4 h-4" />
-                                                <span>Continue Watching</span>
-                                            </NavigationLink>
-                                            <hr className="my-1 border-white/10" />
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-white/10"
-                                            >
-                                                <LogOut className="w-4 h-4" />
-                                                <span>Sign Out</span>
-                                            </button>
+                                        <div className="absolute top-full right-0 mt-3 w-64 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right">
+                                            {/* Caret/Triangle */}
+                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-[#181818] border-l border-t border-white/10 rotate-45 transform" />
+
+                                            <div className="bg-[#181818]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
+                                                {/* User Header */}
+                                                <div className="px-4 py-3 border-b border-white/5 mb-1 bg-white/5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full overflow-hidden relative border border-white/10">
+                                                            <Image
+                                                                src={user.avatar || `https://i.pravatar.cc/150?u=${user.id}`}
+                                                                alt=""
+                                                                fill
+                                                                className="object-cover"
+                                                                unoptimized
+                                                            />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-bold text-white truncate">{user.name || 'Thành viên'}</p>
+                                                            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="px-1.5 space-y-0.5 mt-2">
+                                                    <NavigationLink href="/profile" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all group/item">
+                                                        <User className="w-4 h-4 text-gray-400 group-hover/item:text-white transition-colors" />
+                                                        <span>Hồ sơ cá nhân</span>
+                                                    </NavigationLink>
+                                                    <NavigationLink href="/profile?tab=favorites" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all group/item">
+                                                        <Heart className="w-4 h-4 text-gray-400 group-hover/item:text-white transition-colors" />
+                                                        <span>Danh sách của tôi</span>
+                                                    </NavigationLink>
+                                                    <NavigationLink href="/profile?tab=continue-watching" className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all group/item">
+                                                        <Play className="w-4 h-4 text-gray-400 group-hover/item:text-white transition-colors" />
+                                                        <span>Đang xem dở</span>
+                                                    </NavigationLink>
+                                                </div>
+
+                                                <div className="mt-2 border-t border-white/5 px-1.5 pt-2">
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all group/logout"
+                                                    >
+                                                        <LogOut className="w-4 h-4 text-gray-400 group-hover/logout:text-white transition-colors" />
+                                                        <span>Đăng xuất</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             ) : (
                                 <NavigationLink
                                     href="/login"
-                                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded transition-colors"
+                                    className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded transition-colors shadow-lg shadow-red-900/20"
                                 >
-                                    Login
+                                    Đăng nhập
                                 </NavigationLink>
                             )}
 
@@ -494,9 +514,9 @@ export default function Header() {
                                                     <span className="text-gray-600"> • Hiển thị {visibleCount}/{searchResults.length}</span>
                                                 )}
                                             </p>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
                                                 {visibleResults.map((movie, index) => (
-                                                    <div key={movie.id || movie.slug} onClick={closeSearch}>
+                                                    <div key={movie.id || movie.slug} onClick={closeSearch} className="w-full">
                                                         <MovieCard
                                                             movie={{
                                                                 id: movie.id,
@@ -509,8 +529,13 @@ export default function Header() {
                                                                 year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : undefined,
                                                                 quality: movie.quality,
                                                                 genres: movie.genres,
+                                                                lang: movie.lang,
+                                                                episodeCurrent: movie.episodeCurrent,
+                                                                originalTitle: movie.originalTitle,
+                                                                mediaType: movie.mediaType,
+                                                                ageRating: movie.ageRating,
                                                             }}
-                                                            enablePreview={true}
+                                                            enablePreview={false}
                                                             priority={index < 4}
                                                         />
                                                     </div>

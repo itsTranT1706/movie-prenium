@@ -17,10 +17,10 @@ interface WatchPageClientProps {
     currentEpisodeId?: string;
 }
 
-export function WatchPageClient({ 
-    movie, 
-    seasons, 
-    comments, 
+export function WatchPageClient({
+    movie,
+    seasons,
+    comments,
     topWeeklyMovies,
     currentServerId = 'server1',
     currentEpisodeId = 'e1'
@@ -40,24 +40,26 @@ export function WatchPageClient({
     // Get video URL for the current episode from the selected server
     const selectedSource = movie.sources?.[sourceIndex];
     const episodeData = selectedSource?.episodes?.find((ep: any) => ep.episodeNumber === episodeNumber);
-    const videoUrl = episodeData?.embedUrl || 
-                     selectedSource?.episodes?.[0]?.embedUrl ||
-                     movie.sources?.[0]?.episodes?.[0]?.embedUrl ||
-                     'https://embed11.streamc.xyz/embed.php?hash=162622c76599d49fbc5cbcb9c3e6b5c3';
+    const videoUrl = episodeData?.embedUrl ||
+        selectedSource?.episodes?.[0]?.embedUrl ||
+        movie.sources?.[0]?.episodes?.[0]?.embedUrl ||
+        'https://embed11.streamc.xyz/embed.php?hash=162622c76599d49fbc5cbcb9c3e6b5c3';
 
     // Track watch history
     useEffect(() => {
         const trackHistory = async () => {
             if (isAuthenticated && movie?.id) {
                 try {
-                    console.log('🎬 Tracking watch history:', {
-                        movieId: movie.id,
-                        episodeNumber,
-                        isAuthenticated,
-                        user,
-                        movie
-                    });
-                    
+                    // console.log('🎬 Tracking watch history:', {
+                    //     movieId: movie.id,
+                    //     episodeNumber,
+                    //     serverName: currentServer?.name,
+                    //     currentServerId,
+                    //     isAuthenticated,
+                    //     user,
+                    //     movie
+                    // });
+
                     // Send movie data to ensure it exists in database
                     const movieData = {
                         externalId: movie.externalId || movie.id,
@@ -71,21 +73,21 @@ export function WatchPageClient({
                         rating: movie.rating,
                         genres: movie.genres || [],
                     };
-                    
-                    console.log('📦 Movie data being sent:', movieData);
-                    
+
+                    // console.log('📦 Movie data being sent:', movieData);
+
                     const result = await apiClient.addWatchHistory(
-                        movie.id, 
-                        episodeNumber, 
+                        movie.id,
+                        episodeNumber,
                         movieData,
-                        currentServerId // Pass server name
+                        currentServer?.name || currentServerId // Pass server NAME not ID
                     );
-                    console.log('✅ Watch history tracked:', result);
+                    // console.log('✅ Watch history tracked:', result);
                 } catch (err) {
                     console.error('❌ Failed to track watch history:', err);
                 }
             } else {
-                console.log('⏸️ Not tracking:', { isAuthenticated, movieId: movie?.id });
+                // console.log('⏸️ Not tracking:', { isAuthenticated, movieId: movie?.id });
             }
         };
 
@@ -93,17 +95,17 @@ export function WatchPageClient({
     }, [isAuthenticated, movie?.id, episodeNumber, user]);
 
     const handleAddToFavorites = async () => {
-        console.log('handleAddToFavorites called!', { movieId: movie.id, externalId: movie.externalId, movie });
-        
+        // console.log('handleAddToFavorites called!', { movieId: movie.id, externalId: movie.externalId, movie });
+
         requireAuth(async () => {
             try {
-                console.log('Auth passed, calling API...');
+                // console.log('Auth passed, calling API...');
                 const apiClient = (await import('@/lib/api/client')).default;
-                console.log('API client loaded:', apiClient);
-                
+                // console.log('API client loaded:', apiClient);
+
                 // Use externalId if available, otherwise use id
                 const movieId = movie.externalId || movie.id;
-                
+
                 // Prepare movie data to send to backend
                 const movieData = {
                     title: movie.title,
@@ -119,15 +121,15 @@ export function WatchPageClient({
                     genres: movie.genres || [],
                     provider: 'tmdb',
                 };
-                
-                console.log('Calling addFavorite with movieId:', movieId, 'and movieData:', movieData);
+
+                // console.log('Calling addFavorite with movieId:', movieId, 'and movieData:', movieData);
                 const result = await apiClient.addFavorite(movieId, movieData);
-                console.log('Add favorite result:', result);
-                
+                // console.log('Add favorite result:', result);
+
                 toast.success('Đã thêm vào yêu thích!');
             } catch (error: any) {
                 console.error('Add to favorites error:', error);
-                
+
                 if (error?.message?.includes('already in favorites')) {
                     toast.info('Phim đã có trong danh sách yêu thích');
                 } else {
@@ -171,9 +173,9 @@ export function WatchPageClient({
                                 <p className="text-gray-400 text-sm">{movie.originalTitle}</p>
                             )}
                         </div>
-                        
+
                         {/* Curved Video Player */}
-                        <CurvedVideoPlayer 
+                        <CurvedVideoPlayer
                             videoUrl={videoUrl}
                             title={movie.title}
                         />
