@@ -7,7 +7,7 @@ import {
 
 @Injectable()
 export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async addOrUpdate(
         userId: string,
@@ -17,7 +17,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
         movieData?: any,
     ): Promise<WatchHistory> {
         const episodeNum = episodeNumber !== undefined ? episodeNumber : null;
-        
+
         console.log('💾 [Repository] Upserting watch history:', {
             userId,
             movieId,
@@ -25,7 +25,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
             serverName,
             hasMovieData: !!movieData,
         });
-        
+
         try {
             // Check if movie exists
             let movieExists = await this.prisma.movie.findUnique({
@@ -65,11 +65,11 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                         code: createError.code,
                         message: createError.message,
                     });
-                    
+
                     // If duplicate key, fetch the existing movie
                     if (createError.code === 'P2002') {
                         console.log('ℹ️ [Repository] Duplicate detected, fetching existing movie...');
-                        
+
                         // Try by externalId first (most likely duplicate)
                         if (movieData.externalId) {
                             console.log('🔍 [Repository] Trying to fetch by externalId:', movieData.externalId);
@@ -81,7 +81,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                                 actualMovieId = movieExists.id; // Use the existing movie's ID
                             }
                         }
-                        
+
                         // If still not found, try by id
                         if (!movieExists) {
                             console.log('🔍 [Repository] Trying to fetch by id:', movieId);
@@ -107,8 +107,56 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                 });
                 throw new Error(`Movie ${movieId} not found and no movieData provided`);
             }
-            
+
             console.log('✅ [Repository] Using movie id:', actualMovieId);
+
+            // ===== EPISODE DEDUPLICATION LOGIC =====
+            // Find all existing watch history for this user + movie (any episode)
+            const existingRecords = await this.prisma.watchHistory.findMany({
+                where: {
+                    userId,
+                    movieId: actualMovieId,
+                    completed: false,
+                },
+                orderBy: {
+                    episodeNumber: 'desc',
+                },
+            });
+
+            if (existingRecords.length > 0) {
+                const highestExistingEpisode = existingRecords[0].episodeNumber || 0;
+                const newEpisode = episodeNum || 0;
+
+                console.log('📊 [Repository] Episode comparison:', {
+                    highestExistingEpisode,
+                    newEpisode,
+                });
+
+                // If new episode is lower than or equal to existing highest, just update timestamp
+                if (newEpisode < highestExistingEpisode) {
+                    console.log('⏭️ [Repository] Skipping - new episode is lower than existing highest');
+                    // Return the existing highest record (updated timestamp)
+                    const updated = await this.prisma.watchHistory.update({
+                        where: { id: existingRecords[0].id },
+                        data: { lastWatchedAt: new Date() },
+                        include: { movie: true },
+                    });
+                    return this.toDomain(updated);
+                }
+
+                // New episode is higher - delete all existing records for this movie
+                if (newEpisode > highestExistingEpisode) {
+                    console.log('🗑️ [Repository] Deleting older episodes, keeping only new higher episode');
+                    await this.prisma.watchHistory.deleteMany({
+                        where: {
+                            userId,
+                            movieId: actualMovieId,
+                            completed: false,
+                        },
+                    });
+                }
+            }
+            // ===== END EPISODE DEDUPLICATION LOGIC =====
 
             const data = await this.prisma.watchHistory.upsert({
                 where: {
@@ -156,7 +204,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
         episodeNumber?: number,
     ): Promise<WatchHistory> {
         const episodeNum = episodeNumber !== undefined ? episodeNumber : null;
-        
+
         const data = await this.prisma.watchHistory.update({
             where: {
                 userId_movieId_episodeNumber: {
@@ -227,17 +275,26 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
         movieId: string,
         episodeNumber?: number,
     ): Promise<void> {
-        const episodeNum = episodeNumber !== undefined ? episodeNumber : null;
-        
-        await this.prisma.watchHistory.delete({
-            where: {
-                userId_movieId_episodeNumber: {
+        // If no episodeNumber specified, remove ALL episodes for this movie
+        if (episodeNumber === undefined) {
+            await this.prisma.watchHistory.deleteMany({
+                where: {
                     userId,
                     movieId,
-                    episodeNumber: episodeNum as any,
                 },
-            },
-        });
+            });
+        } else {
+            // Remove specific episode only
+            await this.prisma.watchHistory.delete({
+                where: {
+                    userId_movieId_episodeNumber: {
+                        userId,
+                        movieId,
+                        episodeNumber: episodeNumber,
+                    },
+                },
+            });
+        }
     }
 
     private toDomain(data: any): WatchHistory {

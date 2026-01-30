@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,127 +6,92 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============================================
-// USER & AUTH
-// ============================================
-
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  avatar    String?
-  role      UserRole @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String         @id @default(uuid())
+  email        String         @unique
+  password     String
+  name         String?
+  avatar       String?
+  role         UserRole       @default(USER)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  commentVotes CommentVote[]
+  comments     Comment[]
+  favorites    Favorite[]
+  watchHistory WatchHistory[]
 
-  favorites     Favorite[]
-  watchHistory  WatchHistory[]
-  comments      Comment[]
-  commentVotes  CommentVote[]
-  
   @@map("users")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
-
-// ============================================
-// MOVIE
-// ============================================
-
 model Movie {
-  id               String    @id @default(uuid())
-  externalId       String?   @unique // ID from external provider (TMDB, etc.)
+  id               String         @id @default(uuid())
+  externalId       String?        @unique
   title            String
-  originalTitle    String?   // TMDB original_title
-  mediaType        MediaType @default(MOVIE) // 'movie' or 'tv'
+  mediaType        MediaType      @default(MOVIE)
   description      String?
   posterUrl        String?
   backdropUrl      String?
-  trailerUrl       String?   // YouTube trailer URL
   releaseDate      DateTime?
-  duration         Int?      // in minutes
+  duration         Int?
   rating           Float?
-  genres           String[]  // Array of genre names
-  imdbId           String?   // IMDB identifier
-  originalLanguage String?   // TMDB original_language
-  provider         String    @default("tmdb") // 'tmdb', 'local', 'self-hosted'
-  streamUrl        String?   // URL for streaming (when self-hosted)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  genres           String[]
+  provider         String         @default("tmdb")
+  streamUrl        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  imdbId           String?
+  originalLanguage String?
+  originalTitle    String?
+  trailerUrl       String?
+  favorites        Favorite[]
+  watchHistory     WatchHistory[]
 
-  favorites    Favorite[]
-  watchHistory WatchHistory[]
-  
   @@map("movies")
 }
-
-enum MediaType {
-  MOVIE
-  TV
-}
-
-// ============================================
-// FAVORITE
-// ============================================
 
 model Favorite {
   id        String   @id @default(uuid())
   userId    String
   movieId   String
   createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
   @@map("favorites")
 }
 
-// ============================================
-// WATCH HISTORY (for recommendations)
-// ============================================
-
 model WatchHistory {
   id             String   @id @default(uuid())
   userId         String
   movieId        String
-  episodeNumber  Int?              // Episode number for series
-  serverName     String?           // Server name for streaming
+  completed      Boolean  @default(false)
+  episodeNumber  Int?
   firstWatchedAt DateTime @default(now())
   lastWatchedAt  DateTime @default(now())
-  completed      Boolean  @default(false)
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  serverName     String?
+  movie          Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId, episodeNumber])
   @@map("watch_history")
 }
 
-// ============================================
-// COMMENT SYSTEM
-// ============================================
-
 model Comment {
-  id        String   @id @default(uuid())
+  id        String        @id @default(uuid())
   userId    String
-  movieId   String   // Store as string, no foreign key (movie might be from TMDB)
+  movieId   String
   parentId  String?
-  content   String   @db.Text
-  isSpoiler Boolean  @default(false)
-  upvotes   Int      @default(0)
-  downvotes Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[]     @relation("CommentReplies")
-  votes   CommentVote[]
+  content   String
+  isSpoiler Boolean       @default(false)
+  upvotes   Int           @default(0)
+  downvotes Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  votes     CommentVote[]
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]     @relation("CommentReplies")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([movieId])
   @@index([parentId])
@@ -143,12 +105,21 @@ model CommentVote {
   commentId String
   voteType  VoteType
   createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, commentId])
   @@map("comment_votes")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum MediaType {
+  MOVIE
+  TV
 }
 
 enum VoteType {
