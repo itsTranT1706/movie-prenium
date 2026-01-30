@@ -6,6 +6,7 @@ export interface ICommentRepository {
   create(data: CreateCommentData): Promise<Comment>;
   findById(id: string): Promise<Comment | null>;
   findByMovieId(movieId: string): Promise<Comment[]>;
+  findRecent(limit: number): Promise<Comment[]>;
   update(id: string, data: UpdateCommentData): Promise<Comment>;
   delete(id: string): Promise<void>;
   countByMovieId(movieId: string): Promise<number>;

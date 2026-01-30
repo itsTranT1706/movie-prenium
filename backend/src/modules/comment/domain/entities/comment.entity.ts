@@ -16,6 +16,11 @@ export interface Comment {
     name: string | null;
     avatar: string | null;
   };
+  movie?: {
+    id: string;
+    title: string;
+    posterUrl?: string | null;
+  };
   parent?: Comment;
   replies?: Comment[];
   votes?: Array<{

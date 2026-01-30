@@ -10,12 +10,14 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/modules/auth/infrastructure/guards';
 import {
   CreateCommentUseCase,
   CreateReplyUseCase,
   GetMovieCommentsUseCase,
+  GetRecentCommentsUseCase,
   UpdateCommentUseCase,
   DeleteCommentUseCase,
   VoteCommentUseCase,
@@ -34,6 +36,7 @@ export class CommentController {
     private readonly createCommentUseCase: CreateCommentUseCase,
     private readonly createReplyUseCase: CreateReplyUseCase,
     private readonly getMovieCommentsUseCase: GetMovieCommentsUseCase,
+    private readonly getRecentCommentsUseCase: GetRecentCommentsUseCase,
     private readonly updateCommentUseCase: UpdateCommentUseCase,
     private readonly deleteCommentUseCase: DeleteCommentUseCase,
     private readonly voteCommentUseCase: VoteCommentUseCase,
@@ -91,22 +94,81 @@ export class CommentController {
 
   @Get('movie/:movieId')
   async getMovieComments(@Param('movieId') movieId: string) {
-    const comments = await this.getMovieCommentsUseCase.execute(movieId);
+    try {
+      const comments = await this.getMovieCommentsUseCase.execute(movieId);
 
-    return {
-      success: true,
-      data: comments,
-    };
+      return {
+        success: true,
+        data: comments,
+      };
+    } catch (error: any) {
+      console.error('Error fetching movie comments:', error.message);
+      
+      // Return empty array if database is not reachable
+      if (error.code === 'P1001' || error.message?.includes('DatabaseNotReachable')) {
+        return {
+          success: true,
+          data: [],
+          warning: 'Database temporarily unavailable',
+        };
+      }
+      
+      throw error;
+    }
+  }
+
+  @Get('recent')
+  async getRecentComments(@Query('limit') limit?: string) {
+    try {
+      const limitNum = limit ? parseInt(limit, 10) : 10;
+      console.log('📡 [CommentController] Getting recent comments, limit:', limitNum);
+      const comments = await this.getRecentCommentsUseCase.execute(limitNum);
+      console.log('✅ [CommentController] Recent comments count:', comments.length);
+      console.log('📝 [CommentController] Sample comment:', comments[0]);
+
+      return {
+        success: true,
+        data: comments,
+      };
+    } catch (error: any) {
+      console.error('❌ [CommentController] Error fetching recent comments:', error.message);
+      
+      // Return empty array if database is not reachable
+      if (error.code === 'P1001' || error.message?.includes('DatabaseNotReachable')) {
+        return {
+          success: true,
+          data: [],
+          warning: 'Database temporarily unavailable',
+        };
+      }
+      
+      throw error;
+    }
   }
 
   @Get('movie/:movieId/count')
   async getCommentCount(@Param('movieId') movieId: string) {
-    const count = await this.getCommentCountUseCase.execute(movieId);
+    try {
+      const count = await this.getCommentCountUseCase.execute(movieId);
 
-    return {
-      success: true,
-      data: { count },
-    };
+      return {
+        success: true,
+        data: { count },
+      };
+    } catch (error: any) {
+      console.error('Error fetching comment count:', error.message);
+      
+      // Return 0 if database is not reachable
+      if (error.code === 'P1001' || error.message?.includes('DatabaseNotReachable')) {
+        return {
+          success: true,
+          data: { count: 0 },
+          warning: 'Database temporarily unavailable',
+        };
+      }
+      
+      throw error;
+    }
   }
 
   @Patch(':id')

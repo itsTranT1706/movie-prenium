@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/shared/infrastructure/prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import { ICommentRepository } from '../../domain/ports/comment.repository.port';
 import {
   Comment,
@@ -11,7 +12,18 @@ import {
 
 @Injectable()
 export class PrismaCommentRepository implements ICommentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly tmdbApiKey: string;
+  private readonly tmdbBaseUrl: string;
+  private readonly tmdbImageBaseUrl: string;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {
+    this.tmdbApiKey = this.configService.get<string>('TMDB_API_KEY') || '';
+    this.tmdbBaseUrl = this.configService.get<string>('TMDB_BASE_URL') || 'https://api.themoviedb.org/3';
+    this.tmdbImageBaseUrl = this.configService.get<string>('TMDB_IMAGE_BASE_URL') || 'https://image.tmdb.org/t/p/w500';
+  }
 
   async create(data: CreateCommentData): Promise<Comment> {
     try {
@@ -113,6 +125,106 @@ export class PrismaCommentRepository implements ICommentRepository {
     });
 
     return comments.map((comment) => this.mapToComment(comment));
+  }
+
+  async findRecent(limit: number): Promise<Comment[]> {
+    const comments = await this.prisma.comment.findMany({
+      // Remove parentId filter to include both parent comments and replies
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        parent: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
+
+    // Fetch movie details for each comment
+    const commentsWithMovies = await Promise.all(
+      comments.map(async (comment) => {
+        let movie = await this.prisma.movie.findUnique({
+          where: { id: comment.movieId },
+          select: {
+            id: true,
+            title: true,
+            posterUrl: true,
+          },
+        });
+
+        // If movie not found in DB, fetch from TMDB
+        if (!movie) {
+          console.log('⚠️ Movie not found in DB, fetching from TMDB:', comment.movieId);
+          const tmdbMovie = await this.fetchMovieFromTMDB(comment.movieId);
+          if (tmdbMovie) {
+            movie = tmdbMovie;
+            console.log('✅ Fetched from TMDB:', tmdbMovie.title);
+          } else {
+            // Fallback to placeholder
+            movie = {
+              id: comment.movieId,
+              title: 'Unknown Movie',
+              posterUrl: null,
+            };
+          }
+        }
+
+        console.log('🎬 Movie data for comment:', { commentId: comment.id, movie });
+
+        return {
+          ...comment,
+          movie,
+        };
+      }),
+    );
+
+    console.log('✅ Comments with movies:', commentsWithMovies.length);
+    return commentsWithMovies.map((comment) => this.mapToComment(comment));
+  }
+
+  // Helper to fetch movie from TMDB API
+  private async fetchMovieFromTMDB(movieId: string): Promise<{ id: string; title: string; posterUrl: string | null } | null> {
+    if (!this.tmdbApiKey) {
+      console.warn('⚠️ TMDB API key not configured');
+      return null;
+    }
+
+    try {
+      const response = await fetch(
+        `${this.tmdbBaseUrl}/movie/${movieId}?api_key=${this.tmdbApiKey}&language=vi-VN`
+      );
+
+      if (!response.ok) {
+        console.warn(`⚠️ TMDB API error for movie ${movieId}:`, response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      return {
+        id: movieId,
+        title: data.title || data.original_title || 'Unknown Movie',
+        posterUrl: data.poster_path ? `${this.tmdbImageBaseUrl}${data.poster_path}` : null,
+      };
+    } catch (error) {
+      console.error('❌ Error fetching from TMDB:', error);
+      return null;
+    }
   }
 
   async update(id: string, data: UpdateCommentData): Promise<Comment> {
@@ -258,7 +370,7 @@ export class PrismaCommentRepository implements ICommentRepository {
 
   // Mapping helpers
   private mapToComment(comment: any): Comment {
-    return {
+    const mapped = {
       id: comment.id,
       userId: comment.userId,
       movieId: comment.movieId,
@@ -271,15 +383,26 @@ export class PrismaCommentRepository implements ICommentRepository {
       updatedAt: comment.updatedAt,
       user: comment.user
         ? {
-            id: comment.user.id,
-            name: comment.user.name,
-            avatar: comment.user.avatar,
-          }
+          id: comment.user.id,
+          name: comment.user.name,
+          avatar: comment.user.avatar,
+        }
         : undefined,
+      movie: comment.movie
+        ? {
+          id: comment.movie.id,
+          title: comment.movie.title,
+          posterUrl: comment.movie.posterUrl,
+        }
+        : undefined,
+      parent: comment.parent ? this.mapToComment(comment.parent) : undefined,
       replies: comment.replies
         ? comment.replies.map((reply: any) => this.mapToComment(reply))
         : undefined,
     };
+
+    console.log('🗺️ Mapped comment:', { id: mapped.id, hasMovie: !!mapped.movie, movie: mapped.movie });
+    return mapped;
   }
 
   private mapToVote(vote: any): CommentVote {
