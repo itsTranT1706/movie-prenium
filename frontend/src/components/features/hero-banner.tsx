@@ -15,6 +15,8 @@ interface FeaturedMovie {
     year: number;
     quality: string;
     genre: string;
+    duration?: string;
+    ageRating?: string;
 }
 
 interface HeroBannerProps {
@@ -222,20 +224,47 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                     </p>
 
                     {/* Metadata Pills - Mobile */}
+                    {/* Metadata Pills - Mobile */}
                     <div
-                        className={`flex flex-wrap items-center justify-center gap-2 transition-all duration-500 delay-100 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                        className={`flex flex-col items-center gap-3 transition-all duration-500 delay-100 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                             }`}
                     >
-                        <span className="flex items-center gap-1 px-2.5 py-1 bg-yellow-500/20 rounded text-yellow-400 text-xs font-semibold">
-                            <Star className="w-3.5 h-3.5 fill-yellow-400" />
-                            <span>{activeMovie.rating}</span>
-                        </span>
-                        <span className="px-2.5 py-1 bg-white/10 rounded text-white text-xs font-medium">
-                            {activeMovie.quality}
-                        </span>
-                        <span className="px-2.5 py-1 bg-white/10 rounded text-gray-300 text-xs">
-                            {activeMovie.year}
-                        </span>
+                        {/* Row 1: Tech Specs */}
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {/* IMDb Badge */}
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 border border-yellow-500/60 rounded text-xs font-bold bg-black/40 text-white">
+                                <span className="text-[#f5c518]">IMDb</span>
+                                <span>{activeMovie.rating}</span>
+                            </span>
+
+                            {/* Quality Badge - 4K style */}
+                            <span className="px-2 py-0.5 bg-[#f3d677] rounded text-black text-xs font-extrabold">
+                                {activeMovie.quality}
+                            </span>
+
+                            {/* Age Rating */}
+                            <span className="px-2 py-0.5 bg-white rounded text-black text-xs font-bold">
+                                {activeMovie.ageRating || 'T16'}
+                            </span>
+
+                            {/* Year */}
+                            <span className="px-2 py-0.5 border border-white/40 rounded text-gray-200 text-xs font-medium">
+                                {activeMovie.year}
+                            </span>
+                            {/* Duration */}
+                            <span className="px-2 py-0.5 border border-white/40 rounded text-gray-200 text-xs font-medium">
+                                {activeMovie.duration || '2h 15m'}
+                            </span>
+                        </div>
+
+                        {/* Row 2: Genres */}
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            {activeMovie.genre.split(',').map((g) => (
+                                <span key={g} className="px-3 py-1 bg-[#1f1f1f]/80 backdrop-blur-sm rounded-md text-gray-300 text-xs border border-white/5">
+                                    {g.trim()}
+                                </span>
+                            ))}
+                        </div>
                     </div>
 
                     {/* CTA Buttons - Mobile (Full width) */}
@@ -297,22 +326,46 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
                         {/* Metadata Pills */}
                         <div
-                            className={`flex flex-wrap items-center gap-2 mb-5 transition-all duration-500 delay-100 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                            className={`flex flex-col items-start gap-3 mb-6 transition-all duration-500 delay-100 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                                 }`}
                         >
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/20 rounded text-yellow-400 text-xs font-semibold">
-                                <Star className="w-3 h-3 fill-yellow-400" />
-                                <span>{activeMovie.rating}</span>
-                            </span>
-                            <span className="px-2 py-0.5 bg-white/10 rounded text-white text-xs font-medium">
-                                {activeMovie.quality}
-                            </span>
-                            <span className="px-2 py-0.5 bg-white/10 rounded text-gray-300 text-xs">
-                                {activeMovie.year}
-                            </span>
-                            <span className="px-2 py-0.5 bg-white/10 rounded text-gray-300 text-xs">
-                                {activeMovie.genre}
-                            </span>
+                            {/* Row 1: Tech Specs */}
+                            <div className="flex flex-wrap items-center gap-2">
+                                {/* IMDb Badge */}
+                                <span className="flex items-center gap-1.5 px-2 py-0.5 border border-yellow-500/60 rounded text-sm font-bold bg-black/40 text-white shadow-sm">
+                                    <span className="text-[#f5c518]">IMDb</span>
+                                    <span>{activeMovie.rating}</span>
+                                </span>
+
+                                {/* Quality Badge - 4K style */}
+                                <span className="px-2 py-0.5 bg-[#f3d677] rounded text-black text-sm font-extrabold shadow-sm">
+                                    {activeMovie.quality}
+                                </span>
+
+                                {/* Age Rating */}
+                                <span className="px-2 py-0.5 bg-white rounded text-black text-sm font-bold shadow-sm">
+                                    {activeMovie.ageRating || 'T16'}
+                                </span>
+
+                                {/* Year */}
+                                <span className="px-2 py-0.5 border border-white/40 rounded text-gray-200 text-sm font-medium shadow-sm">
+                                    {activeMovie.year}
+                                </span>
+
+                                {/* Duration */}
+                                <span className="px-2 py-0.5 border border-white/40 rounded text-gray-200 text-sm font-medium shadow-sm">
+                                    {activeMovie.duration || '2h 15m'}
+                                </span>
+                            </div>
+
+                            {/* Row 2: Genres */}
+                            <div className="flex flex-wrap items-center gap-2">
+                                {activeMovie.genre.split(',').map((g) => (
+                                    <span key={g} className="px-3 py-1.5 bg-[#1f1f1f]/80 backdrop-blur-sm rounded-md text-gray-300 text-xs font-medium border border-white/10 hover:bg-white/10 transition-colors cursor-default">
+                                        {g.trim()}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
 
                         {/* CTA Buttons */}
@@ -320,13 +373,13 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                             className={`flex gap-3 transition-all duration-500 delay-150 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                                 }`}
                         >
-                        <NavigationLink
-                            href={`/watch/${activeMovie.externalId || activeMovie.id}`}
-                            className="inline-flex items-center gap-2 px-8 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
-                        >
-                            <Play className="w-5 h-5 fill-black" />
-                            <span>Play</span>
-                        </NavigationLink>
+                            <NavigationLink
+                                href={`/watch/${activeMovie.externalId || activeMovie.id}`}
+                                className="inline-flex items-center gap-2 px-8 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
+                            >
+                                <Play className="w-5 h-5 fill-black" />
+                                <span>Play</span>
+                            </NavigationLink>
                             <NavigationLink
                                 href={`/movies/${activeMovie.externalId || activeMovie.id}`}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-sm rounded backdrop-blur-sm transition-all active:scale-95"

@@ -20,9 +20,10 @@ interface Top10Movie {
     ageRating?: string; // T13, T16, T18
     year: number;
     duration?: string;
-    hasPDE?: boolean;
-    hasTMinh?: boolean;
     quality?: string; // CAM, HD, etc.
+    lang?: string;
+    isNew?: boolean;
+    episodeCurrent?: string;
 }
 
 interface Top10MoviesSectionProps {
@@ -41,8 +42,7 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T13',
         year: 2025,
         duration: '3h 12m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
         quality: 'CAM',
     },
     {
@@ -54,8 +54,7 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'K',
         year: 2025,
         duration: '1h 50m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
         quality: 'CAM',
     },
     {
@@ -67,7 +66,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T18',
         year: 2006,
         duration: '2h 05m',
-        hasPDE: true,
+        lang: 'Vietsub',
+        quality: 'HD',
     },
     {
         id: 'top4',
@@ -78,8 +78,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T16',
         year: 2022,
         duration: '3h 12m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'HD',
     },
     {
         id: 'top5',
@@ -90,8 +90,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T16',
         year: 2009,
         duration: '2h 42m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'HD',
     },
     {
         id: 'top6',
@@ -102,7 +102,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T18',
         year: 2026,
         duration: '1h 52m',
-        hasPDE: true,
+        lang: 'Vietsub',
+        quality: 'CAM',
     },
     {
         id: 'top7',
@@ -113,8 +114,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T18',
         year: 2024,
         duration: '2h 08m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'HD',
     },
     {
         id: 'top8',
@@ -125,8 +126,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T13',
         year: 2024,
         duration: '1h 49m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'HD',
     },
     {
         id: 'top9',
@@ -137,8 +138,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T13',
         year: 2025,
         duration: '2h 07m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'CAM',
     },
     {
         id: 'top10',
@@ -149,8 +150,8 @@ const defaultTop10Movies: Top10Movie[] = [
         ageRating: 'T13',
         year: 2024,
         duration: '2h 46m',
-        hasPDE: true,
-        hasTMinh: true,
+        lang: 'Vietsub + Thuyết Minh',
+        quality: 'HD',
     },
 ];
 
@@ -167,6 +168,33 @@ function getRankGradient(rank: number): string {
             return 'from-amber-600 via-orange-500 to-amber-700'; // Bronze
         default:
             return 'from-gray-500 via-gray-400 to-gray-600'; // Default
+    }
+}
+
+/**
+ * Format language badges from lang string
+ */
+function formatLanguageBadges(lang?: string): string[] {
+    if (!lang) return [];
+    const badges: string[] = [];
+    const langLower = lang.toLowerCase();
+    if (langLower.includes('vietsub')) badges.push('VS');
+    if (langLower.includes('thuyết minh') || langLower.includes('thuyet minh')) badges.push('TM');
+    if (langLower.includes('lồng tiếng') || langLower.includes('long tieng')) badges.push('LT');
+    if (langLower.includes('phụ đề') || langLower.includes('phu de')) badges.push('PĐ');
+    return badges;
+}
+
+/**
+ * Get badge color based on type
+ */
+function getBadgeColor(type: string): string {
+    switch (type) {
+        case 'TM': return 'bg-[#E50914]';
+        case 'LT': return 'bg-[#2563eb]';
+        case 'VS':
+        case 'PĐ':
+        default: return 'bg-[#1f1f1f]';
     }
 }
 
@@ -260,28 +288,40 @@ export default function Top10MoviesSection({
                                                             loading="lazy"
                                                         />
 
-                                                        {/* Gradient Overlay */}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-
-                                                        {/* Badges - Bottom */}
-                                                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-center gap-2">
-                                                            {movie.hasPDE && (
-                                                                <span className="px-2 py-0.5 bg-gray-700/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-gray-300">
-                                                                    PĐ. {movie.rank * 5 + 15}
+                                                        {/* Badges - Top Left */}
+                                                        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                                                            {movie.isNew && (
+                                                                <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded shadow-md w-fit">
+                                                                    NEW
                                                                 </span>
                                                             )}
-                                                            {movie.hasTMinh && (
-                                                                <span className="px-2 py-0.5 bg-emerald-600/90 backdrop-blur-sm rounded-lg text-[10px] font-medium text-white">
-                                                                    TM. {movie.rank * 5 + 15}
+                                                            {movie.quality && (
+                                                                <span className="px-1.5 py-[2px] border border-white/30 bg-black/40 backdrop-blur-md text-white text-[9px] font-bold tracking-wider rounded-[3px] shadow-sm uppercase w-fit">
+                                                                    {movie.quality}
                                                                 </span>
                                                             )}
                                                         </div>
 
-                                                        {/* Quality Badge - Top right */}
-                                                        {movie.quality && (
-                                                            <span className="absolute top-2 right-2 px-1.5 py-0.5 bg-red-600/90 backdrop-blur-sm rounded text-[9px] font-bold text-white">
-                                                                {movie.quality}
-                                                            </span>
+                                                        {/* Rating/Language Badges - Bottom Center */}
+                                                        {formatLanguageBadges(movie.lang).length > 0 && (
+                                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex shadow-lg text-[10px] font-bold z-20 leading-none">
+                                                                <div className="flex rounded-t-lg overflow-hidden ring-1 ring-black/20">
+                                                                    {formatLanguageBadges(movie.lang).map((badge) => (
+                                                                        <div
+                                                                            key={badge}
+                                                                            className={`px-2 py-1.5 ${getBadgeColor(badge)} text-white flex items-center gap-1 font-extrabold shadow-sm`}
+                                                                        >
+                                                                            <span>{badge}</span>
+                                                                            {movie.episodeCurrent && (
+                                                                                <>
+                                                                                    <span className="opacity-80 text-[10px] mx-0.5 font-bold">-</span>
+                                                                                    <span>{movie.episodeCurrent.replace(/\D/g, '') || 'Full'}</span>
+                                                                                </>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>

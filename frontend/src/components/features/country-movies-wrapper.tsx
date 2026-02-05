@@ -10,6 +10,10 @@ interface CountryMovie {
     episodeCount?: number;
     rating?: number;
     gradientColor?: string;
+    quality?: string;
+    lang?: string;
+    isNew?: boolean;
+    episodeCurrent?: string;
 }
 
 /**
@@ -42,6 +46,10 @@ export async function CountryMoviesWrapper() {
         episodeCount: movie.episodeCurrent ? parseInt(movie.episodeCurrent) : undefined,
         rating: movie.rating,
         gradientColor: 'from-pink-500/60',
+        quality: movie.quality,
+        lang: movie.lang,
+        isNew: true, // Assuming top new movies
+        episodeCurrent: movie.episodeCurrent,
     }));
 
     // Map Chinese movies
@@ -54,6 +62,10 @@ export async function CountryMoviesWrapper() {
         episodeCount: movie.episodeCurrent ? parseInt(movie.episodeCurrent) : undefined,
         rating: movie.rating,
         gradientColor: 'from-amber-500/60',
+        quality: movie.quality,
+        lang: movie.lang,
+        isNew: true,
+        episodeCurrent: movie.episodeCurrent,
     }));
 
     // Map US/UK movies
@@ -66,6 +78,10 @@ export async function CountryMoviesWrapper() {
         episodeCount: movie.episodeCurrent ? parseInt(movie.episodeCurrent) : undefined,
         rating: movie.rating,
         gradientColor: 'from-red-600/60',
+        quality: movie.quality,
+        lang: movie.lang,
+        isNew: true,
+        episodeCurrent: movie.episodeCurrent,
     }));
 
     return (

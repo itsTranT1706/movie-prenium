@@ -21,6 +21,10 @@ interface CountryMovie {
     episodeCount?: number;
     rating?: number;
     gradientColor?: string;
+    quality?: string;
+    lang?: string;
+    isNew?: boolean;
+    episodeCurrent?: string;
 }
 
 interface CountryMovieRowProps {
@@ -33,13 +37,35 @@ interface CountryMovieRowProps {
 
 // Gradient presets for title text
 const TITLE_GRADIENTS = [
-    'from-purple-400 via-pink-400 to-purple-400',
-    'from-cyan-400 via-blue-400 to-cyan-400',
-    'from-amber-400 via-orange-400 to-amber-400',
-    'from-emerald-400 via-teal-400 to-emerald-400',
-    'from-rose-400 via-red-400 to-rose-400',
     'from-indigo-400 via-violet-400 to-indigo-400',
 ];
+
+/**
+ * Format language badges from lang string
+ */
+function formatLanguageBadges(lang?: string): string[] {
+    if (!lang) return [];
+    const badges: string[] = [];
+    const langLower = lang.toLowerCase();
+    if (langLower.includes('vietsub')) badges.push('VS');
+    if (langLower.includes('thuyết minh') || langLower.includes('thuyet minh')) badges.push('TM');
+    if (langLower.includes('lồng tiếng') || langLower.includes('long tieng')) badges.push('LT');
+    if (langLower.includes('phụ đề') || langLower.includes('phu de')) badges.push('PĐ');
+    return badges;
+}
+
+/**
+ * Get badge color based on type
+ */
+function getBadgeColor(type: string): string {
+    switch (type) {
+        case 'TM': return 'bg-[#E50914]';
+        case 'LT': return 'bg-[#2563eb]';
+        case 'VS':
+        case 'PĐ':
+        default: return 'bg-[#1f1f1f]';
+    }
+}
 
 /**
  * Country Movie Card with Skeleton Loading
@@ -156,18 +182,50 @@ function CountryMovieRow({
                                                     priority={index < 4}
                                                 />
                                                 <div className={`absolute inset-0 bg-gradient-to-t ${movie.gradientColor || gradientFrom} via-transparent to-black/40 opacity-60 group-hover/card:opacity-40 transition-opacity`} />
-                                                <div className="absolute top-1.5 left-1.5 flex items-center gap-1">
-                                                    {movie.episodeCount && (
-                                                        <span className="px-1.5 py-0.5 md:py-1 bg-black/60 backdrop-blur-sm rounded text-[10px] lg:text-xs font-medium text-white">
-                                                            EP.{movie.episodeCount}
+                                                <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                                                    {movie.isNew && (
+                                                        <span className="px-2 py-0.5 bg-red-600 text-white text-[10px] font-bold rounded shadow-md w-fit">
+                                                            NEW
                                                         </span>
                                                     )}
-                                                    {movie.rating && (
-                                                        <span className="px-1.5 py-0.5 md:py-1 bg-emerald-500/80 backdrop-blur-sm rounded text-[10px] lg:text-xs font-bold text-white">
-                                                            TM.{movie.rating}
+                                                    {movie.quality && (
+                                                        <span className="px-1.5 py-[2px] border border-white/30 bg-black/40 backdrop-blur-md text-white text-[9px] font-bold tracking-wider rounded-[3px] shadow-sm uppercase w-fit">
+                                                            {movie.quality}
                                                         </span>
                                                     )}
                                                 </div>
+
+                                                {/* Rating Badge - Top Right */}
+                                                {movie.rating && (
+                                                    <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/80 backdrop-blur-sm rounded text-yellow-500 text-[10px] font-bold shadow-md z-10">
+                                                        <svg className="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                        <span>{movie.rating.toFixed(1)}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Language Badges - Bottom Center */}
+                                                {formatLanguageBadges(movie.lang).length > 0 && (
+                                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex shadow-lg text-[10px] font-bold z-20 leading-none">
+                                                        <div className="flex rounded-t-lg overflow-hidden ring-1 ring-black/20">
+                                                            {formatLanguageBadges(movie.lang).map((badge) => (
+                                                                <div
+                                                                    key={badge}
+                                                                    className={`px-2 py-1.5 ${getBadgeColor(badge)} text-white flex items-center gap-1 font-extrabold shadow-sm`}
+                                                                >
+                                                                    <span>{badge}</span>
+                                                                    {movie.episodeCurrent && (
+                                                                        <>
+                                                                            <span className="opacity-80 text-[10px] mx-0.5 font-bold">-</span>
+                                                                            <span>{movie.episodeCurrent.replace(/\D/g, '') || 'Full'}</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
                                                     <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
                                                         <div className="w-0 h-0 border-l-[12px] border-l-white border-y-[7px] border-y-transparent ml-1" />

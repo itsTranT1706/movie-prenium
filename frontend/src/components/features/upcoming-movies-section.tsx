@@ -157,8 +157,8 @@ export default function UpcomingMoviesSection({
 
                                                 {/* Coming Soon Badge */}
                                                 {movie.hasComingSoonBadge && (
-                                                    <div className="absolute bottom-2 left-2">
-                                                        <span className="px-2 py-0.5 bg-gray-800/90 backdrop-blur-sm rounded text-[10px] font-medium text-gray-300 border border-gray-600/50">
+                                                    <div className="absolute bottom-0 left-0 z-10">
+                                                        <span className="flex px-3 py-1.5 bg-[#1f1f1f] text-white text-[10px] font-bold rounded-tr-xl shadow-md uppercase tracking-wider">
                                                             Sắp chiếu
                                                         </span>
                                                     </div>
@@ -188,7 +188,7 @@ export default function UpcomingMoviesSection({
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
-                        
+
                         {/* Navigation Arrows - Styled circular buttons */}
                         <CarouselPrevious className="absolute -left-5 top-[40%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/30 hover:border-white/60 hover:bg-white/10 text-white/70 hover:text-white disabled:border-white/10 disabled:text-white/20" />
                         <CarouselNext className="absolute -right-5 top-[40%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/30 hover:border-white/60 hover:bg-white/10 text-white/70 hover:text-white disabled:border-white/10 disabled:text-white/20" />

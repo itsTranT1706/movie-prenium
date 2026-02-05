@@ -326,42 +326,28 @@ export function HoverPreviewCard({
                     </div>
 
                     {/* Metadata Row - IMDb style (Glassmorphism) */}
-                    <div className="flex items-center gap-3 text-xs text-gray-300 mb-2.5 flex-wrap">
-                        {/* IMDb Rating Badge */}
+                    <div className="flex items-center gap-3 text-sm font-medium mb-3">
+                        {/* IMDb Badge */}
                         {movie.rating && movie.rating > 0 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-[2px] bg-[#E2B616]/90 backdrop-blur-md border border-[#E2B616]/30 text-black font-black text-[11px] rounded-[4px] shadow-[0_0_10px_rgba(226,182,22,0.4)] tracking-tight">
-                                <span>IMDb</span>
-                                <span className="font-extrabold">{movie.rating.toFixed(1)}</span>
+                            <span className="px-2 py-0.5 bg-[#e5b52a] text-black text-xs font-bold rounded-sm">
+                                IMDb {movie.rating.toFixed(1)}
                             </span>
                         )}
+
                         {/* Age Rating */}
-                        {movie.ageRating && (
-                            <span className="px-1.5 py-[1px] border border-white/40 bg-white/10 backdrop-blur-sm rounded-sm text-gray-200 font-medium text-[10px]">
-                                {movie.ageRating}
-                            </span>
-                        )}
+                        <span className="px-2 py-0.5 border border-white/40 rounded text-gray-200 text-xs">
+                            {movie.ageRating || '13+'}
+                        </span>
+
                         {/* Year */}
-                        {movie.year && <span className="text-white font-medium drop-shadow-md">{movie.year}</span>}
-                        {/* Quality badge - Vivid Blue HD (Glassmorphism Glow) */}
-                        {movie.quality && (
-                            <span className="px-1.5 py-[2px] bg-[#0066FF]/80 backdrop-blur-md border border-[#0066FF]/50 text-white font-bold text-[10px] tracking-wide rounded-[4px] shadow-[0_0_15px_rgba(0,102,255,0.6)]">
-                                {movie.quality}
-                            </span>
-                        )}
-                        {/* Season */}
-                        {movie.season && (
-                            <span className="text-gray-400">Phần {movie.season}</span>
-                        )}
-                        {/* Episode */}
-                        {(movie.episode || movie.episodeCurrent) && (
-                            <span className="text-gray-400">
-                                Tập {movie.episode || movie.episodeCurrent}
-                            </span>
-                        )}
-                        {/* Duration */}
-                        {movie.duration && !movie.episode && !movie.episodeCurrent && (
-                            <span className="text-gray-400">{movie.duration}</span>
-                        )}
+                        <span className="text-white font-bold text-sm">
+                            {movie.year || '2026'}
+                        </span>
+
+                        {/* Quality badge */}
+                        <span className="px-2 py-0.5 bg-[#0057e3] text-white text-xs font-bold rounded-sm">
+                            {movie.quality || 'HD'}
+                        </span>
                     </div>
 
                     {/* Genres */}

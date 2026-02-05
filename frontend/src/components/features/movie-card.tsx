@@ -170,7 +170,7 @@ export default function MovieCard({ movie, enablePreview = true, priority = fals
                                         {previewData.episodeCurrent && (
                                             <>
                                                 <span className="opacity-80 text-[10px] mx-0.5 font-bold">-</span>
-                                                <span>{previewData.episodeCurrent.replace(/\D/g, '') || 1}</span>
+                                                <span>{previewData.episodeCurrent?.replace(/\D/g, '') || 'Full'}</span>
                                             </>
                                         )}
                                     </div>

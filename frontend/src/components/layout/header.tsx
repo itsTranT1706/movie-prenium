@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks';
 import { apiClient } from '@/lib/api/client';
@@ -12,6 +12,40 @@ import { Movie } from '@/types';
 import MovieCard from '@/components/features/movie-card';
 import { NavigationLink } from '@/components/ui';
 import { useLoading } from '@/contexts/loading-context';
+
+interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    time: string;
+    isRead: boolean;
+    image?: string;
+}
+
+const mockNotifications: Notification[] = [
+    {
+        id: '1',
+        title: 'Phim mới ra mắt',
+        message: 'Squid Game Phần 2 vừa được cập nhật!',
+        time: '2 phút trước',
+        isRead: false,
+        image: 'https://image.tmdb.org/t/p/w200/huE6S2f6f4sM2y7c2oW8J2.jpg' // Placeholder or valid image
+    },
+    {
+        id: '2',
+        title: 'Đừng bỏ lỡ',
+        message: 'Top 10 phim thịnh hành tuần này.',
+        time: '1 giờ trước',
+        isRead: false,
+    },
+    {
+        id: '3',
+        title: 'Cập nhật hệ thống',
+        message: 'Tính năng "Xem cùng nhau" đã sẵn sàng.',
+        time: '1 ngày trước',
+        isRead: true,
+    }
+];
 /**
  * Premium Header Component
  * - Fixed, transparent at top
@@ -39,7 +73,19 @@ export default function Header() {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isGenresOpen, setIsGenresOpen] = useState(false);
+
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    };
+
+    const handleMarkAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    };
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -339,6 +385,95 @@ export default function Header() {
                                 <Search className="w-5 h-5" />
                             </button>
 
+                            {/* Notifications */}
+                            {user && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowNotifications(!showNotifications)}
+                                        onBlur={() => setTimeout(() => setShowNotifications(false), 200)}
+                                        className="p-2 text-gray-300 hover:text-white transition-colors relative group outline-none"
+                                        aria-label="Notifications"
+                                    >
+                                        <Bell className="w-5 h-5" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-black/80 shadow-[0_0_4px_rgba(229,9,20,0.8)] animate-pulse" />
+                                        )}
+                                    </button>
+
+                                    {/* Notifications Dropdown */}
+                                    {showNotifications && (
+                                        <div className="absolute top-full right-0 mt-3 w-80 sm:w-96 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right">
+                                            {/* Caret */}
+                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-black/60 backdrop-blur-2xl border-l border-t border-white/10 rotate-45 transform" />
+
+                                            <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+                                                {/* Header */}
+                                                <div className="px-4 py-3 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                                                    <h3 className="text-sm font-bold text-white">Thông báo</h3>
+                                                    {unreadCount > 0 && (
+                                                        <button
+                                                            onClick={handleMarkAllAsRead}
+                                                            className="text-xs text-gray-400 hover:text-white transition-colors"
+                                                        >
+                                                            Đánh dấu đã đọc
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* List */}
+                                                <div className="overflow-y-auto custom-scrollbar">
+                                                    {notifications.length > 0 ? (
+                                                        <div className="divide-y divide-white/5">
+                                                            {notifications.map((notification) => (
+                                                                <div
+                                                                    key={notification.id}
+                                                                    className={`px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer group/item relative ${!notification.isRead ? 'bg-white/[0.02]' : ''}`}
+                                                                    onClick={() => handleMarkAsRead(notification.id)}
+                                                                >
+                                                                    <div className="flex gap-3">
+                                                                        {/* Optional Image */}
+                                                                        {notification.image ? (
+                                                                            <div className="flex-shrink-0 w-12 h-16 rounded overflow-hidden bg-gray-800">
+                                                                                <img src={notification.image} alt="" className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
+                                                                                <Bell className="w-5 h-5 text-gray-400" />
+                                                                            </div>
+                                                                        )}
+
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <h4 className={`text-sm font-medium mb-0.5 ${!notification.isRead ? 'text-white' : 'text-gray-300'}`}>
+                                                                                {notification.title}
+                                                                            </h4>
+                                                                            <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                                                                {notification.message}
+                                                                            </p>
+                                                                            <span className="text-[10px] text-gray-500 mt-1 block">
+                                                                                {notification.time}
+                                                                            </span>
+                                                                        </div>
+
+                                                                        {/* Unread Indicator */}
+                                                                        {!notification.isRead && (
+                                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rounded-full shadow-[0_0_4px_rgba(229,9,20,0.5)]" />
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="py-8 text-center text-gray-500 text-sm">
+                                                            Không có thông báo mới
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* User Menu or Login Button */}
                             {user ? (
                                 <div className="relative group">
@@ -364,9 +499,9 @@ export default function Header() {
                                     {isUserMenuOpen && (
                                         <div className="absolute top-full right-0 mt-3 w-64 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right">
                                             {/* Caret/Triangle */}
-                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-[#181818] border-l border-t border-white/10 rotate-45 transform" />
+                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-black/60 backdrop-blur-2xl border-l border-t border-white/10 rotate-45 transform" />
 
-                                            <div className="bg-[#181818]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
+                                            <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
                                                 {/* User Header */}
                                                 <div className="px-4 py-3 border-b border-white/5 mb-1 bg-white/5">
                                                     <div className="flex items-center gap-3">

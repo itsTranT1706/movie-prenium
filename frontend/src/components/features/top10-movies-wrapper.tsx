@@ -40,8 +40,8 @@ export default async function Top10MoviesWrapper() {
             ageRating: movie.rating ? (movie.rating >= 8 ? 'T18' : movie.rating >= 6 ? 'T16' : 'T13') : 'T13',
             year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : new Date().getFullYear(),
             duration: movie.duration ? `${Math.floor(movie.duration / 60)}h ${movie.duration % 60}m` : undefined,
-            hasPDE: true, // Phụ đề
-            hasTMinh: Math.random() > 0.5, // Random thuyết minh
+            lang: movie.lang, // Use actual lang from API
+            episodeCurrent: movie.episodeCurrent,
             quality: movie.quality || 'HD',
         };
     });
