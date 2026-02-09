@@ -9,6 +9,9 @@ export interface MovieProps {
     description?: string;
     posterUrl?: string;
     backdropUrl?: string;
+    logoUrl?: string;
+    backdrops?: string[];
+    posters?: string[];
     trailerUrl?: string;
     releaseDate?: Date;
     duration?: number;
@@ -61,6 +64,18 @@ export class Movie extends BaseEntity<string> {
 
     get backdropUrl(): string | undefined {
         return this.props.backdropUrl;
+    }
+
+    get logoUrl(): string | undefined {
+        return this.props.logoUrl;
+    }
+
+    get backdrops(): string[] | undefined {
+        return this.props.backdrops;
+    }
+
+    get posters(): string[] | undefined {
+        return this.props.posters;
     }
 
     get releaseDate(): Date | undefined {

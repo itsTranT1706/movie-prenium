@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { MOVIE_REPOSITORY, MOVIE_PROVIDER } from '../domain';
+import { MOVIE_REPOSITORY, MOVIE_PROVIDER, REACTION_REPOSITORY } from '../domain';
 import {
     SearchMoviesUseCase,
     GetPopularMoviesUseCase,
@@ -13,6 +13,11 @@ import {
     GetUpcomingMoviesUseCase,
     GetMovieDetailsUseCase,
     FilterMoviesUseCase,
+    ReactToMovieUseCase,
+    GetReactionStatsUseCase,
+    GetMovieCastUseCase,
+    GetMoviesByActorUseCase,
+    GetActorProfileUseCase,
 } from '../application';
 import {
     PrismaMovieRepository,
@@ -21,12 +26,15 @@ import {
     KKPhimStreamingAdapter,
     NguonCStreamingAdapter,
     StreamingProviderRegistry,
+    PrismaReactionRepository,
+
 } from './adapters';
-import { MovieController } from './controllers';
+import { MovieController, MovieReactionController } from './controllers';
 
 @Module({
     imports: [HttpModule],
-    controllers: [MovieController],
+    controllers: [MovieController, MovieReactionController],
+
     providers: [
         // Use Cases
         SearchMoviesUseCase,
@@ -40,6 +48,9 @@ import { MovieController } from './controllers';
         GetUpcomingMoviesUseCase,
         GetMovieDetailsUseCase,
         FilterMoviesUseCase,
+        GetMovieCastUseCase,
+        GetMoviesByActorUseCase,
+        GetActorProfileUseCase,
 
         // Repository binding (Port -> Adapter)
         {
@@ -63,7 +74,15 @@ import { MovieController } from './controllers';
 
         // Provider Registry - collects all streaming providers
         StreamingProviderRegistry,
+
+        // Reaction implementation
+        ReactToMovieUseCase,
+        GetReactionStatsUseCase,
+        {
+            provide: REACTION_REPOSITORY,
+            useClass: PrismaReactionRepository,
+        },
     ],
-    exports: [MOVIE_REPOSITORY, MOVIE_PROVIDER, StreamingProviderRegistry],
+    exports: [MOVIE_REPOSITORY, MOVIE_PROVIDER, StreamingProviderRegistry, REACTION_REPOSITORY],
 })
 export class MovieModule { }

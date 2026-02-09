@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks';
+import { useAuth } from '@/features/auth';
 import {
   ProfileHeroSection,
   ProfileLayout,
@@ -17,9 +17,9 @@ import {
   type HistoryItem,
   type ProfileUpdate,
   type PasswordChange,
-} from '@/components/profile';
+} from '@/features/profile';
 import { Movie } from '@/types';
-import { apiClient } from '@/lib/api/client';
+import { apiClient } from '@/shared/lib/api/client';
 
 /**
  * Profile Page - Netflix-style Profile with Full API Integration

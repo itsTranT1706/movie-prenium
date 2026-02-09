@@ -1,8 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { LoadingOverlay } from '@/components/ui/loading-overlay';
-import { SkeletonLoading } from '@/components/ui/skeleton-loading';
+import { LoadingOverlay, SkeletonLoading } from '@/shared/components/ui';
 
 type LoadingType = 'fade' | 'skeleton' | null;
 
@@ -26,7 +25,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
-    
+
     setLoadingType(type);
     setIsLoading(true);
   }, []);
@@ -48,7 +47,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
   return (
     <LoadingContext.Provider value={{ showLoading, hideLoading, isLoading, loadingType }}>
       {children}
-      
+
       {/* Render appropriate loading component */}
       {loadingType === 'fade' && <LoadingOverlay isVisible={isLoading} />}
       {loadingType === 'skeleton' && <SkeletonLoading isVisible={isLoading} />}

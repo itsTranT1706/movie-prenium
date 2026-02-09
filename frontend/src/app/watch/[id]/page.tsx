@@ -1,22 +1,22 @@
-import { serverApi } from '@/lib/api/server';
-import { WatchPageClient } from '@/components/features/watch-page-client';
+import { serverApi } from '@/shared/lib/api/server';
+import { WatchPageClient } from '@/features/watch';
 import { notFound } from 'next/navigation';
 
 // Disable static generation for this dynamic page
 // Remove dynamic export - using Suspense instead
 export const dynamic = 'force-dynamic';
 
-export default async function WatchPage({ 
+export default async function WatchPage({
     params,
-    searchParams 
-}: { 
+    searchParams
+}: {
     params: Promise<{ id: string }>;
     searchParams: Promise<{ server?: string; episode?: string }>;
 }) {
     const { id } = await params;
     const { server, episode } = await searchParams;
     let movie: any = null;
-    
+
     try {
         movie = await serverApi.getMovieDetails(id);
     } catch (error) {
@@ -46,7 +46,7 @@ export default async function WatchPage({
             }
         });
     }
-    
+
     // Fallback if no sources
     if (seasons.length === 0) {
         seasons.push({

@@ -6,12 +6,12 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks';
-import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/features/auth';
+import { apiClient } from '@/shared/lib/api';
 import { Movie } from '@/types';
-import MovieCard from '@/components/features/movie-card';
-import { NavigationLink } from '@/components/ui';
-import { useLoading } from '@/contexts/loading-context';
+import { MovieCard } from '@/features/movies';
+import { NavigationLink } from '@/shared/components/ui';
+import { useLoading } from '@/shared/contexts';
 
 interface Notification {
     id: string;
@@ -182,8 +182,8 @@ export default function Header() {
         setSearchQuery('');
         setSearchResults([]);
         setVisibleCount(8);
-        const identifier = movie.externalId || movie.slug || movie.id;
-        router.push(`/movie/${identifier}`);
+        const identifier = movie.externalId || movie.slug;
+        router.push(`/movies/${identifier}`);
     };
 
     // Close search modal - memoized to prevent recreation
@@ -278,12 +278,12 @@ export default function Header() {
     return (
         <>
             <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+                className={`hidden lg:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
                     ? 'bg-black/95 backdrop-blur-sm'
                     : 'bg-gradient-to-b from-black/90 to-transparent'
                     }`}
             >
-                <div className="container">
+                <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-14 lg:h-16">
                         {/* Logo */}
                         <NavigationLink href="/" loadingType="fade" className="flex items-center">
@@ -651,7 +651,16 @@ export default function Header() {
                                             </p>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
                                                 {visibleResults.map((movie, index) => (
-                                                    <div key={movie.id || movie.slug} onClick={closeSearch} className="w-full">
+                                                    <div
+                                                        key={movie.id || movie.slug}
+                                                        onClick={() => {
+                                                            setIsSearchOpen(false);
+                                                            showLoading('fade');
+                                                            const identifier = movie.externalId || movie.slug;
+                                                            router.push(`/movies/${identifier}`);
+                                                        }}
+                                                        className="w-full cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
+                                                    >
                                                         <MovieCard
                                                             movie={{
                                                                 id: movie.id,
@@ -689,18 +698,35 @@ export default function Header() {
                                                     <span className="text-gray-600 text-sm">↓ Cuộn xuống để xem thêm</span>
                                                 </div>
                                             )}
-                                            {/* View All Button - At the bottom */}
-                                            <div className="flex justify-center mt-8 pt-6 border-t border-gray-800">
+                                            {/* View All Button - Netflix Premium Style */}
+                                            <div className="flex justify-center mt-8 pt-6 border-t border-white/[0.08]">
                                                 <button
                                                     onClick={() => {
                                                         showLoading('skeleton');
                                                         router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
                                                         closeSearch();
                                                     }}
-                                                    className="w-full max-w-md px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-base font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/50"
+                                                    className="group relative w-full px-6 py-4 overflow-hidden rounded-xl transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-red-900/20 hover:shadow-red-600/40 cursor-pointer"
                                                 >
-                                                    <span>Xem toàn bộ kết quả</span>
-                                                    <ChevronDown className="w-5 h-5 rotate-[-90deg]" />
+                                                    {/* Base gradient background - Deep Red to Netflix Red */}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#800000] via-[#b20710] to-[#e50914] opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                                    {/* Animated shine line */}
+                                                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+
+                                                    {/* Content Container */}
+                                                    <div className="relative flex items-center justify-center gap-3">
+                                                        <Search className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
+                                                        <span className="text-white text-base font-bold tracking-wider uppercase drop-shadow-sm">
+                                                            Xem toàn bộ kết quả
+                                                        </span>
+                                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 group-hover:bg-white/20 transition-all duration-300 group-hover:translate-x-1">
+                                                            <ChevronDown className="w-4 h-4 text-white rotate-[-90deg]" />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Subtle border overlay */}
+                                                    <div className="absolute inset-0 rounded-xl border border-white/10 group-hover:border-white/20 pointer-events-none transition-colors" />
                                                 </button>
                                             </div>
                                         </>

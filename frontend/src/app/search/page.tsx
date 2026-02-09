@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { MoviesFilterPage } from '@/components/features';
+import { MoviesFilterPage } from '@/features/movies';
 
 function SearchContent() {
     const searchParams = useSearchParams();

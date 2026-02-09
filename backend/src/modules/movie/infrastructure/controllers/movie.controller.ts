@@ -11,6 +11,10 @@ import {
     GetUpcomingMoviesUseCase,
     GetMovieDetailsUseCase,
     FilterMoviesUseCase,
+
+    GetMovieCastUseCase,
+    GetMoviesByActorUseCase,
+    GetActorProfileUseCase,
 } from '../../application';
 import { KKPhimMovieProvider } from '../adapters';
 
@@ -27,7 +31,11 @@ export class MovieController {
         private readonly getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
         private readonly getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
         private readonly getMovieDetailsUseCase: GetMovieDetailsUseCase,
+
         private readonly filterMoviesUseCase: FilterMoviesUseCase,
+        private readonly getMovieCastUseCase: GetMovieCastUseCase,
+        private readonly getMoviesByActorUseCase: GetMoviesByActorUseCase,
+        private readonly getActorProfileUseCase: GetActorProfileUseCase,
         private readonly kkphimProvider: KKPhimMovieProvider,
     ) { }
 
@@ -413,6 +421,74 @@ export class MovieController {
         };
     }
 
+    /**
+     * Get movie cast
+     * @param id - TMDB ID of the movie
+     */
+    @Get(':id/cast')
+    async getMovieCast(@Param('id') id: string) {
+        const result = await this.getMovieCastUseCase.execute(id);
+
+        if (result.isFailure) {
+            throw new HttpException(
+                result.error.message,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return {
+            success: true,
+            data: result.value,
+        };
+    }
+
+    /**
+     * Get movies by actor
+     * @param actorId - TMDB Person ID
+     */
+    @Get('actor/:actorId')
+    async getMoviesByActor(@Param('actorId') actorId: string) {
+        const result = await this.getMoviesByActorUseCase.execute(actorId);
+
+        if (result.isFailure) {
+            throw new HttpException(
+                result.error.message,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        return {
+            success: true,
+            data: result.value.map(this.toResponse),
+        };
+    }
+
+    /**
+     * Get actor profile (details + movies)
+     * @param actorId - TMDB Person ID
+     */
+    @Get('actor/:actorId/profile')
+    async getActorProfile(@Param('actorId') actorId: string) {
+        const result = await this.getActorProfileUseCase.execute(actorId);
+
+        if (result.isFailure) {
+            throw new HttpException(
+                result.error.message,
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        const profile = result.value;
+
+        return {
+            success: true,
+            data: {
+                ...profile,
+                movies: profile.movies.map(this.toResponse),
+            },
+        };
+    }
+
     private toPreviewResponse(movie: any) {
         return {
             id: movie.id,
@@ -443,6 +519,9 @@ export class MovieController {
             description: movie.description,
             posterUrl: movie.posterUrl,
             backdropUrl: movie.backdropUrl,
+            logoUrl: movie.logoUrl,
+            backdrops: movie.backdrops || [],
+            posters: movie.posters || [],
             trailerUrl: movie.trailerUrl,
             releaseDate: movie.releaseDate,
             duration: movie.duration,

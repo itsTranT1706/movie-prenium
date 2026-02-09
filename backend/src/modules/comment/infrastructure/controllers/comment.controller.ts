@@ -121,11 +121,7 @@ export class CommentController {
   async getRecentComments(@Query('limit') limit?: string) {
     try {
       const limitNum = limit ? parseInt(limit, 10) : 10;
-      console.log('📡 [CommentController] Getting recent comments, limit:', limitNum);
       const comments = await this.getRecentCommentsUseCase.execute(limitNum);
-      console.log('✅ [CommentController] Recent comments count:', comments.length);
-      console.log('📝 [CommentController] Sample comment:', comments[0]);
-
       return {
         success: true,
         data: comments,

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks';
+import { useAuth } from '@/features/auth';
 
 function RegisterForm() {
     const router = useRouter();
@@ -57,7 +57,7 @@ function RegisterForm() {
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{
-                        backgroundImage: 'url(https://www.rophim.nl/images/home-background.jpg)',
+                        backgroundImage: 'url(https://www.rophim.la/images/home-background.jpg)',
                     }}
                 />
                 <div className="absolute inset-0 bg-black/60" />

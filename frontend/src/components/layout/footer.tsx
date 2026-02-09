@@ -21,7 +21,7 @@ export default function Footer() {
                     {/* Logo & Copyright */}
                     <div className="flex items-center gap-3">
                         <span className="text-lg font-black text-red-600">PhePhim</span>
-                        <span className="text-xs text-gray-500">© {new Date().getFullYear()} Trần Việt Tiến - Học viện kỹ thuật Mật mã</span>
+                        <span className="text-xs text-gray-500">© {new Date().getFullYear()} Một người đam mê phim ảnh</span>
                     </div>
 
                     {/* Links */}

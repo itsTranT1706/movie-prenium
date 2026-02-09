@@ -1,5 +1,6 @@
-import { MoviesTrendingPage } from '@/components/features';
-import { serverApi } from '@/lib/api/server';
+import { MoviesTrendingPage } from '@/features/movies';
+import { serverApi } from '@/shared/lib/api/server';
+
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';

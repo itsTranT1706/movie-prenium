@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Bebas_Neue } from "next/font/google";
 import "./globals.css";
-import { Header, Footer } from "@/components/layout";
-import { AuthProviderWrapper } from "@/components/providers";
-import { ScrollToTop } from "@/components/ui";
-import { LoadingProvider } from "@/contexts/loading-context";
-import { NavigationLoadingProvider } from "@/components/providers/navigation-loading-provider";
+import { Header, Footer, BottomNav, MobileTopNav } from "@/shared/components/layout";
+import { AuthProviderWrapper } from "@/features/auth";
+import { ScrollToTop } from "@/shared/components/ui";
+import { LoadingProvider } from "@/shared/contexts";
+import { NavigationLoadingProvider } from "@/shared/components/providers";
 import { Toaster } from "sonner";
 
 export const dynamic = 'force-dynamic';
@@ -47,16 +47,22 @@ export default function RootLayout({
         <LoadingProvider>
           <NavigationLoadingProvider>
             <AuthProviderWrapper>
-              {/* Fixed Header */}
+              {/* Fixed Header - hidden on mobile via CSS inside Header */}
               <Header />
 
-              {/* Main Content */}
-              <main className="min-h-screen">
+              {/* Mobile Top Category Navigation */}
+              <MobileTopNav />
+
+              {/* Main Content - padding for mobile navs */}
+              <main className="min-h-screen pt-12 lg:pt-0 pb-16 lg:pb-0">
                 {children}
               </main>
 
               {/* Footer */}
               <Footer />
+
+              {/* Mobile Bottom Navigation */}
+              <BottomNav />
 
               {/* Scroll to Top Button */}
               <ScrollToTop />

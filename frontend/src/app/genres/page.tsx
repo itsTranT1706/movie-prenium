@@ -1,5 +1,5 @@
-import GenreCardGrid from '@/components/features/genre-card-grid';
-import { StageSpotlight } from '@/components/ui/stage-spotlight';
+import { GenreCardGrid } from '@/features/home';
+import { StageSpotlight } from '@/shared/components/ui/stage-spotlight';
 
 export const metadata = {
     title: 'Tất Cả Thể Loại - Movie Streaming',
@@ -11,7 +11,7 @@ export default function AllGenresPage() {
         <div className="min-h-screen bg-[#0a0a0a] pt-20 lg:pt-24 pb-12 relative overflow-hidden">
             {/* Stage Spotlight Effect */}
             <StageSpotlight color="blue" intensity="medium" />
-            
+
             <div className="container relative z-10">
                 <GenreCardGrid showAll={true} />
             </div>

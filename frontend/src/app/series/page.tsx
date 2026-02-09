@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import { serverApi } from '@/lib/api/server';
-import { MoviesGrid } from '@/components/features/movies-grid';
-import { StageSpotlight } from '@/components/ui/stage-spotlight';
-import { AnimatedShapeCard } from '@/components/ui/animated-shape-card';
+import { NavigationLink } from '@/shared/components/ui';
+import { serverApi } from '@/shared/lib/api/server';
+import { MoviesGrid } from '@/features/movies';
+import { StageSpotlight } from '@/shared/components/ui/stage-spotlight';
+import { AnimatedShapeCard } from '@/shared/components/ui/animated-shape-card';
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
@@ -89,12 +89,12 @@ export default async function SeriesPage() {
                         <h2 className="text-xl lg:text-2xl font-bold text-white">
                             Phim Bộ Mới Nhất
                         </h2>
-                        <Link
+                        <NavigationLink
                             href="/series/phim-bo"
                             className="text-sm text-gray-400 hover:text-white transition-colors"
                         >
                             Xem tất cả →
-                        </Link>
+                        </NavigationLink>
                     </div>
 
                     <MoviesGrid initialMovies={initialMovies} />

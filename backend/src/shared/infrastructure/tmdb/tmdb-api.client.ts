@@ -115,6 +115,129 @@ export interface TMDBVideosResponse {
 }
 
 /**
+ * TMDB Images Interface
+ */
+export interface TMDBImage {
+    aspect_ratio: number;
+    height: number;
+    iso_639_1: string | null;
+    file_path: string;
+    vote_average: number;
+    vote_count: number;
+    width: number;
+}
+
+export interface TMDBImagesResponse {
+    id: number;
+    backdrops: TMDBImage[];
+    logos: TMDBImage[];
+    posters: TMDBImage[];
+}
+
+/**
+ * TMDB Credits Interfaces
+ */
+export interface TMDBCast {
+    adult: boolean;
+    gender: number;
+    id: number;
+    known_for_department: string;
+    name: string;
+    original_name: string;
+    popularity: number;
+    profile_path: string | null;
+    cast_id: number;
+    character: string;
+    credit_id: string;
+    order: number;
+}
+
+export interface TMDBCrew {
+    adult: boolean;
+    gender: number;
+    id: number;
+    known_for_department: string;
+    name: string;
+    original_name: string;
+    popularity: number;
+    profile_path: string | null;
+    credit_id: string;
+    department: string;
+    job: string;
+}
+
+export interface TMDBCreditsResponse {
+    id: number;
+    cast: TMDBCast[];
+    crew: TMDBCrew[];
+}
+
+export interface TMDBPersonCast {
+    adult: boolean;
+    backdrop_path: string | null;
+    genre_ids: number[];
+    id: number;
+    original_language: string;
+    original_title: string;
+    overview: string;
+    popularity: number;
+    poster_path: string | null;
+    release_date: string;
+    title: string;
+    video: boolean;
+    vote_average: number;
+    vote_count: number;
+    character: string;
+    credit_id: string;
+    order: number;
+    media_type: 'movie';
+}
+
+export interface TMDBPersonDateCast {
+    adult: boolean;
+    backdrop_path: string | null;
+    genre_ids: number[];
+    id: number;
+    origin_country: string[];
+    original_language: string;
+    original_name: string;
+    overview: string;
+    popularity: number;
+    poster_path: string | null;
+    first_air_date: string;
+    name: string;
+    vote_average: number;
+    vote_count: number;
+    character: string;
+    credit_id: string;
+    episode_count: number;
+    media_type: 'tv';
+}
+
+export interface TMDBPersonDetails {
+    adult: boolean;
+    also_known_as: string[];
+    biography: string;
+    birthday: string | null;
+    deathday: string | null;
+    gender: number;
+    homepage: string | null;
+    id: number;
+    imdb_id: string | null;
+    known_for_department: string;
+    name: string;
+    place_of_birth: string | null;
+    popularity: number;
+    profile_path: string | null;
+}
+
+export interface TMDBPersonMovieCreditsResponse {
+    cast: (TMDBPersonCast | TMDBPersonDateCast)[];
+    crew: any[];
+    id: number;
+}
+
+/**
  * TMDB API Client - HTTP wrapper for TMDB API calls
  */
 @Injectable()
@@ -145,13 +268,13 @@ export class TMDBApiClient {
 
         if (!response.ok) {
             const error = await response.text();
-            
+
             // Handle specific error codes
             if (response.status === 404) {
                 this.logger.warn(`TMDB resource not found: ${endpoint}`);
                 throw new TMDBNotFoundError(`Resource not found: ${endpoint}`);
             }
-            
+
             if (response.status === 429) {
                 const retryAfter = response.headers.get('Retry-After');
                 this.logger.warn(`TMDB rate limit exceeded. Retry after: ${retryAfter || 'unknown'}`);
@@ -160,7 +283,7 @@ export class TMDBApiClient {
                     retryAfter ? parseInt(retryAfter, 10) : undefined
                 );
             }
-            
+
             this.logger.error(`TMDB API Error: ${response.status} - ${error}`);
             throw new TMDBApiError(`TMDB API Error: ${response.status}`, response.status);
         }
@@ -279,6 +402,15 @@ export class TMDBApiClient {
     }
 
     /**
+     * Get TV show images
+     */
+    async getTVShowImages(tvId: number | string): Promise<TMDBImagesResponse> {
+        return this.get<TMDBImagesResponse>(`/tv/${tvId}/images`, {
+            include_image_language: 'vi,null'
+        });
+    }
+
+    /**
      * Get TV show videos (trailers, teasers, etc.)
      */
     async getTVShowVideos(tvId: number | string): Promise<TMDBVideosResponse> {
@@ -348,6 +480,37 @@ export class TMDBApiClient {
     }
 
     /**
+     * Get movie images (posters, backdrops, logos)
+     * Include vi (Vietnamese), en (English), and null (no language) for better logo coverage
+     */
+    async getMovieImages(movieId: number | string): Promise<TMDBImagesResponse> {
+        return this.get<TMDBImagesResponse>(`/movie/${movieId}/images`, {
+            include_image_language: 'en,vi,null'
+        });
+    }
+
+    /**
+     * Get movie credits (cast & crew)
+     */
+    async getMovieCredits(movieId: number | string): Promise<TMDBCreditsResponse> {
+        return this.get<TMDBCreditsResponse>(`/movie/${movieId}/credits`);
+    }
+
+    /**
+     * Get person movie credits
+     */
+    async getPersonMovieCredits(personId: number | string): Promise<TMDBPersonMovieCreditsResponse> {
+        return this.get<TMDBPersonMovieCreditsResponse>(`/person/${personId}/combined_credits`);
+    }
+
+    /**
+     * Get person details
+     */
+    async getPersonDetails(personId: number | string): Promise<TMDBPersonDetails> {
+        return this.get<TMDBPersonDetails>(`/person/${personId}`);
+    }
+
+    /**
      * Get YouTube trailer URL for a movie
      */
     async getTrailerUrl(movieId: number | string): Promise<string | undefined> {
@@ -355,7 +518,7 @@ export class TMDBApiClient {
             this.logger.debug(`Fetching trailer for movie ${movieId}`);
             const response = await this.getMovieVideos(movieId);
             this.logger.debug(`Found ${response.results.length} videos for movie ${movieId}`);
-            
+
             // Find official YouTube trailer
             const trailer = response.results.find(
                 (video) => video.site === 'YouTube' &&

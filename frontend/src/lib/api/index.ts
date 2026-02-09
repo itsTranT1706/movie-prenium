@@ -1,3 +1,2 @@
-export * from './client';
-export { default as WatchHistoryService } from './services/watch-history.service';
-export type { WatchHistoryItem } from './services/watch-history.service';
+// Re-export API client and services from shared for backwards compatibility
+export * from '@/shared/lib/api';
