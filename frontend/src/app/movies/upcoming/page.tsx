@@ -1,5 +1,5 @@
-import { MoviesPageClient } from '@/components/features/movies-page-client';
-import { serverApi } from '@/lib/api/server';
+import { MoviesPageClient } from '@/features/movies';
+import { serverApi } from '@/shared/lib/api/server';
 
 // Disable static generation for this dynamic page
 // Remove dynamic export - using Suspense instead

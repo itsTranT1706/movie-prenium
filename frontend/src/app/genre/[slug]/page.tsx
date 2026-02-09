@@ -1,4 +1,4 @@
-import { MoviesFilterPage } from '@/components/features';
+import { MoviesFilterPage } from '@/features/movies';
 import { notFound } from 'next/navigation';
 
 // Force dynamic rendering for this page
@@ -42,7 +42,7 @@ export default async function GenrePage({ params }: GenrePageProps) {
     }
 
     return (
-        <MoviesFilterPage 
+        <MoviesFilterPage
             initialMovies={[]}
             pageTitle={`Phim ${GENRE_NAMES[slug]}`}
             baseUrl={`/genre/${slug}`}

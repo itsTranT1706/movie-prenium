@@ -1,0 +1,193 @@
+'use client';
+
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
+import { HoverPreviewCard, Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/shared/components/ui';
+
+interface UpcomingMovie {
+    id: string;
+    externalId?: string;
+    title: string;
+    subtitle?: string;
+    backdropUrl: string;
+    releaseDate?: string;
+    hasComingSoonBadge?: boolean;
+}
+
+interface UpcomingMoviesSectionProps {
+    title?: string;
+    movies?: UpcomingMovie[];
+}
+
+// Default upcoming movies
+const defaultUpcomingMovies: UpcomingMovie[] = [
+    {
+        id: 'up1',
+        title: 'Tiểu Yêu Quái Núi Lảng Lặng',
+        subtitle: 'Nobody',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up2',
+        title: 'Đại Ca',
+        subtitle: 'Boss',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up3',
+        title: 'Anaconda: Đụng Độ Siêu Trăn',
+        subtitle: 'Anaconda',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/74xTEgt7R36Fvez8tKL8rLj5Bjs.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up4',
+        title: 'Không Bông Tuyết Nào Trong Sạch',
+        subtitle: 'The Woman in the White Car',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up5',
+        title: '96 Phút Sinh Tử',
+        subtitle: '96 Minutes',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/62HCnUTziyWcpDaBO2i1DX17ljH.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up6',
+        title: 'Thunderbolts*',
+        subtitle: 'Thunderbolts*',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/oSxPbO5CbCuJXvLcLR8eqUCaj9M.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up7',
+        title: 'Mickey 17',
+        subtitle: 'Mickey 17',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/1SdMNGLLvmf3gBqKKKZzqEBnzCW.jpg',
+        hasComingSoonBadge: true,
+    },
+    {
+        id: 'up8',
+        title: 'Captain America: Brave New World',
+        subtitle: 'Captain America 4',
+        backdropUrl: 'https://image.tmdb.org/t/p/w780/pWHf4khOloNVfCxscsXFj3jj6gP.jpg',
+        hasComingSoonBadge: true,
+    },
+];
+
+/**
+ * Upcoming Movies Carousel Section
+ * "Phim Sắp Tới Trên Rổ" style horizontal carousel
+ * with styled navigation arrows using shadcn/ui carousel
+ */
+export default function UpcomingMoviesSection({
+    title = 'Coming Soon',
+    movies = defaultUpcomingMovies,
+}: UpcomingMoviesSectionProps) {
+
+    return (
+        <section className="py-4 lg:py-6">
+            <div className="w-full px-4 md:px-12 lg:px-16 2xl:px-12">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base lg:text-lg font-bold text-white">
+                        {title}
+                    </h2>
+                    {/* <Link
+                        href="/movies/upcoming"
+                        className="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                        Xem toàn bộ
+                        <ChevronRight className="w-3 h-3" />
+                    </Link> */}
+                </div>
+
+                {/* Carousel Container with styled arrows */}
+                <Carousel
+                    opts={{
+                        align: 'start',
+                        loop: false,
+                        slidesToScroll: 1,
+                        containScroll: 'trimSnaps',
+                    }}
+                    className="w-full"
+                >
+                    <div className="relative">
+                        <CarouselContent className="-ml-3 lg:-ml-4">
+                            {movies.map((movie) => (
+                                <CarouselItem key={movie.id} className="pl-3 lg:pl-4 basis-auto">
+                                    <HoverPreviewCard
+                                        movie={{
+                                            id: movie.id,
+                                            externalId: movie.externalId,
+                                            title: movie.title,
+                                            subtitle: movie.subtitle,
+                                            backdropUrl: movie.backdropUrl,
+                                            posterUrl: movie.backdropUrl,
+                                        }}
+                                        delay={600}
+                                    >
+                                        <Link
+                                            href={`/movies/${movie.externalId || movie.id}`}
+                                            className="upcoming-movie-card group/card block"
+                                        >
+                                            {/* Card Container - Landscape aspect ratio */}
+                                            <div className="relative w-56 lg:w-64 xl:w-72 aspect-[16/10] rounded-xl overflow-hidden">
+                                                {/* Background Image */}
+                                                <img
+                                                    src={movie.backdropUrl}
+                                                    alt={movie.title}
+                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+                                                    loading="lazy"
+                                                />
+
+                                                {/* Gradient Overlay */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                                                {/* Coming Soon Badge */}
+                                                {movie.hasComingSoonBadge && (
+                                                    <div className="absolute bottom-0 left-0 z-10">
+                                                        <span className="flex px-3 py-1.5 bg-[#1f1f1f] text-white text-[10px] font-bold rounded-tr-xl shadow-md uppercase tracking-wider">
+                                                            Sắp chiếu
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Hover overlay - subtle play indicator */}
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 bg-black/20">
+                                                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                                        <div className="w-0 h-0 border-l-[14px] border-l-white border-y-[8px] border-y-transparent ml-1" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Title Section */}
+                                            <div className="mt-2">
+                                                <h3 className="text-xs lg:text-sm font-medium text-white line-clamp-1 group-hover/card:text-gray-200 transition-colors">
+                                                    {movie.title}
+                                                </h3>
+                                                {movie.subtitle && (
+                                                    <p className="text-[10px] text-gray-500 line-clamp-1 mt-0.5">
+                                                        {movie.subtitle}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </Link>
+                                    </HoverPreviewCard>
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+
+                        {/* Navigation Arrows - Styled circular buttons */}
+                        <CarouselPrevious className="absolute -left-5 top-[40%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/30 hover:border-white/60 hover:bg-white/10 text-white/70 hover:text-white disabled:border-white/10 disabled:text-white/20" />
+                        <CarouselNext className="absolute -right-5 top-[40%] -translate-y-1/2 w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/30 hover:border-white/60 hover:bg-white/10 text-white/70 hover:text-white disabled:border-white/10 disabled:text-white/20" />
+                    </div>
+                </Carousel>
+            </div>
+        </section>
+    );
+}

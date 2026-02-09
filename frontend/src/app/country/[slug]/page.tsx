@@ -1,4 +1,4 @@
-import { MoviesUnifiedPage } from '@/components/features';
+import { MoviesUnifiedPage } from '@/features/movies';
 import { notFound } from 'next/navigation';
 
 // Force dynamic rendering for this page
@@ -57,7 +57,7 @@ export default async function CountryPage({ params }: CountryPageProps) {
     }
 
     return (
-        <MoviesUnifiedPage 
+        <MoviesUnifiedPage
             initialMovies={[]}
             pageTitle={`Phim ${COUNTRY_NAMES[slug]}`}
             initialFilters={{

@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { Play, Plus, Star, Clock, Calendar, ArrowLeft } from 'lucide-react';
-import { MovieRow, EpisodeSelector, CommentSection } from '@/components/features';
-import { serverApi } from '@/lib/api/server';
-import { MovieDetailClient } from '@/components/features/movie-detail-client';
+import { MovieRow, MovieDetailClient } from '@/features/movies';
+import { EpisodeSelector } from '@/features/watch';
+import { CommentSection } from '@/features/comments';
+import { serverApi } from '@/shared/lib/api/server';
 import { notFound } from 'next/navigation';
 
 // Force dynamic rendering for this page
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export default async function MovieDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     let movie: any = null;
-    
+
     try {
         movie = await serverApi.getMovieDetails(id);
     } catch (error) {
@@ -41,7 +42,7 @@ export default async function MovieDetailPage({ params }: { params: Promise<{ id
             }
         });
     }
-    
+
     // Fallback if no sources
     if (seasons.length === 0) {
         seasons.push({

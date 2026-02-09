@@ -29,6 +29,7 @@ interface Movie {
   quality?: string;
   episodeCurrent?: string;
   trailerUrl?: string;
+  lang?: string;
 }
 
 /**

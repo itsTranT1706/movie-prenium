@@ -4,14 +4,48 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, User, Heart, Play, LogOut, Menu, X, Loader2, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks';
-import { apiClient } from '@/lib/api/client';
+import { useAuth } from '@/features/auth';
+import { apiClient } from '@/shared/lib/api';
 import { Movie } from '@/types';
-import MovieCard from '@/components/features/movie-card';
-import { NavigationLink } from '@/components/ui';
-import { useLoading } from '@/contexts/loading-context';
+import { MovieCard } from '@/features/movies';
+import { NavigationLink } from '@/shared/components/ui';
+import { useLoading } from '@/shared/contexts';
+
+interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    time: string;
+    isRead: boolean;
+    image?: string;
+}
+
+const mockNotifications: Notification[] = [
+    {
+        id: '1',
+        title: 'Phim mới ra mắt',
+        message: 'Squid Game Phần 2 vừa được cập nhật!',
+        time: '2 phút trước',
+        isRead: false,
+        image: 'https://image.tmdb.org/t/p/w200/huE6S2f6f4sM2y7c2oW8J2.jpg' // Placeholder or valid image
+    },
+    {
+        id: '2',
+        title: 'Đừng bỏ lỡ',
+        message: 'Top 10 phim thịnh hành tuần này.',
+        time: '1 giờ trước',
+        isRead: false,
+    },
+    {
+        id: '3',
+        title: 'Cập nhật hệ thống',
+        message: 'Tính năng "Xem cùng nhau" đã sẵn sàng.',
+        time: '1 ngày trước',
+        isRead: true,
+    }
+];
 /**
  * Premium Header Component
  * - Fixed, transparent at top
@@ -39,7 +73,19 @@ export default function Header() {
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isGenresOpen, setIsGenresOpen] = useState(false);
+
     const [isCountriesOpen, setIsCountriesOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    };
+
+    const handleMarkAllAsRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    };
 
     // Search state
     const [searchQuery, setSearchQuery] = useState('');
@@ -136,8 +182,8 @@ export default function Header() {
         setSearchQuery('');
         setSearchResults([]);
         setVisibleCount(8);
-        const identifier = movie.externalId || movie.slug || movie.id;
-        router.push(`/movie/${identifier}`);
+        const identifier = movie.externalId || movie.slug;
+        router.push(`/movies/${identifier}`);
     };
 
     // Close search modal - memoized to prevent recreation
@@ -232,12 +278,12 @@ export default function Header() {
     return (
         <>
             <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+                className={`hidden lg:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
                     ? 'bg-black/95 backdrop-blur-sm'
                     : 'bg-gradient-to-b from-black/90 to-transparent'
                     }`}
             >
-                <div className="container">
+                <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-14 lg:h-16">
                         {/* Logo */}
                         <NavigationLink href="/" loadingType="fade" className="flex items-center">
@@ -339,6 +385,95 @@ export default function Header() {
                                 <Search className="w-5 h-5" />
                             </button>
 
+                            {/* Notifications */}
+                            {user && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowNotifications(!showNotifications)}
+                                        onBlur={() => setTimeout(() => setShowNotifications(false), 200)}
+                                        className="p-2 text-gray-300 hover:text-white transition-colors relative group outline-none"
+                                        aria-label="Notifications"
+                                    >
+                                        <Bell className="w-5 h-5" />
+                                        {unreadCount > 0 && (
+                                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border border-black/80 shadow-[0_0_4px_rgba(229,9,20,0.8)] animate-pulse" />
+                                        )}
+                                    </button>
+
+                                    {/* Notifications Dropdown */}
+                                    {showNotifications && (
+                                        <div className="absolute top-full right-0 mt-3 w-80 sm:w-96 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right">
+                                            {/* Caret */}
+                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-black/60 backdrop-blur-2xl border-l border-t border-white/10 rotate-45 transform" />
+
+                                            <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+                                                {/* Header */}
+                                                <div className="px-4 py-3 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                                                    <h3 className="text-sm font-bold text-white">Thông báo</h3>
+                                                    {unreadCount > 0 && (
+                                                        <button
+                                                            onClick={handleMarkAllAsRead}
+                                                            className="text-xs text-gray-400 hover:text-white transition-colors"
+                                                        >
+                                                            Đánh dấu đã đọc
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* List */}
+                                                <div className="overflow-y-auto custom-scrollbar">
+                                                    {notifications.length > 0 ? (
+                                                        <div className="divide-y divide-white/5">
+                                                            {notifications.map((notification) => (
+                                                                <div
+                                                                    key={notification.id}
+                                                                    className={`px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer group/item relative ${!notification.isRead ? 'bg-white/[0.02]' : ''}`}
+                                                                    onClick={() => handleMarkAsRead(notification.id)}
+                                                                >
+                                                                    <div className="flex gap-3">
+                                                                        {/* Optional Image */}
+                                                                        {notification.image ? (
+                                                                            <div className="flex-shrink-0 w-12 h-16 rounded overflow-hidden bg-gray-800">
+                                                                                <img src={notification.image} alt="" className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
+                                                                                <Bell className="w-5 h-5 text-gray-400" />
+                                                                            </div>
+                                                                        )}
+
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <h4 className={`text-sm font-medium mb-0.5 ${!notification.isRead ? 'text-white' : 'text-gray-300'}`}>
+                                                                                {notification.title}
+                                                                            </h4>
+                                                                            <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                                                                {notification.message}
+                                                                            </p>
+                                                                            <span className="text-[10px] text-gray-500 mt-1 block">
+                                                                                {notification.time}
+                                                                            </span>
+                                                                        </div>
+
+                                                                        {/* Unread Indicator */}
+                                                                        {!notification.isRead && (
+                                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-600 rounded-full shadow-[0_0_4px_rgba(229,9,20,0.5)]" />
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="py-8 text-center text-gray-500 text-sm">
+                                                            Không có thông báo mới
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* User Menu or Login Button */}
                             {user ? (
                                 <div className="relative group">
@@ -364,9 +499,9 @@ export default function Header() {
                                     {isUserMenuOpen && (
                                         <div className="absolute top-full right-0 mt-3 w-64 z-50 animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top-right">
                                             {/* Caret/Triangle */}
-                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-[#181818] border-l border-t border-white/10 rotate-45 transform" />
+                                            <div className="absolute right-3 -top-1.5 w-3 h-3 bg-black/60 backdrop-blur-2xl border-l border-t border-white/10 rotate-45 transform" />
 
-                                            <div className="bg-[#181818]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
+                                            <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
                                                 {/* User Header */}
                                                 <div className="px-4 py-3 border-b border-white/5 mb-1 bg-white/5">
                                                     <div className="flex items-center gap-3">
@@ -516,7 +651,16 @@ export default function Header() {
                                             </p>
                                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
                                                 {visibleResults.map((movie, index) => (
-                                                    <div key={movie.id || movie.slug} onClick={closeSearch} className="w-full">
+                                                    <div
+                                                        key={movie.id || movie.slug}
+                                                        onClick={() => {
+                                                            setIsSearchOpen(false);
+                                                            showLoading('fade');
+                                                            const identifier = movie.externalId || movie.slug;
+                                                            router.push(`/movies/${identifier}`);
+                                                        }}
+                                                        className="w-full cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
+                                                    >
                                                         <MovieCard
                                                             movie={{
                                                                 id: movie.id,
@@ -554,18 +698,35 @@ export default function Header() {
                                                     <span className="text-gray-600 text-sm">↓ Cuộn xuống để xem thêm</span>
                                                 </div>
                                             )}
-                                            {/* View All Button - At the bottom */}
-                                            <div className="flex justify-center mt-8 pt-6 border-t border-gray-800">
+                                            {/* View All Button - Netflix Premium Style */}
+                                            <div className="flex justify-center mt-8 pt-6 border-t border-white/[0.08]">
                                                 <button
                                                     onClick={() => {
                                                         showLoading('skeleton');
                                                         router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
                                                         closeSearch();
                                                     }}
-                                                    className="w-full max-w-md px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-base font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/50"
+                                                    className="group relative w-full px-6 py-4 overflow-hidden rounded-xl transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-red-900/20 hover:shadow-red-600/40 cursor-pointer"
                                                 >
-                                                    <span>Xem toàn bộ kết quả</span>
-                                                    <ChevronDown className="w-5 h-5 rotate-[-90deg]" />
+                                                    {/* Base gradient background - Deep Red to Netflix Red */}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-[#800000] via-[#b20710] to-[#e50914] opacity-90 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                                    {/* Animated shine line */}
+                                                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+
+                                                    {/* Content Container */}
+                                                    <div className="relative flex items-center justify-center gap-3">
+                                                        <Search className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
+                                                        <span className="text-white text-base font-bold tracking-wider uppercase drop-shadow-sm">
+                                                            Xem toàn bộ kết quả
+                                                        </span>
+                                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10 group-hover:bg-white/20 transition-all duration-300 group-hover:translate-x-1">
+                                                            <ChevronDown className="w-4 h-4 text-white rotate-[-90deg]" />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Subtle border overlay */}
+                                                    <div className="absolute inset-0 rounded-xl border border-white/10 group-hover:border-white/20 pointer-events-none transition-colors" />
                                                 </button>
                                             </div>
                                         </>

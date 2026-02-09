@@ -1,8 +1,8 @@
-import { MoviesFilterPageSimple } from '@/components/features';
+import { MoviesFilterPageSimple } from '@/features/movies';
 
 export default async function TopRatedMoviesPage() {
     return (
-        <MoviesFilterPageSimple 
+        <MoviesFilterPageSimple
             pageTitle="Phim Đánh Giá Cao"
         />
     );

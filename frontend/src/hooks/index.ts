@@ -1,2 +1,2 @@
-export { useAuth, AuthProvider } from './use-auth';
-export { useRequireAuth } from './use-require-auth';
+// Re-export auth hooks from features/auth for backwards compatibility
+export { useAuth, AuthProvider, useRequireAuth } from '@/features/auth';

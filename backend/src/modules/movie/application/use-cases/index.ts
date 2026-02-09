@@ -9,3 +9,8 @@ export * from './get-trending-movies.use-case';
 export * from './get-upcoming-movies.use-case';
 export * from './get-movie-details.use-case';
 export * from './filter-movies.use-case';
+export * from './react-to-movie.use-case';
+export * from './get-reaction-stats.use-case';
+export * from './get-movie-cast.use-case';
+export * from './get-movies-by-actor.use-case';
+export * from './get-actor-profile.use-case';

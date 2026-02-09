@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -19,6 +20,7 @@ model User {
   comments     Comment[]
   favorites    Favorite[]
   watchHistory WatchHistory[]
+  reactions    MovieReaction[]
 
   @@map("users")
 }
@@ -31,6 +33,9 @@ model Movie {
   description      String?
   posterUrl        String?
   backdropUrl      String?
+  logoUrl          String?
+  backdrops        String[]
+  posters          String[]
   releaseDate      DateTime?
   duration         Int?
   rating           Float?
@@ -125,4 +130,50 @@ enum MediaType {
 enum VoteType {
   UPVOTE
   DOWNVOTE
+}
+
+model MovieReaction {
+  id        String       @id @default(uuid())
+  userId    String
+  movieId   String       // TMDB external ID, no FK constraint
+  reaction  ReactionType
+  score     Int
+  review    String?      // Optional review text content
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, movieId])
+  @@index([movieId])
+  @@map("movie_reactions")
+}
+
+enum ReactionType {
+  MASTERPIECE
+  LOVE
+  GOOD
+  MEH
+}
+
+model TopBanner {
+  id            String    @id @default(uuid())
+  externalId    String?   @unique
+  title         String
+  originalTitle String?
+  mediaType     MediaType @default(MOVIE)
+  description   String?
+  posterUrl     String?
+  backdropUrl   String?
+  logoUrl       String?
+  trailerUrl    String?
+  releaseDate   DateTime?
+  duration      Int?
+  rating        Float?
+  genres        String[]
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("top_banners")
 }

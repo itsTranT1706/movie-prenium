@@ -21,6 +21,9 @@ export interface Movie {
     description?: string;
     posterUrl?: string;
     backdropUrl?: string;
+    logoUrl?: string;
+    backdrops?: string[];
+    posters?: string[];
     trailerUrl?: string;
     releaseDate?: string;
     duration?: number;
@@ -60,3 +63,25 @@ export interface Favorite {
     movieId: string;
     createdAt: string;
 }
+
+export interface MovieCast {
+    id: number;
+    name: string;
+    originalName: string;
+    character: string;
+    profileUrl: string | null;
+    order: number;
+}
+
+export interface ActorProfile {
+    id: number;
+    name: string;
+    biography: string;
+    birthday: string | null;
+    deathday: string | null;
+    placeOfBirth: string | null;
+    profileUrl: string | null;
+    knownForDepartment: string;
+    movies: Movie[];
+}
+

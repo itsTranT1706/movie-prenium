@@ -75,51 +75,70 @@ export class GetMovieDetailsUseCase {
                 sources = result.sources;
             }
 
-            // If movie has TMDB ID but no trailer, try to fetch trailer from TMDB
+            // If movie has TMDB ID, try to fetch trailer, backdrops, and posters from TMDB
             // KKPhim stores TMDB ID in externalId when available (numeric value)
-            if (!movie.trailerUrl && movie.externalId && /^\d+$/.test(movie.externalId)) {
-                this.logger.debug(`Fetching trailer from TMDB for ${movie.title} (ID: ${movie.externalId}, type: ${movie.mediaType})`);
+            if (movie.externalId && /^\d+$/.test(movie.externalId)) {
+                this.logger.debug(`Fetching TMDB data for ${movie.title} (ID: ${movie.externalId}, type: ${movie.mediaType})`);
                 try {
-                    let trailerUrl: string | undefined;
+                    let trailerUrl: string | undefined = movie.trailerUrl;
+                    let logoUrl: string | undefined = movie.logoUrl;
+                    let backdrops: string[] = movie.backdrops || [];
+                    let posters: string[] = movie.posters || [];
+
+                    // Fetch from TMDB based on media type
                     if (movie.mediaType === 'tv') {
-                        trailerUrl = await (this.movieProvider as any).tmdbClient?.getTVTrailerUrl?.(movie.externalId);
+                        const tmdbTvShow = await (this.movieProvider as any).getTVShowDetails?.(movie.externalId);
+                        if (tmdbTvShow) {
+                            trailerUrl = trailerUrl || tmdbTvShow.trailerUrl;
+                            logoUrl = logoUrl || tmdbTvShow.logoUrl;
+                            backdrops = (tmdbTvShow.backdrops && tmdbTvShow.backdrops.length > 0) ? tmdbTvShow.backdrops : backdrops;
+                            posters = (tmdbTvShow.posters && tmdbTvShow.posters.length > 0) ? tmdbTvShow.posters : posters;
+                        }
                     } else {
-                        trailerUrl = await (this.movieProvider as any).tmdbClient?.getTrailerUrl?.(movie.externalId);
+                        const tmdbMovie = await this.movieProvider.getMovieDetails(movie.externalId);
+                        if (tmdbMovie) {
+                            trailerUrl = trailerUrl || tmdbMovie.trailerUrl;
+                            logoUrl = logoUrl || tmdbMovie.logoUrl;
+                            backdrops = (tmdbMovie.backdrops && tmdbMovie.backdrops.length > 0) ? tmdbMovie.backdrops : backdrops;
+                            posters = (tmdbMovie.posters && tmdbMovie.posters.length > 0) ? tmdbMovie.posters : posters;
+                        }
                     }
 
-                    if (trailerUrl) {
-                        this.logger.debug(`Found TMDB trailer for ${movie.title}: ${trailerUrl}`);
-                        // Update movie with trailer - create new Movie with explicit props
-                        movie = Movie.create(movie.id, {
-                            externalId: movie.externalId,
-                            slug: movie.slug,
-                            title: movie.title,
-                            originalTitle: movie.originalTitle,
-                            mediaType: movie.mediaType,
-                            description: movie.description,
-                            posterUrl: movie.posterUrl,
-                            backdropUrl: movie.backdropUrl,
-                            trailerUrl, // Updated trailer
-                            releaseDate: movie.releaseDate,
-                            duration: movie.duration,
-                            rating: movie.rating,
-                            genres: movie.genres,
-                            cast: movie.cast,
-                            director: movie.director,
-                            country: movie.country,
-                            quality: movie.quality,
-                            lang: movie.lang,
-                            episodeCurrent: movie.episodeCurrent,
-                            imdbId: movie.imdbId,
-                            originalLanguage: movie.originalLanguage,
-                            provider: movie.provider,
-                            streamUrl: movie.streamUrl,
-                            createdAt: movie.createdAt,
-                            updatedAt: new Date(),
-                        });
-                    }
+                    this.logger.debug(`Found TMDB data for ${movie.title}: trailer=${!!trailerUrl}, backdrops=${backdrops.length}, posters=${posters.length}`);
+
+                    // Update movie with TMDB data
+                    movie = Movie.create(movie.id, {
+                        externalId: movie.externalId,
+                        slug: movie.slug,
+                        title: movie.title,
+                        originalTitle: movie.originalTitle,
+                        mediaType: movie.mediaType,
+                        description: movie.description,
+                        posterUrl: movie.posterUrl,
+                        backdropUrl: movie.backdropUrl,
+                        logoUrl,
+                        backdrops,
+                        posters,
+                        trailerUrl,
+                        releaseDate: movie.releaseDate,
+                        duration: movie.duration,
+                        rating: movie.rating,
+                        genres: movie.genres,
+                        cast: movie.cast,
+                        director: movie.director,
+                        country: movie.country,
+                        quality: movie.quality,
+                        lang: movie.lang,
+                        episodeCurrent: movie.episodeCurrent,
+                        imdbId: movie.imdbId,
+                        originalLanguage: movie.originalLanguage,
+                        provider: movie.provider,
+                        streamUrl: movie.streamUrl,
+                        createdAt: movie.createdAt,
+                        updatedAt: new Date(),
+                    });
                 } catch (e) {
-                    this.logger.warn(`Failed to fetch TMDB trailer for ${movie.title}: ${e.message}`);
+                    this.logger.warn(`Failed to fetch TMDB data for ${movie.title}: ${e.message}`);
                 }
             }
 
@@ -186,143 +205,59 @@ export class GetMovieDetailsUseCase {
                 }
             }
 
-            // 3. If KKPhim has the movie with trailer, use it
-            if (kkphimMovie && kkphimMovie.trailerUrl) {
-                this.logger.debug(`Using KKPhim movie with trailer for TMDB ID ${tmdbId}`);
-                movie = kkphimMovie;
-                await this.movieRepository.save(movie);
-            }
-            // 4. If no trailer from KKPhim or no KKPhim data, fetch from TMDB
-            else if (!movie || !movie.trailerUrl) {
-                this.logger.debug(`Fetching from TMDB for ID ${tmdbId} (mediaType: ${mediaType})`);
-
-                try {
-                    let freshMovie: Movie | null = null;
-
-                    // Fetch from correct TMDB endpoint based on mediaType
-                    if (mediaType === 'tv') {
-                        this.logger.debug(`Fetching TV show details from TMDB for ID ${tmdbId}`);
-                        freshMovie = await (this.movieProvider as any).getTVShowDetails?.(tmdbId) || null;
-                    }
-
-                    // If not TV or TV fetch failed, try movie endpoint
-                    if (!freshMovie) {
-                        this.logger.debug(`Fetching movie details from TMDB for ID ${tmdbId}`);
-                        freshMovie = await this.movieProvider.getMovieDetails(tmdbId);
-                    }
-
-                    if (!freshMovie) {
-                        // If TMDB fetch fails but we have cached or KKPhim data, use it
-                        if (movie || kkphimMovie) {
-                            this.logger.warn(`TMDB returned null for ${tmdbId}, using existing data`);
-                            movie = movie || kkphimMovie;
-                        } else {
-                            return Result.fail(new Error('Movie not found'));
-                        }
-                    } else {
-                        // Merge TMDB data with KKPhim data if available
-                        if (kkphimMovie) {
-                            // Prefer KKPhim metadata but use TMDB trailer
-                            movie = Movie.create(kkphimMovie.id, {
-                                externalId: kkphimMovie.externalId,
-                                slug: kkphimMovie.slug,
-                                title: kkphimMovie.title,
-                                originalTitle: kkphimMovie.originalTitle,
-                                mediaType: kkphimMovie.mediaType,
-                                description: kkphimMovie.description || freshMovie.description,
-                                posterUrl: kkphimMovie.posterUrl || freshMovie.posterUrl,
-                                backdropUrl: kkphimMovie.backdropUrl || freshMovie.backdropUrl,
-                                trailerUrl: freshMovie.trailerUrl, // TMDB trailer
-                                releaseDate: kkphimMovie.releaseDate || freshMovie.releaseDate,
-                                duration: kkphimMovie.duration || freshMovie.duration,
-                                rating: kkphimMovie.rating || freshMovie.rating,
-                                genres: kkphimMovie.genres.length > 0 ? kkphimMovie.genres : freshMovie.genres,
-                                cast: kkphimMovie.cast,
-                                director: kkphimMovie.director,
-                                country: kkphimMovie.country,
-                                quality: kkphimMovie.quality,
-                                lang: kkphimMovie.lang,
-                                episodeCurrent: kkphimMovie.episodeCurrent,
-                                imdbId: kkphimMovie.imdbId,
-                                originalLanguage: kkphimMovie.originalLanguage,
-                                provider: 'kkphim',
-                                streamUrl: kkphimMovie.streamUrl,
-                                createdAt: kkphimMovie.createdAt,
-                                updatedAt: new Date(),
-                            });
-                        } else {
-                            movie = freshMovie;
-                        }
-
-                        // Cache it
-                        await this.movieRepository.save(movie);
-                    }
-                } catch (error) {
-                    // Handle TMDB API errors with cache fallback
-                    if (error instanceof TMDBNotFoundError) {
-                        // If movie not found, try TV endpoint
-                        if (mediaType === 'movie') {
-                            this.logger.debug(`Movie not found, trying TV endpoint for ${tmdbId}`);
-                            try {
-                                const tvMovie = await (this.movieProvider as any).getTVShowDetails?.(tmdbId);
-                                if (tvMovie) {
-                                    movie = tvMovie;
-                                    await this.movieRepository.save(tvMovie);
-                                } else if (kkphimMovie) {
-                                    movie = kkphimMovie;
-                                } else {
-                                    return Result.fail(new Error('Movie not found'));
-                                }
-                            } catch {
-                                if (kkphimMovie) {
-                                    movie = kkphimMovie;
-                                } else {
-                                    return Result.fail(new Error('Movie not found'));
-                                }
-                            }
-                        } else {
-                            this.logger.warn(`Content not found in TMDB: ${tmdbId}`);
-                            if (kkphimMovie) {
-                                movie = kkphimMovie;
-                            } else {
-                                return Result.fail(new Error('Movie not found'));
-                            }
-                        }
-                    } else if (error instanceof TMDBRateLimitError) {
-                        this.logger.warn(`TMDB rate limit exceeded. Retry after: ${error.retryAfter || 'unknown'} seconds`);
-                        const staleMovie = await this.movieRepository.findByExternalId(tmdbId);
-                        if (staleMovie) {
-                            this.logger.log(`Serving stale cache for ${tmdbId} due to rate limit`);
-                            movie = staleMovie;
-                        } else if (kkphimMovie) {
-                            movie = kkphimMovie;
-                        } else {
-                            return Result.fail(new Error('Too many requests. Please try again later.'));
-                        }
-                    } else if (error instanceof TMDBApiError) {
-                        this.logger.error(`TMDB API error (${error.statusCode}): ${error.message}`);
-                        const staleMovie = await this.movieRepository.findByExternalId(tmdbId);
-                        if (staleMovie) {
-                            this.logger.log(`Serving stale cache for ${tmdbId} due to TMDB error`);
-                            movie = staleMovie;
-                        } else if (kkphimMovie) {
-                            movie = kkphimMovie;
-                        } else {
-                            return Result.fail(new Error('Failed to fetch movie details'));
-                        }
-                    } else {
-                        this.logger.error(`Unexpected error fetching movie: ${error}`);
-                        const staleMovie = await this.movieRepository.findByExternalId(tmdbId);
-                        if (staleMovie) {
-                            this.logger.log(`Serving stale cache for ${tmdbId} due to unexpected error`);
-                            movie = staleMovie;
-                        } else if (kkphimMovie) {
-                            movie = kkphimMovie;
-                        } else {
-                            throw error;
-                        }
-                    }
+            // 3. Always fetch TMDB data to get images (backdrops/posters/logoUrl)
+            // Even if KKPhim has trailer, we need TMDB for images
+            let tmdbData: Movie | null = null;
+            this.logger.debug(`Fetching TMDB data for ID ${tmdbId} (mediaType: ${mediaType})`);
+            try {
+                if (mediaType === 'tv') {
+                    tmdbData = await (this.movieProvider as any).getTVShowDetails?.(tmdbId) || null;
                 }
+                if (!tmdbData) {
+                    tmdbData = await this.movieProvider.getMovieDetails(tmdbId);
+                }
+            } catch (tmdbError) {
+                this.logger.warn(`TMDB fetch failed for ${tmdbId}: ${tmdbError.message}`);
+            }
+
+            // 4. Merge data: prioritize KKPhim metadata but use TMDB for images/trailer
+            if (kkphimMovie) {
+                movie = Movie.create(kkphimMovie.id, {
+                    externalId: kkphimMovie.externalId,
+                    slug: kkphimMovie.slug,
+                    title: kkphimMovie.title,
+                    originalTitle: kkphimMovie.originalTitle,
+                    mediaType: kkphimMovie.mediaType,
+                    description: kkphimMovie.description || tmdbData?.description,
+                    posterUrl: kkphimMovie.posterUrl || tmdbData?.posterUrl,
+                    backdropUrl: kkphimMovie.backdropUrl || tmdbData?.backdropUrl,
+                    logoUrl: tmdbData?.logoUrl, // TMDB logoUrl
+                    backdrops: tmdbData?.backdrops || [], // TMDB backdrops
+                    posters: tmdbData?.posters || [], // TMDB posters
+                    trailerUrl: kkphimMovie.trailerUrl || tmdbData?.trailerUrl, // Prefer KKPhim trailer, fallback to TMDB
+                    releaseDate: kkphimMovie.releaseDate || tmdbData?.releaseDate,
+                    duration: kkphimMovie.duration || tmdbData?.duration,
+                    rating: kkphimMovie.rating || tmdbData?.rating,
+                    genres: kkphimMovie.genres.length > 0 ? kkphimMovie.genres : (tmdbData?.genres || []),
+                    cast: kkphimMovie.cast,
+                    director: kkphimMovie.director,
+                    country: kkphimMovie.country,
+                    quality: kkphimMovie.quality,
+                    lang: kkphimMovie.lang,
+                    episodeCurrent: kkphimMovie.episodeCurrent,
+                    imdbId: kkphimMovie.imdbId,
+                    originalLanguage: kkphimMovie.originalLanguage,
+                    provider: 'kkphim',
+                    streamUrl: kkphimMovie.streamUrl,
+                    createdAt: kkphimMovie.createdAt,
+                    updatedAt: new Date(),
+                });
+                await this.movieRepository.save(movie);
+            } else if (tmdbData) {
+                movie = tmdbData;
+                await this.movieRepository.save(movie);
+            } else if (!movie) {
+                return Result.fail(new Error('Movie not found'));
             }
 
             // If we still don't have a movie, fail

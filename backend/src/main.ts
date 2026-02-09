@@ -30,6 +30,9 @@ async function bootstrap() {
   // API prefix (RESTful versioning)
   app.setGlobalPrefix('api/v1');
 
+  // Enable shutdown hooks
+  app.enableShutdownHooks();
+
   await app.listen(port);
   console.log(`🚀 Backend running on http://localhost:${port}`);
 }

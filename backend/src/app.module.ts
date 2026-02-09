@@ -13,6 +13,7 @@ import { StreamingModule } from './modules/streaming/infrastructure/streaming.mo
 import { RecommendationModule } from './modules/recommendation/infrastructure/recommendation.module';
 import { AIModule } from './modules/ai/infrastructure/ai.module';
 import { CommentModule } from './modules/comment/infrastructure/comment.module';
+import { TopBannerModule } from './modules/top-banner/infrastructure/top-banner.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CommentModule } from './modules/comment/infrastructure/comment.module';
     StreamingModule,
     RecommendationModule,
     CommentModule,
+    TopBannerModule,
 
     // AI Module (Stub)
     AIModule,

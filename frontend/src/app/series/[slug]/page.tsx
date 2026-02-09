@@ -1,5 +1,5 @@
-import { MoviesFilterPage } from '@/components/features';
-import { serverApi } from '@/lib/api/server';
+import { MoviesFilterPage } from '@/features/movies';
+import { serverApi } from '@/shared/lib/api/server';
 import { notFound } from 'next/navigation';
 
 // Disable static generation for this dynamic page

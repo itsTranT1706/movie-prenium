@@ -4,3 +4,4 @@ export * from './kkphim-movie.provider';
 export * from './kkphim-streaming.adapter';
 export * from './nguonc-streaming.adapter';
 export * from './streaming-provider.registry';
+export * from './prisma-reaction.repository';

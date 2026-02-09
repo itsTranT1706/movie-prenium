@@ -1,8 +1,8 @@
-import { MoviesFilterPageSimple } from '@/components/features';
+import { MoviesFilterPageSimple } from '@/features/movies';
 
 export default async function NowPlayingMoviesPage() {
     return (
-        <MoviesFilterPageSimple 
+        <MoviesFilterPageSimple
             pageTitle="Phim Đang Chiếu Rạp"
         />
     );

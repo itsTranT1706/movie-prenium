@@ -17,15 +17,17 @@ export class GetTrendingMoviesUseCase {
             // Fetch trending movies from TMDB
             const movies = await this.movieProvider.getTrendingMovies(timeWindow);
             console.log('✅ [GetTrendingMoviesUseCase] Got movies:', movies.length);
-            
-            // Cache results in repository
-            await Promise.all(
+
+            // Cache results in repository (non-blocking, don't fail if caching fails)
+            Promise.all(
                 movies.map(movie => this.movieRepository.save(movie))
-            );
+            ).catch(cacheError => {
+                console.warn('⚠️ [GetTrendingMoviesUseCase] Failed to cache movies (non-blocking):', cacheError.message);
+            });
 
             return Result.ok(movies);
         } catch (error) {
-            console.error('❌ [GetTrendingMoviesUseCase] Error:', error);
+            console.error('❌ [GetTrendingMoviesUseCase] Error fetching movies:', error);
             return Result.fail(error as Error);
         }
     }
