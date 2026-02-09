@@ -92,7 +92,7 @@ function RegisterForm() {
             <div className="relative z-10 flex items-center justify-center px-4 py-8 min-h-screen">
                 <div className="w-full max-w-[380px]">
                     {/* Form Card */}
-                    <div className="bg-black/80 rounded-lg px-10 py-12 backdrop-blur-sm shadow-2xl shadow-black/50 animate-fade-in-up">
+                    <div className="bg-black/80 rounded-lg px-8 py-10 backdrop-blur-sm shadow-2xl shadow-black/50 animate-fade-in-up">
                         <h1 className="text-2xl font-semibold text-white mb-6">Sign Up</h1>
 
                         <form onSubmit={handleSubmit} className="space-y-3">
@@ -105,7 +105,7 @@ function RegisterForm() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3.5 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
                                 />
                             </div>
 
@@ -118,7 +118,7 @@ function RegisterForm() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3.5 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
                                 />
                                 <button
                                     type="button"
@@ -137,7 +137,7 @@ function RegisterForm() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3.5 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
                                 />
                             </div>
 
@@ -195,7 +195,7 @@ function RegisterForm() {
                         </form>
 
                         {/* Sign In Link */}
-                        <div className="mt-12 text-gray-400 text-sm">
+                        <div className="mt-6 text-gray-400 text-sm">
                             Already have an account?{' '}
                             <Link href="/login" className="text-white hover:underline font-medium">
                                 Sign in

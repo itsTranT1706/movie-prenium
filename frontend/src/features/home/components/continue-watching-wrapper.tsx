@@ -58,12 +58,14 @@ export function ContinueWatchingWrapper() {
             try {
                 setIsLoading(true);
                 const data = await apiClient.getContinueWatching(10);
-                // console.log('🎬 [ContinueWatching] Raw data from API:', data);
-                // console.log('🎬 [ContinueWatching] Server names:', data?.map((i: any) => ({
-                //     title: i.movie?.title,
-                //     serverName: i.serverName,
-                //     episodeNumber: i.episodeNumber
-                // })));
+                console.log('🎬 [ContinueWatching] Raw data:', data);
+                data?.forEach((item: any) => {
+                    console.log(`Item: ${item.movie?.title}`, {
+                        serverName: item.serverName,
+                        serverDisplayName: item.serverDisplayName,
+                        formatted: formatServerName(item.serverName)
+                    });
+                });
                 setItems(data || []);
             } catch (error) {
                 console.error('[ContinueWatchingWrapper] Failed to fetch:', error);
@@ -136,12 +138,22 @@ export function ContinueWatchingWrapper() {
                 <div className="relative -mx-4 md:-mx-12 lg:-mx-16 2xl:-mx-12">
                     <div className="flex gap-3 lg:gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 lg:px-16 2xl:px-12 pb-2">
                         {items.map((item) => {
+                            // VISIBLE DEBUG INDICATOR
+                            // if (process.env.NODE_ENV === 'development') {
+                            //    console.error('🐛 [DEBUG ITEM]', item);
+                            // }
+
                             const movie = item.movie;
                             if (!movie) return null;
 
                             const movieLink = movie.externalId || movie.id;
                             const episodeInfo = item.episodeNumber ? `Tập ${item.episodeNumber}` : undefined;
-                            const friendlyServerName = formatServerName(item.serverName);
+                            const friendlyServerName = item.serverDisplayName || formatServerName(item.serverName);
+
+                            // Debug log for this specific item
+                            // console.log(`render item ${movie.title}:`, { friendlyServerName, serverDisplayName: item.serverDisplayName, serverName: item.serverName });
+
+                            const showServerName = friendlyServerName && friendlyServerName.trim().length > 0;
 
                             return (
                                 <div
@@ -178,12 +190,6 @@ export function ContinueWatchingWrapper() {
                                                 </div>
                                             </div>
 
-                                            {/* Server badge */}
-                                            {friendlyServerName && (
-                                                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/70 text-white">
-                                                    {friendlyServerName}
-                                                </div>
-                                            )}
                                         </div>
                                     </Link>
 
@@ -206,8 +212,8 @@ export function ContinueWatchingWrapper() {
                                         </h3>
                                         <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
                                             {episodeInfo && <span>{episodeInfo}</span>}
-                                            {episodeInfo && friendlyServerName && <span>•</span>}
-                                            {friendlyServerName && <span>{friendlyServerName}</span>}
+                                            {episodeInfo && showServerName && <span>•</span>}
+                                            {showServerName && <span>{friendlyServerName}</span>}
                                         </div>
                                     </div>
                                 </div>

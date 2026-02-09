@@ -6,6 +6,7 @@ export interface WatchHistoryItem {
     movieId: string;
     episodeNumber?: number;
     serverName?: string;
+    serverDisplayName?: string;
     firstWatchedAt: string;
     lastWatchedAt: string;
     completed: boolean;
@@ -16,8 +17,8 @@ class WatchHistoryService extends BaseApiClient {
     /**
      * Add or update watch history
      */
-    async addWatchHistory(movieId: string, episodeNumber?: number, movieData?: any, serverName?: string) {
-        const payload = { movieId, episodeNumber, serverName, movieData };
+    async addWatchHistory(movieId: string, episodeNumber?: number, movieData?: any, serverName?: string, serverDisplayName?: string) {
+        const payload = { movieId, episodeNumber, serverName, movieData, serverDisplayName };
         return this.request<WatchHistoryItem>('/watch-history', {
             method: 'POST',
             body: JSON.stringify(payload),

@@ -86,7 +86,7 @@ function LoginForm() {
             <div className="relative z-10 flex items-center justify-center px-4 py-8 min-h-screen">
                 <div className="w-full max-w-[380px]">
                     {/* Form Card */}
-                    <div className="bg-black/80 rounded-lg px-10 py-12 backdrop-blur-sm shadow-2xl shadow-black/50 animate-fade-in-up">
+                    <div className="bg-black/80 rounded-lg px-8 py-10 backdrop-blur-sm shadow-2xl shadow-black/50 animate-fade-in-up">
                         <h1 className="text-2xl font-semibold text-white mb-6">Sign In</h1>
 
                         <form onSubmit={handleSubmit} className="space-y-3">
@@ -99,7 +99,7 @@ function LoginForm() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3.5 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
                                 />
                             </div>
 
@@ -112,7 +112,7 @@ function LoginForm() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3.5 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
+                                    className="w-full px-4 py-3 bg-[#333] border border-[#555] rounded text-white text-sm placeholder-gray-500 focus:outline-none focus:bg-[#454545] focus:border-gray-400 transition-colors disabled:opacity-50"
                                 />
                                 <button
                                     type="button"
@@ -179,7 +179,7 @@ function LoginForm() {
                         </div>
 
                         {/* Sign Up Link */}
-                        <div className="mt-12 text-gray-400 text-sm">
+                        <div className="mt-6 text-gray-400 text-sm">
                             New to PhePhim?{' '}
                             <Link href="/register" className="text-white hover:underline font-medium">
                                 Sign up now

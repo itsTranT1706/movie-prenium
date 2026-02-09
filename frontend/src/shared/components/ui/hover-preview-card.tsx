@@ -384,7 +384,7 @@ export function HoverPreviewCard({
     return (
         <div
             ref={triggerRef}
-            className="relative inline-block hover-preview-trigger"
+            className="relative block w-full h-full hover-preview-trigger"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >

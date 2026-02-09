@@ -18,6 +18,7 @@ export interface WatchingItem {
   lastWatchedAt: Date;
   currentEpisode?: string;
   serverName?: string;
+  serverDisplayName?: string;
   remainingTime?: string;
 }
 
@@ -83,7 +84,7 @@ export const ContinueWatchingSection: React.FC<ContinueWatchingSectionProps> = (
               onPlay={onPlay ? () => onPlay(item.movie.id) : undefined}
               metadata={{
                 episode: item.currentEpisode,
-                serverName: item.serverName,
+                serverName: item.serverDisplayName || item.serverName,
                 remainingTime: item.remainingTime,
               }}
             />

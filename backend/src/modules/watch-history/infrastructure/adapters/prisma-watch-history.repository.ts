@@ -15,6 +15,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
         episodeNumber?: number,
         serverName?: string,
         movieData?: any,
+        serverDisplayName?: string,
     ): Promise<WatchHistory> {
         const episodeNum = episodeNumber !== undefined ? episodeNumber : null;
 
@@ -23,6 +24,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
             movieId,
             episodeNumber: episodeNum,
             serverName,
+            serverDisplayName,
             hasMovieData: !!movieData,
         });
 
@@ -170,12 +172,14 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                     lastWatchedAt: new Date(),
                     completed: false,
                     serverName: serverName || undefined,
+                    serverDisplayName: serverDisplayName || undefined,
                 },
                 create: {
                     userId,
                     movieId: actualMovieId, // Use the actual movie ID
                     episodeNumber: episodeNum,
                     serverName: serverName || undefined,
+                    serverDisplayName: serverDisplayName || undefined,
                     firstWatchedAt: new Date(),
                     lastWatchedAt: new Date(),
                     completed: false,
@@ -234,8 +238,22 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
                 userId,
                 completed: false,
             },
-            include: {
-                movie: true,
+            select: {
+                id: true,
+                episodeNumber: true,
+                serverName: true,
+                serverDisplayName: true,
+                lastWatchedAt: true,
+                movie: {
+                    select: {
+                        id: true,
+                        externalId: true,
+                        title: true,
+                        posterUrl: true,
+                        backdropUrl: true,
+                        mediaType: true,
+                    },
+                },
             },
             orderBy: {
                 lastWatchedAt: 'desc',
@@ -303,6 +321,7 @@ export class PrismaWatchHistoryRepository implements WatchHistoryRepository {
             movieId: data.movieId,
             episodeNumber: data.episodeNumber ?? undefined,
             serverName: data.serverName ?? undefined,
+            serverDisplayName: data.serverDisplayName ?? undefined,
             firstWatchedAt: data.firstWatchedAt,
             lastWatchedAt: data.lastWatchedAt,
             completed: data.completed,

@@ -31,6 +31,24 @@ export function WatchPageClient({
     currentServerId = 'server1',
     currentEpisodeId = 'e1'
 }: WatchPageClientProps) {
+
+    // Helper to format server name for display
+    const formatServerName = (name?: string): string | undefined => {
+        if (!name) return undefined;
+        const lowerName = name.toLowerCase();
+
+        if (lowerName.includes('vietsub') || lowerName.includes('viet sub')) return 'Vietsub';
+        if (lowerName.includes('thuyết minh') || lowerName.includes('thuyet minh')) return 'Thuyết minh';
+        if (lowerName.includes('lồng tiếng') || lowerName.includes('long tieng')) return 'Lồng tiếng';
+        if (lowerName.includes('engsub') || lowerName.includes('eng sub')) return 'Engsub';
+        if (lowerName.includes('raw')) return 'Raw';
+
+        // Try to extract text in parentheses
+        const parenMatch = name.match(/\(([^)]+)\)/);
+        if (parenMatch) return parenMatch[1];
+
+        return name;
+    };
     const { user, isAuthenticated } = useAuth();
     const requireAuth = useRequireAuth();
     const playerRef = useRef<HTMLDivElement>(null);
@@ -151,7 +169,8 @@ export function WatchPageClient({
                         movie.id,
                         episodeNumber,
                         movieData,
-                        currentServer?.name || currentServerId // Pass server NAME not ID
+                        currentServerId, // Pass server ID to ensure correct URL generation for Continue Watching
+                        formatServerName(currentServer?.name) // Pass friendly display name
                     );
                     // console.log('✅ Watch history tracked:', result);
                 } catch (err) {

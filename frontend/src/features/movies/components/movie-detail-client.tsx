@@ -146,7 +146,7 @@ export function MovieDetailClient({
     return (
         <div className="min-h-screen bg-[#0a0a0a]">
             {/* Hero Section with Backdrop */}
-            <div className="relative h-[60vh] md:h-[50vh] lg:h-[50vh]">
+            <div className="relative h-[60vh] md:h-[70vh] lg:h-[80vh]">
                 {/* Backdrop Image */}
                 <div className="absolute inset-0">
                     <img
@@ -155,6 +155,25 @@ export function MovieDetailClient({
                         className="w-full h-full object-cover"
                     />
                 </div>
+
+                {/* Halftone Dot Shading Layer - Consistent with Hero Banner */}
+                <div
+                    className="absolute inset-0 pointer-events-none z-0"
+                    style={{
+                        // Pattern: Fine halftone dots
+                        backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.4) 1px, transparent 1px), radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)`,
+                        backgroundSize: '4px 4px, 4px 4px',
+                        backgroundPosition: '0 0, 2px 2px',
+
+                        // Blend
+                        mixBlendMode: 'overlay',
+                        opacity: 0.4,
+
+                        // Mask: Center subject lighter
+                        maskImage: `radial-gradient(circle at 50% 50%, transparent 0%, black 100%)`,
+                        WebkitMaskImage: `radial-gradient(circle at 50% 50%, transparent 0%, black 100%)`,
+                    }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent md:from-black md:via-black/80" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/30" />
 
@@ -181,7 +200,7 @@ export function MovieDetailClient({
             </div>
 
             {/* Content */}
-            <div className="relative pt-16 md:pt-0 md:-mt-32 lg:-mt-40">
+            <div className="relative pt-16 md:pt-0 md:-mt-32 lg:-mt-40 z-10">
                 <div className="container px-4 md:px-6">
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* Poster - Desktop only */}
@@ -470,17 +489,6 @@ export function MovieDetailClient({
                     </div>
                 </div>
 
-                {/* Similar Movies */}
-                {similarMovies.length > 0 && (
-                    <LazySection minHeight="300px" rootMargin="200px">
-                        <div className="mt-12 pb-12">
-                            <MovieRow
-                                title="Phim tương tự"
-                                movies={similarMovies}
-                            />
-                        </div>
-                    </LazySection>
-                )}
             </div>
         </div>
     );

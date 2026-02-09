@@ -62,8 +62,8 @@ export const apiClient = {
     changePassword: userService.changePassword.bind(userService),
 
     // Watch History
-    addWatchHistory: (movieId: string, episodeNumber?: number, movieData?: any, serverName?: string) =>
-        watchHistoryService.addWatchHistory(movieId, episodeNumber, movieData, serverName),
+    addWatchHistory: (movieId: string, episodeNumber?: number, movieData?: any, serverName?: string, serverDisplayName?: string) =>
+        watchHistoryService.addWatchHistory(movieId, episodeNumber, movieData, serverName, serverDisplayName),
     markCompleted: watchHistoryService.markCompleted.bind(watchHistoryService),
     getContinueWatching: watchHistoryService.getContinueWatching.bind(watchHistoryService),
     getWatchHistory: watchHistoryService.getHistory.bind(watchHistoryService),

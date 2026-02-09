@@ -9,7 +9,7 @@ export class AddWatchHistoryUseCase {
     constructor(
         @Inject(WATCH_HISTORY_REPOSITORY)
         private readonly repository: WatchHistoryRepository,
-    ) {}
+    ) { }
 
     async execute(
         userId: string,
@@ -17,7 +17,8 @@ export class AddWatchHistoryUseCase {
         episodeNumber?: number,
         serverName?: string,
         movieData?: any,
+        serverDisplayName?: string,
     ) {
-        return await this.repository.addOrUpdate(userId, movieId, episodeNumber, serverName, movieData);
+        return await this.repository.addOrUpdate(userId, movieId, episodeNumber, serverName, movieData, serverDisplayName);
     }
 }

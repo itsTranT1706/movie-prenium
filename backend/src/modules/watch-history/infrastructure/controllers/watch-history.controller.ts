@@ -29,24 +29,24 @@ export class WatchHistoryController {
         private readonly getContinueWatchingUseCase: GetContinueWatchingUseCase,
         private readonly getUserHistoryUseCase: GetUserHistoryUseCase,
         private readonly removeWatchHistoryUseCase: RemoveWatchHistoryUseCase,
-    ) {}
+    ) { }
 
     @Post()
     async addWatchHistory(
         @Req() req: any,
-        @Body() body: { movieId: string; episodeNumber?: number; serverName?: string; movieData?: any },
+        @Body() body: { movieId: string; episodeNumber?: number; serverName?: string; movieData?: any; serverDisplayName?: string },
     ) {
         console.log('🔐 [WatchHistory] Request user:', req.user);
         console.log('📦 [WatchHistory] Raw body received:', JSON.stringify(body, null, 2));
-        
+
         // JWT payload uses 'userId' not 'id'
         const userId = req.user?.userId || req.user?.id;
-        
+
         if (!userId) {
             console.error('❌ [WatchHistory] No userId found in request');
             throw new Error('User not authenticated');
         }
-        
+
         console.log('🎬 [WatchHistory] Adding watch history:', {
             userId,
             movieId: body.movieId,
@@ -55,7 +55,7 @@ export class WatchHistoryController {
             hasMovieData: !!body.movieData,
             movieDataKeys: body.movieData ? Object.keys(body.movieData) : [],
         });
-        
+
         try {
             const result = await this.addWatchHistoryUseCase.execute(
                 userId,
@@ -63,6 +63,7 @@ export class WatchHistoryController {
                 body.episodeNumber,
                 body.serverName,
                 body.movieData,
+                body.serverDisplayName,
             );
             console.log('✅ [WatchHistory] Successfully added:', result);
             return result;

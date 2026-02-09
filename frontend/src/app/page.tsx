@@ -161,7 +161,11 @@ export default async function HomePage() {
 
         {/* Trending - Lazy loaded */}
         {trendingMovies.length > 0 && (
-          <LazySection minHeight="350px" sectionKey="trending">
+          <LazySection
+            minHeight="350px"
+            sectionKey="trending"
+            loader={<MovieRowSkeleton />}
+          >
             <MovieRow
               title="Trending This Week"
               href="/movies/trending"

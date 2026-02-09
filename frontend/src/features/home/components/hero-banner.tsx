@@ -53,6 +53,8 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
     // Swipe/drag state
     const [isDragging, setIsDragging] = useState(false);
     const [dragStartX, setDragStartX] = useState(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const containerRef = useRef<HTMLElement>(null);
 
     const activeMovie = featuredMovies[activeIndex];
 
@@ -61,6 +63,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
         setIsTransitioning(true);
         setActiveIndex(index);
+        setDragOffset(0);
 
         // Reset transition state after animation
         setTimeout(() => setIsTransitioning(false), 500);
@@ -76,19 +79,38 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
         } else {
             newIndex = (activeIndex - 1 + featuredMovies.length) % featuredMovies.length;
         }
-        handleThumbnailClick(newIndex);
+
+        // Don't set isTransitioning if we are simply completing a drag, 
+        // as the blending is already happening/happened via dragOffset
+        // But if we click buttons (not implemented here but good practice), we need it.
+        // For drag completion, we might want a smooth finish.
+        setIsTransitioning(true);
+        setActiveIndex(newIndex);
+        setDragOffset(0);
+        setTimeout(() => setIsTransitioning(false), 500);
     };
 
     // Mouse drag handlers
     const handleMouseDown = (e: React.MouseEvent) => {
         setIsDragging(true);
         setDragStartX(e.clientX);
+        setDragOffset(0);
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
+        // Update CSS variables for lighting effect
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            containerRef.current.style.setProperty('--mouse-x', `${x}px`);
+            containerRef.current.style.setProperty('--mouse-y', `${y}px`);
+        }
+
         if (!isDragging) return;
-        // Prevent text selection while dragging
         e.preventDefault();
+        const offset = e.clientX - dragStartX;
+        setDragOffset(offset);
     };
 
     const handleMouseUp = (e: React.MouseEvent) => {
@@ -96,6 +118,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
         const dragDistance = e.clientX - dragStartX;
         const swipeThreshold = 50; // pixels
+        const containerWidth = containerRef.current?.offsetWidth || window.innerWidth;
 
         if (Math.abs(dragDistance) > swipeThreshold) {
             if (dragDistance > 0) {
@@ -103,22 +126,40 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
             } else {
                 navigateMovie('next'); // Swiped left -> go to next
             }
+        } else {
+            // Revert if threshold not met
+            setDragOffset(0);
         }
 
         setIsDragging(false);
     };
 
     const handleMouseLeave = () => {
-        setIsDragging(false);
+        if (isDragging) {
+            setDragOffset(0);
+            setIsDragging(false);
+        }
     };
 
     // Touch handlers for mobile
     const handleTouchStart = (e: React.TouchEvent) => {
+        setIsDragging(true);
         setDragStartX(e.touches[0].clientX);
+        setDragOffset(0);
     };
 
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging) return;
+        const offset = e.touches[0].clientX - dragStartX;
+        setDragOffset(offset);
+    }
+
     const handleTouchEnd = (e: React.TouchEvent) => {
-        const dragDistance = e.changedTouches[0].clientX - dragStartX;
+        if (!isDragging) return;
+
+        // Use dragOffset instead of recalculating from event because changedTouches detail might vary
+        // and we are already tracking offset.
+        const dragDistance = dragOffset;
         const swipeThreshold = 50;
 
         if (Math.abs(dragDistance) > swipeThreshold) {
@@ -127,7 +168,10 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
             } else {
                 navigateMovie('next');
             }
+        } else {
+            setDragOffset(0);
         }
+        setIsDragging(false);
     };
 
 
@@ -153,42 +197,151 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
     return (
         <section
-            className={`relative h-[85vh] md:h-[70vh] lg:h-screen overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`relative h-[85vh] md:h-[70vh] lg:h-screen overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} hero-banner-container`}
+            ref={containerRef}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
+            style={{
+                '--mouse-x': '50%',
+                '--mouse-y': '50%'
+            } as React.CSSProperties}
         >
             {/* Background Image with smooth transition - Desktop only */}
             <div className="absolute inset-0 hidden md:block">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800" />
-                {featuredMovies.map((movie, index) => (
-                    <img
-                        key={movie.id}
-                        src={movie.displayBackdrop}
-                        alt={movie.title}
-                        className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'
-                            }`}
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                    />
-                ))}
+                {/* Base Layer: Active Image (Always visible at bottom when not transitioning, or masked when transitioning) */}
+                {!isDragging && !isTransitioning && (
+                    featuredMovies.map((movie, index) => (
+                        <div
+                            key={movie.id}
+                            className={`absolute inset-0 transition-opacity duration-700 ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+                        >
+                            <img
+                                src={movie.displayBackdrop}
+                                alt={movie.title}
+                                className="w-full h-full object-cover"
+                                loading={index === 0 ? 'eager' : 'lazy'}
+                            />
+                        </div>
+                    ))
+                )}
+
+                {/* Transition Layer: Overlay / Interference Effect */}
+                {(isDragging || isTransitioning) && (() => {
+                    // Determine which is base and which is overlay
+                    let baseIndex = activeIndex;
+                    let overlayIndex = -1;
+                    let progress = 0;
+
+                    if (isDragging) {
+                        const width = containerRef.current?.offsetWidth || window.innerWidth;
+                        const rawProgress = Math.abs(dragOffset) / width;
+                        progress = Math.min(rawProgress, 1);
+
+                        // Dragging Left (< 0) -> Reveal Next
+                        if (dragOffset < 0) {
+                            overlayIndex = (activeIndex + 1) % featuredMovies.length;
+                        }
+                        // Dragging Right (> 0) -> Reveal Prev
+                        else if (dragOffset > 0) {
+                            overlayIndex = (activeIndex - 1 + featuredMovies.length) % featuredMovies.length;
+                        }
+                    } else if (isTransitioning) {
+                        // Fallback for click transitions (not drag)
+                        // This part is less critical for the specific "drag" request but good to keep consistent
+                    }
+
+                    // If we have an overlay to show (Dragging)
+                    if (overlayIndex !== -1 && isDragging) {
+                        const baseMovie = featuredMovies[baseIndex];
+                        const overlayMovie = featuredMovies[overlayIndex];
+
+                        return (
+                            <>
+                                {/* Base Image - Always visible/opaque at bottom */}
+                                <img
+                                    src={baseMovie.displayBackdrop}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    alt=""
+                                    style={{ zIndex: 0 }}
+                                />
+
+                                {/* Overlay Image - Fades in on top */}
+                                <img
+                                    src={overlayMovie.displayBackdrop}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    style={{
+                                        zIndex: 10,
+                                        opacity: progress,
+                                        // Optional: Add a subtle scale effect for better "entrance" feel
+                                        transform: `scale(${1.05 - (progress * 0.05)})`,
+                                        mixBlendMode: 'normal' // Ensure standard blending (or 'screen'/'overlay' if they wanted artistic blend)
+                                        // User said "giao thoa đè lên nhau" (interfere/overlap on top). 
+                                        // Standard opacity fade of top layer achieves this visual of two images present.
+                                    }}
+                                />
+                            </>
+                        );
+                    }
+
+                    // Fallback for non-drag transition (simple fade)
+                    return featuredMovies.map((movie, index) => (
+                        <img
+                            key={movie.id}
+                            src={movie.displayBackdrop}
+                            alt={movie.title}
+                            className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                    ));
+
+                })()}
             </div>
 
             {/* Mobile Background - Blurred backdrop */}
             <div className="absolute inset-0 md:hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800" />
-                {featuredMovies.map((movie, index) => (
-                    <img
-                        key={`mobile-bg-${movie.id}`}
-                        src={movie.displayBackdrop}
-                        alt=""
-                        className={`absolute inset-0 w-full h-full object-cover object-center blur-2xl scale-110 transition-opacity duration-700 ease-in-out ${index === activeIndex ? 'opacity-30' : 'opacity-0'
-                            }`}
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                    />
-                ))}
+                {featuredMovies.map((movie, index) => {
+                    let opacity = 0;
+
+                    // Logic for blending (reduced max opacity for mobile bg)
+                    if (isDragging && dragOffset !== 0) {
+                        const width = containerRef.current?.offsetWidth || 1;
+                        const progress = Math.min(Math.abs(dragOffset) / width, 1);
+
+                        if (index === activeIndex) opacity = (1 - progress) * 0.3; // Max 0.3
+
+                        if (dragOffset > 0) {
+                            const prevIndex = (activeIndex - 1 + featuredMovies.length) % featuredMovies.length;
+                            if (index === prevIndex) opacity = progress * 0.3;
+                        }
+
+                        if (dragOffset < 0) {
+                            const nextIndex = (activeIndex + 1) % featuredMovies.length;
+                            if (index === nextIndex) opacity = progress * 0.3;
+                        }
+                    } else {
+                        opacity = index === activeIndex ? 0.3 : 0;
+                    }
+
+                    return (
+                        <img
+                            key={`mobile-bg-${movie.id}`}
+                            src={movie.displayBackdrop}
+                            alt=""
+                            className={`absolute inset-0 w-full h-full object-cover object-center blur-2xl scale-110 transition-opacity duration-700 ease-in-out ${isDragging ? 'transition-none duration-0' : ''
+                                }`}
+                            style={{ opacity }}
+                            loading={index === 0 ? 'eager' : 'lazy'}
+                        />
+                    );
+                })}
             </div>
 
             {/* Gradient Overlays - Desktop */}
@@ -200,11 +353,29 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
             {/* Top vignette */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent" />
 
-            {/* Film Grain Overlay */}
-            <div className="film-grain" aria-hidden="true" />
+            {/* Halftone Dot Shading Layer */}
+            <div
+                className="absolute inset-0 pointer-events-none z-[5]"
+                style={{
+                    // Pattern: Fine halftone dots (simulating print/texture)
+                    backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.4) 1px, transparent 1px), radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)`,
+                    backgroundSize: '4px 4px, 4px 4px',
+                    backgroundPosition: '0 0, 2px 2px', // Offset for denser texture
+
+                    // Blend: Hard-light or Overlay to interact with image colors/luminance
+                    mixBlendMode: 'overlay',
+                    opacity: 0.4, // Visible texture
+
+                    // Mask: Depth mask (Background strong, Center/Subject lighter)
+                    maskImage: `radial-gradient(circle at 60% 50%, transparent 0%, black 100%)`,
+                    WebkitMaskImage: `radial-gradient(circle at 60% 50%, transparent 0%, black 100%)`,
+                }}
+            />
+
+
 
             {/* Content Container */}
-            <div className="relative w-full h-full flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start pt-20 md:pt-0 pb-16 md:pb-16 lg:pb-20 px-4 md:px-12 lg:px-16 2xl:px-12">
+            <div className="relative w-full h-full flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start pt-20 md:pt-0 pb-16 md:pb-12 lg:pb-16 px-4 md:px-8 lg:px-12 2xl:px-16">
                 {/* Mobile/Tablet: Centered Poster + Info Below */}
                 <div className="md:hidden flex flex-col items-center text-center space-y-4 max-w-sm w-full">
                     {/* Poster Card - Mobile */}
@@ -340,9 +511,9 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                 </div>
 
                 {/* Desktop: Original Layout */}
-                <div className="hidden md:flex w-full items-end justify-between gap-6 lg:gap-8 xl:gap-10">
+                <div className="hidden md:flex w-full items-end justify-between gap-4 lg:gap-8 xl:gap-10">
                     {/* Left side - Movie info and CTA */}
-                    <div className="max-w-xl flex-shrink">
+                    <div className="max-w-xl md:max-w-lg lg:max-w-xl flex-shrink">
                         {/* Logo + Title Section */}
                         <div
                             className={`mb-3 transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
@@ -357,7 +528,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                                         <img
                                             src={activeMovie.logoUrl}
                                             alt={activeMovie.title}
-                                            className="max-h-24 lg:max-h-28 w-auto object-contain object-left drop-shadow-xl cursor-pointer"
+                                            className="max-h-16 lg:max-h-24 w-auto object-contain object-left drop-shadow-xl cursor-pointer"
                                             loading="eager"
                                         />
                                     </NavigationLink>
@@ -374,7 +545,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
                         {/* Description with transition */}
                         <p
-                            className={`text-gray-300 text-sm lg:text-base mb-4 line-clamp-2 transition-all duration-500 delay-75 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+                            className={`text-gray-300 text-sm md:text-xs lg:text-sm mb-4 line-clamp-2 md:max-w-md lg:max-w-lg transition-all duration-500 delay-75 ${isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
                                 }`}
                         >
                             {activeMovie.description}
@@ -431,14 +602,14 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                         >
                             <NavigationLink
                                 href={`/watch/${activeMovie.externalId || activeMovie.id}`}
-                                className="inline-flex items-center gap-2 px-8 py-2.5 bg-white text-black font-bold text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
+                                className="inline-flex items-center gap-2 px-6 lg:px-8 py-2 md:py-2.5 bg-white text-black font-bold text-xs md:text-sm rounded hover:bg-gray-200 transition-all active:scale-95"
                             >
                                 <Play className="w-5 h-5 fill-black" />
                                 <span>Play</span>
                             </NavigationLink>
                             <NavigationLink
                                 href={`/movies/${activeMovie.externalId || activeMovie.id}`}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-sm rounded backdrop-blur-sm transition-all active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 lg:px-5 py-2 md:py-2.5 bg-gray-500/40 hover:bg-gray-500/60 text-white font-semibold text-xs md:text-sm rounded backdrop-blur-sm transition-all active:scale-95"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span>Chi tiết</span>
@@ -453,7 +624,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                             <button
                                 key={movie.id}
                                 onClick={() => handleThumbnailClick(index)}
-                                className={`md:block ${index >= 3 ? 'hidden lg:block' : ''} ${index >= 4 ? 'hidden xl:block' : ''} flex-shrink-0 w-14 h-9 md:w-16 md:h-10 lg:w-20 lg:h-12 xl:w-24 xl:h-14 rounded-md lg:rounded-lg overflow-hidden transition-all duration-300 ${index === activeIndex
+                                className={`md:block ${index >= 3 ? 'hidden lg:block' : ''} ${index >= 4 ? 'hidden xl:block' : ''} flex-shrink-0 w-12 h-8 md:w-14 md:h-9 lg:w-16 lg:h-10 xl:w-20 xl:h-12 rounded-md lg:rounded-lg overflow-hidden transition-all duration-300 ${index === activeIndex
                                     ? 'ring-2 ring-white scale-105 lg:scale-110 shadow-lg shadow-black/50'
                                     : 'opacity-50 hover:opacity-80 hover:scale-105'
                                     }`}
@@ -472,7 +643,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
                             <button
                                 key={movie.id}
                                 onClick={() => handleThumbnailClick(index + 4)}
-                                className={`hidden xl:block flex-shrink-0 w-24 h-14 rounded-lg overflow-hidden transition-all duration-300 ${index + 4 === activeIndex
+                                className={`hidden xl:block flex-shrink-0 w-20 h-12 rounded-lg overflow-hidden transition-all duration-300 ${index + 4 === activeIndex
                                     ? 'ring-2 ring-white scale-110 shadow-lg shadow-black/50'
                                     : 'opacity-50 hover:opacity-80 hover:scale-105'
                                     }`}

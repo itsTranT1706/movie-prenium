@@ -31,6 +31,24 @@ import { apiClient } from '@/shared/lib/api/client';
  * - Watch history (TODO)
  */
 
+// Helper to format server name for display
+const formatServerName = (name?: string): string | undefined => {
+  if (!name) return undefined;
+  const lowerName = name.toLowerCase();
+
+  if (lowerName.includes('vietsub') || lowerName.includes('viet sub')) return 'Vietsub';
+  if (lowerName.includes('thuyết minh') || lowerName.includes('thuyet minh')) return 'Thuyết minh';
+  if (lowerName.includes('lồng tiếng') || lowerName.includes('long tieng')) return 'Lồng tiếng';
+  if (lowerName.includes('engsub') || lowerName.includes('eng sub')) return 'Engsub';
+  if (lowerName.includes('raw')) return 'Raw';
+
+  // Try to extract text in parentheses
+  const parenMatch = name.match(/\(([^)]+)\)/);
+  if (parenMatch) return parenMatch[1];
+
+  return name;
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -137,6 +155,7 @@ export default function ProfilePage() {
             lastWatchedAt: new Date(item.lastWatchedAt),
             currentEpisode: item.episodeNumber ? `Tập ${item.episodeNumber}` : undefined,
             serverName: item.serverName,
+            serverDisplayName: item.serverDisplayName || formatServerName(item.serverName),
             remainingTime: undefined,
           }));
 

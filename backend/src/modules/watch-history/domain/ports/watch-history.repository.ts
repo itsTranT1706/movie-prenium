@@ -7,6 +7,7 @@ export interface WatchHistoryRepository {
         episodeNumber?: number,
         serverName?: string,
         movieData?: any,
+        serverDisplayName?: string,
     ): Promise<WatchHistory>;
 
     markAsCompleted(
