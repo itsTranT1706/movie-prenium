@@ -83,6 +83,13 @@ import { MovieController, MovieReactionController } from './controllers';
             useClass: PrismaReactionRepository,
         },
     ],
-    exports: [MOVIE_REPOSITORY, MOVIE_PROVIDER, StreamingProviderRegistry, REACTION_REPOSITORY],
+    exports: [
+        MOVIE_REPOSITORY,
+        MOVIE_PROVIDER,
+        StreamingProviderRegistry,
+        REACTION_REPOSITORY,
+        GetTrendingMoviesUseCase,
+        GetPopularMoviesUseCase
+    ],
 })
 export class MovieModule { }

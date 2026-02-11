@@ -14,6 +14,7 @@ import { RecommendationModule } from './modules/recommendation/infrastructure/re
 import { AIModule } from './modules/ai/infrastructure/ai.module';
 import { CommentModule } from './modules/comment/infrastructure/comment.module';
 import { TopBannerModule } from './modules/top-banner/infrastructure/top-banner.module';
+import { YoutubeModule } from './modules/youtube/youtube.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TopBannerModule } from './modules/top-banner/infrastructure/top-banner.
     RecommendationModule,
     CommentModule,
     TopBannerModule,
+    YoutubeModule,
 
     // AI Module (Stub)
     AIModule,

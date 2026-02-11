@@ -9,6 +9,7 @@ import { EpisodeSelector } from './episode-selector';
 import { CurvedVideoPlayer } from './curved-video-player';
 import { EpisodeTabs } from './episode-tabs';
 import { MovieReactionSelector } from '@/features/movies/components/movie-reaction-selector';
+import { TopWeeklyMoviesSidebar } from '@/features/movies/components/top-weekly-movies-sidebar';
 import { useAuth, useRequireAuth } from '@/features/auth';
 import { apiClient } from '@/shared/lib/api';
 import { MobileWatchLayout } from './mobile-watch-layout';
@@ -387,26 +388,7 @@ export function WatchPageClient({
                                 </div>
 
                                 <div className="w-full lg:w-80 flex-shrink-0 lg:pl-8 lg:border-l lg:border-white/10">
-                                    <h2 className="text-xl font-bold text-white mb-6">Top phim tuần này</h2>
-                                    <div className="space-y-0">
-                                        {topWeeklyMovies.map((item: any, index: number) => (
-                                            <div key={item.id}>
-                                                <NavigationLink href={`/movies/${item.id}`} className="flex gap-3 py-3 hover:bg-white/5 transition-colors group">
-                                                    <div className="flex-shrink-0 w-16 h-24 rounded overflow-hidden bg-white/5">
-                                                        <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <h3 className="text-white text-sm font-semibold mb-1 line-clamp-2 group-hover:text-gray-200 transition-colors">{item.title}</h3>
-                                                        {item.subtitle && <p className="text-gray-400 text-xs mb-1">{item.subtitle}</p>}
-                                                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                            <span>{item.season}</span><span>•</span><span>{item.episode}</span>
-                                                        </div>
-                                                    </div>
-                                                </NavigationLink>
-                                                {index < topWeeklyMovies.length - 1 && <div className="border-t border-white/5" />}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <TopWeeklyMoviesSidebar movies={topWeeklyMovies} />
                                 </div>
                             </div>
                         </div>

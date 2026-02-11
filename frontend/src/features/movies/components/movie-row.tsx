@@ -26,19 +26,7 @@ interface MovieRowProps {
  * - Cinema-style spacing
  * - Premium streaming platform feel
  */
-export default function MovieRow({ title, href, movies, isLoading, icon, fluid = false }: MovieRowProps) {
-    const getIcon = () => {
-        switch (icon) {
-            case 'trending':
-                return <Flame className="w-5 h-5 text-orange-500" />;
-            case 'new':
-                return <Sparkles className="w-5 h-5 text-yellow-400" />;
-            case 'series':
-                return <Tv className="w-5 h-5 text-purple-400" />;
-            default:
-                return null;
-        }
-    };
+export default function MovieRow({ title, href, movies, isLoading, fluid = false }: MovieRowProps) {
 
     if (isLoading) {
         return (
@@ -66,8 +54,7 @@ export default function MovieRow({ title, href, movies, isLoading, icon, fluid =
             <div className={fluid ? "w-full px-4 md:px-12 lg:px-16 2xl:px-12" : "container"}>
                 {/* Header - Tight spacing */}
                 <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg lg:text-xl font-bold text-white flex items-center gap-2">
-                        {getIcon()}
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 uppercase tracking-widest border-l-4 border-[#ff2020] pl-4 shadow-black drop-shadow-lg">
                         <span>{title}</span>
                     </h2>
                     {href && (

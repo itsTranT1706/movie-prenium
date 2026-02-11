@@ -46,11 +46,11 @@ export class CommentController {
   @Post()
   @UseGuards(JwtAuthGuard)
   async createComment(@Req() req: any, @Body() dto: CreateCommentDto) {
-    console.log('Creating comment:', {
-      userId: req.user.userId,
-      movieId: dto.movieId,
-      contentLength: dto.content.length,
-    });
+    // console.log('Creating comment:', {
+    //   userId: req.user.userId,
+    //   movieId: dto.movieId,
+    //   contentLength: dto.content.length,
+    // });
 
     try {
       const comment = await this.createCommentUseCase.execute({

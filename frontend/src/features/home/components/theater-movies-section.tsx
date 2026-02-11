@@ -144,26 +144,34 @@ export default function TheaterMoviesSection({
     }
 
     return (
-        <section className="py-3 md:py-4 lg:py-6">
-            <div className="w-full px-4 md:px-12 lg:px-16 2xl:px-12">
+        <section className="py-3 md:py-4 lg:py-6 relative">
+            <div className="w-full px-4 md:px-12 lg:px-16 2xl:px-12 relative">
+
+                {/* Ambient Background Blur Wrapper - CLIPPED */}
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none rounded-xl">
+                    {activeMovie && (
+                        <div key={activeMovie.id} className="absolute inset-0 animate-in fade-in duration-700">
+                            <img
+                                src={activeMovie.backdropUrl || activeMovie.posterUrl}
+                                alt=""
+                                className="w-full h-full object-cover blur-[100px] opacity-30 scale-125"
+                            />
+                            <div className="absolute inset-0 bg-black/40" />
+
+                        </div>
+                    )}
+                </div>
+
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3 md:mb-4">
-                    <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white">
+                <div className="flex items-center justify-between mb-3 md:mb-4 relative z-10">
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-white uppercase tracking-widest border-l-4 border-[#ff2020] pl-4 shadow-black drop-shadow-lg">
                         {title}
                     </h2>
-                    {/* <Link
-                        href="/movies/now-playing"
-                        className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
-                    >
-                        <span className="hidden sm:inline">Xem toàn bộ</span>
-                        <span className="sm:hidden">Xem thêm</span>
-                        <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-                    </Link> */}
                 </div>
 
                 {/* Main Card with Navigation */}
                 <div
-                    className="flex items-center gap-2 md:gap-3 lg:gap-4"
+                    className="flex items-center gap-2 md:gap-3 lg:gap-4 relative z-10"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
@@ -326,7 +334,7 @@ export default function TheaterMoviesSection({
                 </div>
 
                 {/* Dots indicator - Larger on mobile */}
-                <div className="flex items-center justify-center gap-1.5 md:gap-2 mt-3 md:mt-4">
+                <div className="flex items-center justify-center gap-1.5 md:gap-2 mt-3 md:mt-4 relative z-10">
                     {movies.map((_, index) => (
                         <button
                             key={index}
@@ -338,6 +346,33 @@ export default function TheaterMoviesSection({
                             aria-label={`Go to movie ${index + 1}`}
                         />
                     ))}
+                </div>
+
+                {/* Bottom Curve & Spotlight - VISIBLE OVERFLOW, INVERTED CURVE (CONCAVE) */}
+                {/* SVG Mask to hide background corners and create concave shape */}
+                <div className="absolute -bottom-24 left-0 right-0 h-16 md:h-25 pointer-events-none z-20 w-full overflow-visible">
+                    <svg
+                        viewBox="0 0 1440 100"
+                        className="w-full h-full block overflow-visible"
+                        preserveAspectRatio="none"
+                    >
+                        {/* 1. Mask Layer: Fills the bottom area with body color to hide the section's rectangular corners. */}
+                        <path
+                            d="M0,100 L0,0 Q720,-40 1440,0 L1440,100 Z"
+                            fill="#0a0a0a"
+                            stroke="none"
+                        />
+                        {/* 2. Border Layer: Custom tapered shape (Thicker Middle, Thin Ends) */}
+                        <path
+                            d="M0,0 Q720,-44 1440,0 L1440,1 Q720,-36 0,1 Z"
+                            fill="#ff2020"
+                            stroke="none"
+                        />
+                    </svg>
+                    {/* Spotlight centered on top of the curve - Shining Down */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[400px] -mt-10 pointer-events-none flex justify-center">
+                        <div className="absolute top-0 w-[600px] h-full bg-gradient-to-b from-blue-300/30 to-transparent blur-3xl rounded-[50%]" />
+                    </div>
                 </div>
             </div>
 

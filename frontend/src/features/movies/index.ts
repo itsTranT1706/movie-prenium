@@ -12,6 +12,8 @@ export { MoviesTrendingPage } from './components/movies-trending-page';
 export { MoviesUnifiedPage } from './components/movies-unified-page';
 export { MoviesPageClient } from './components/movies-page-client';
 export { MovieDetailClient } from './components/movie-detail-client';
+export { ShortsCarousel } from './components/shorts-carousel';
+export { ShortsFeed } from './components/shorts-feed';
 
 // API services
 export { movieService } from './api/movie.service';

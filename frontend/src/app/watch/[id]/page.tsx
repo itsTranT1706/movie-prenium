@@ -72,8 +72,8 @@ export default async function WatchPage({
             title: m.title,
             subtitle: m.originalTitle,
             posterUrl: m.posterUrl,
-            season: 'T13',
-            episode: `${m.releaseDate ? new Date(m.releaseDate).getFullYear() : 2024}`,
+            quality: m.quality || 'HD',
+            year: m.releaseDate ? new Date(m.releaseDate).getFullYear() : 2024,
         }));
     } catch (error) {
         console.error('Failed to fetch top movies:', error);
