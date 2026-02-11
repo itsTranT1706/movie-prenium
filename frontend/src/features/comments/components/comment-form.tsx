@@ -83,18 +83,36 @@ export function CommentForm({
             {user && (
                 <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={isSpoiler}
-                                onChange={(e) => setIsSpoiler(e.target.checked)}
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={isSpoiler}
+                                onClick={() => setIsSpoiler(!isSpoiler)}
                                 disabled={submitting}
-                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-white focus:ring-white/20 disabled:opacity-50"
-                            />
-                            <span className="text-xs text-gray-400">
+                                className={`
+                                    relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent 
+                                    transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/20
+                                    ${isSpoiler ? 'bg-red-600' : 'bg-zinc-700'}
+                                    disabled:opacity-50 disabled:cursor-not-allowed
+                                `}
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`
+                                        pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 
+                                        transition duration-200 ease-in-out
+                                        ${isSpoiler ? 'translate-x-5' : 'translate-x-0'}
+                                    `}
+                                />
+                            </button>
+                            <span
+                                className="text-xs text-gray-400 cursor-pointer select-none hover:text-gray-300 transition-colors"
+                                onClick={() => !submitting && setIsSpoiler(!isSpoiler)}
+                            >
                                 Đánh dấu spoiler
                             </span>
-                        </label>
+                        </div>
 
                         <span className={`text-xs ${charCount > MAX_LENGTH * 0.9 ? 'text-yellow-500' : 'text-gray-500'}`}>
                             {charCount}/{MAX_LENGTH}

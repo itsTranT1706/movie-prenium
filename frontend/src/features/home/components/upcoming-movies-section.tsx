@@ -94,7 +94,7 @@ export default function UpcomingMoviesSection({
             <div className="w-full px-4 md:px-12 lg:px-16 2xl:px-12">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base lg:text-lg font-bold text-white">
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-white uppercase tracking-widest border-l-4 border-[#ff2020] pl-4 shadow-black drop-shadow-lg">
                         {title}
                     </h2>
                     {/* <Link
@@ -120,17 +120,6 @@ export default function UpcomingMoviesSection({
                         <CarouselContent className="-ml-3 lg:-ml-4">
                             {movies.map((movie) => (
                                 <CarouselItem key={movie.id} className="pl-3 lg:pl-4 basis-auto">
-                                    <HoverPreviewCard
-                                        movie={{
-                                            id: movie.id,
-                                            externalId: movie.externalId,
-                                            title: movie.title,
-                                            subtitle: movie.subtitle,
-                                            backdropUrl: movie.backdropUrl,
-                                            posterUrl: movie.backdropUrl,
-                                        }}
-                                        delay={600}
-                                    >
                                         <Link
                                             href={`/movies/${movie.externalId || movie.id}`}
                                             className="upcoming-movie-card group/card block"
@@ -177,7 +166,6 @@ export default function UpcomingMoviesSection({
                                                 )}
                                             </div>
                                         </Link>
-                                    </HoverPreviewCard>
                                 </CarouselItem>
                             ))}
                         </CarouselContent>

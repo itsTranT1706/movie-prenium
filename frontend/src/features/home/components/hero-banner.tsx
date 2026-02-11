@@ -355,7 +355,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
             {/* Halftone Dot Shading Layer */}
             <div
-                className="absolute inset-0 pointer-events-none z-[5]"
+                className="absolute inset-0 pointer-events-none z-0"
                 style={{
                     // Pattern: Fine halftone dots (simulating print/texture)
                     backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.4) 1px, transparent 1px), radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px)`,
@@ -375,7 +375,7 @@ export default function HeroBanner({ movies, isLoading }: HeroBannerProps) {
 
 
             {/* Content Container */}
-            <div className="relative w-full h-full flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start pt-20 md:pt-0 pb-16 md:pb-12 lg:pb-16 px-4 md:px-8 lg:px-12 2xl:px-16">
+            <div className="relative z-10 w-full h-full flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start pt-20 md:pt-0 pb-16 md:pb-12 lg:pb-16 px-4 md:px-8 lg:px-12 2xl:px-16">
                 {/* Mobile/Tablet: Centered Poster + Info Below */}
                 <div className="md:hidden flex flex-col items-center text-center space-y-4 max-w-sm w-full">
                     {/* Poster Card - Mobile */}

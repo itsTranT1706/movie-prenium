@@ -14,7 +14,7 @@ import {
   Top10MoviesSkeleton,
   MovieRowSkeleton,
 } from '@/features/home';
-import { MovieRow } from '@/features/movies';
+import { MovieRow, ShortsCarousel } from '@/features/movies';
 import { LazySection } from '@/shared/components/ui';
 import { serverApi } from '@/shared/lib/api/server';
 
@@ -154,6 +154,9 @@ export default async function HomePage() {
           <TrendingSectionWrapper />
         </LazySection>
 
+        {/* Trending Shorts - Lazy loaded */}
+
+
         {/* Country Movies - Lazy loaded */}
         <LazySection minHeight="280px" sectionKey="country">
           <CountryMoviesWrapper />
@@ -170,7 +173,6 @@ export default async function HomePage() {
               title="Trending This Week"
               href="/movies/trending"
               movies={trendingMovies}
-              icon="trending"
               fluid
             />
           </LazySection>
@@ -198,7 +200,6 @@ export default async function HomePage() {
               title="New Releases"
               href="/movies"
               movies={popularMovies}
-              icon="new"
               fluid
             />
           </LazySection>

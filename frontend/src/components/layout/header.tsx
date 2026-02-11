@@ -210,6 +210,7 @@ export default function Header() {
         { href: '/', label: 'Home' },
         { href: '/movies', label: 'Movies' },
         { href: '/series', label: 'Series' },
+        { href: '/shorts', label: 'Shorts' },
     ];
 
     const genres = [

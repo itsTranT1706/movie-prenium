@@ -31,8 +31,8 @@ export default function ContinueWatching({ items, isLoggedIn }: ContinueWatching
             <div className="w-full px-4 md:px-12 lg:px-16 2xl:px-12">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-lg lg:text-xl font-bold text-white flex items-center gap-2">
-                        <Play className="w-5 h-5 text-red-500 fill-red-500" />
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-3 uppercase tracking-widest border-l-4 border-[#ff2020] pl-4 shadow-black drop-shadow-lg">
+                        <Play className="w-6 h-6 md:w-8 md:h-8 text-red-600 fill-red-600" />
                         <span>Continue Watching</span>
                     </h2>
                     <Link

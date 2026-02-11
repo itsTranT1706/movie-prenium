@@ -173,22 +173,22 @@ export function CommentItem({ comment, onUpdate, isReply = false }: CommentItemP
                             />
                         </div>
                     ) : (
-                        <>
-                            {comment.isSpoiler && !showSpoiler ? (
-                                <div className="mt-1">
-                                    <button
-                                        onClick={() => setShowSpoiler(true)}
-                                        className="text-sm text-gray-400 hover:text-white transition-colors underline"
-                                    >
-                                        Nhấn để xem spoiler
-                                    </button>
-                                </div>
-                            ) : (
-                                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
-                                    {comment.content}
-                                </p>
+                        <div
+                            className={cn(
+                                "mt-1 relative group transition-all duration-300",
+                                comment.isSpoiler && !showSpoiler && "cursor-pointer"
                             )}
-                        </>
+                            onClick={() => comment.isSpoiler && !showSpoiler && setShowSpoiler(true)}
+                        >
+                            <p
+                                className={cn(
+                                    "text-gray-300 text-sm leading-relaxed whitespace-pre-wrap transition-all duration-500",
+                                    comment.isSpoiler && !showSpoiler && "blur-[6px] select-none opacity-40 grayscale"
+                                )}
+                            >
+                                {comment.content}
+                            </p>
+                        </div>
                     )}
 
                     {/* Actions */}

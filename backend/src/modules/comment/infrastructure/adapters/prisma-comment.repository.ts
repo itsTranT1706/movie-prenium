@@ -401,7 +401,7 @@ export class PrismaCommentRepository implements ICommentRepository {
         : undefined,
     };
 
-    console.log('🗺️ Mapped comment:', { id: mapped.id, hasMovie: !!mapped.movie, movie: mapped.movie });
+    // console.log('🗺️ Mapped comment:', { id: mapped.id, hasMovie: !!mapped.movie, movie: mapped.movie });
     return mapped;
   }
 
